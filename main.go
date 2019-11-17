@@ -5,11 +5,35 @@ import (
 	"github.com/eriklupander/rt/internal/pkg/canvas"
 	"github.com/eriklupander/rt/internal/pkg/mat"
 	"io/ioutil"
+	"math"
 	"os"
 )
 
 func main() {
-	projectileDemo()
+	clockDemo()
+	//projectileDemo()
+}
+
+func clockDemo() {
+	c := canvas.NewCanvas(80, 80)
+	center := (c.W/2 + c.H/2) / 2
+	white := mat.NewColor(1, 1, 1)
+
+	point := mat.NewPoint(0, 1, 0)
+	for i := 0; i < 12; i++ {
+		rotation := float64(i) * (2 * math.Pi) / 12
+		rotMat := mat.RotateZ(rotation)
+		p2 := mat.MultiplyByTuple(*rotMat, *point)
+		p2 = mat.MultiplyByScalar(*p2, 30.0)
+		c.WritePixel(center+int(p2.Get(0)), center-int(p2.Get(1)), white)
+	}
+
+	// write
+	data := c.ToPPM()
+	err := ioutil.WriteFile("clock.ppm", []byte(data), os.FileMode(0755))
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 }
 
 func projectileDemo() {

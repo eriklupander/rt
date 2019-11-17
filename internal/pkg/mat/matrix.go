@@ -7,6 +7,12 @@ var IdentityMatrix = &Mat4x4{[]float64{
 	0, 0, 0, 1},
 }
 
+func NewIdentityMatrix() *Mat4x4 {
+	m1 := NewMat4x4(make([]float64, 16))
+	copy(m1.Elems, IdentityMatrix.Elems)
+	return m1
+}
+
 type Mat2x2 struct {
 	Elems []float64
 }
@@ -112,7 +118,7 @@ func Determinant2x2(m1 Mat2x2) float64 {
 	return m1.Elems[0]*m1.Elems[3] - m1.Elems[1]*m1.Elems[2]
 }
 
-// Determinant3x3 takes the first row of the massed matrix, summing the colvalue * Cofactor of the same col
+// Determinant3x3 takes the first row of the passed matrix, summing the colvalue * Cofactor of the same col
 func Determinant3x3(m1 *Mat3x3) float64 {
 	det := 0.0
 	for col := 0; col < 3; col++ {

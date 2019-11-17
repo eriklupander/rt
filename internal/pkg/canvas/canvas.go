@@ -29,7 +29,7 @@ func (c *Canvas) WritePixel(col, row int, color *mat.Tuple4) {
 		return
 	}
 	if row*col > c.MaxIndex {
-		fmt.Println("pixel was out of bounds total bounds")
+		fmt.Println("pixel was out of max bounds index bounds")
 		return
 	}
 	c.Pixels[c.toIdx(col, row)] = color
@@ -58,7 +58,11 @@ func (c *Canvas) ToPPM() string {
 		final += out + "\n"
 	}
 	final = strings.TrimSuffix(final, "\n")
-	return fmt.Sprintf("P3\n%d %d\n255\n", c.W, c.H) + final
+	final = fmt.Sprintf("P3\n%d %d\n255\n", c.W, c.H) + final
+	if !strings.HasSuffix(final, "\n") {
+		return final + "\n"
+	}
+	return final
 }
 
 func clamp(color *mat.Tuple4, buf *strings.Builder, written *int) {

@@ -204,3 +204,88 @@ func TestInverse(t *testing.T) {
 		assert.InEpsilon(t, expected.Elems[i], m3.Elems[i], Epsilon, fmt.Sprintf("index %d failed: values: %v %v", i, expected.Elems[i], m3.Elems[i]))
 	}
 }
+
+func TestInverse2(t *testing.T) {
+	m1 := NewMat4x4([]float64{8, -5, 9, 2, 7, 5, 6, 1, -6, 0, 9, 6, -3, 0, -9, -4})
+	m3 := Inverse(m1)
+	expected := NewMat4x4([]float64{-0.15385, -0.15385, -0.28205, -0.53846,
+		-0.07692, 0.12308, 0.02564, 0.03077,
+		0.35897, 0.35897, 0.43590, 0.92308,
+		-0.69231, -0.69231, -0.76923, -1.92308})
+
+	for i := 0; i < 16; i++ {
+		assert.InEpsilon(t, expected.Elems[i], m3.Elems[i], Epsilon, fmt.Sprintf("index %d failed: values: %v %v", i, expected.Elems[i], m3.Elems[i]))
+	}
+}
+func TestInverse3(t *testing.T) {
+	m1 := NewMat4x4([]float64{
+		9, 3, 0, 9,
+		-5, -2, -6, -3,
+		-4, 9, 6, 4,
+		-7, 6, 6, 2})
+	m3 := Inverse(m1)
+
+	expected := NewMat4x4([]float64{-0.04074, -0.07778, 0.14444, -0.22222,
+		-0.07778, 0.03333, 0.36667, -0.33333,
+		-0.02901, -0.14630, -0.10926, 0.12963,
+		0.17778, 0.06667, -0.26667, 0.33333})
+
+	for i := 0; i < 16; i++ {
+		assert.InEpsilon(t, expected.Elems[i], m3.Elems[i], Epsilon, fmt.Sprintf("index %d failed: values: %v %v", i, expected.Elems[i], m3.Elems[i]))
+	}
+}
+
+func TestMultiplyByInverse(t *testing.T) {
+	m1 := NewMat4x4([]float64{
+		3, -9, 7, 3,
+		3, -8, 2, -9,
+		-4, 4, 4, 1,
+		-6, 5, -1, 1})
+
+	m2 := NewMat4x4([]float64{
+		8, 2, 2, 2,
+		3, -1, 7, 0,
+		7, 0, 5, 4,
+		6, -2, 0, 5})
+
+	m3 := Multiply(m1, m2)
+
+	Equals(*Multiply(m3, Inverse(m2)), *m1)
+}
+
+func TestInvertIdentity(t *testing.T) {
+	// Inverse identity matrix seems to do nothing.
+	m3 := Inverse(IdentityMatrix)
+	fmt.Printf("%+v\n", m3)
+
+	m1 := NewMat4x4([]float64{
+		3, -9, 7, 3,
+		3, -8, 2, -9,
+		-4, 4, 4, 1,
+		-6, 5, -1, 1})
+
+	// Multiply by its own inverse gets you identity matrix?
+	m2 := Inverse(m1)
+	m3 = Multiply(m1, m2)
+	fmt.Printf("%+v\n", m3)
+
+	// The transpose + inverse is equal to the inverse + transpose
+	t2 := Transpose(*m1)
+	i3 := Inverse(t2)
+
+	i1 := Inverse(m1)
+	t3 := Transpose(*i1)
+
+	fmt.Printf("%+v\n", i3)
+	fmt.Printf("%+v\n", t3)
+
+	tuple := NewTuple4([]float64{1, 2, 3, 0})
+	id1 := NewIdentityMatrix()
+	firstTuple := MultiplyByTuple(*id1, *tuple)
+
+	id1.Elems[5] = 7.0
+	secondTuple := MultiplyByTuple(*id1, *tuple)
+
+	fmt.Printf("%+v\n", firstTuple)
+	fmt.Printf("%+v\n", secondTuple)
+}
