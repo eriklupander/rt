@@ -93,7 +93,7 @@ func MultiplyByTuple(m1 Mat4x4, t Tuple4) *Tuple4 {
 	return t1
 }
 
-// Transpose flips rows and cols
+// Transpose flips rows and cols in the matrix.
 func Transpose(m1 Mat4x4) *Mat4x4 {
 	m3 := NewMat4x4(make([]float64, 16))
 	for col := 0; col < 4; col++ {
@@ -104,10 +104,33 @@ func Transpose(m1 Mat4x4) *Mat4x4 {
 	return m3
 }
 
+// Determinant2x2 returns A-D minus B-C for a
+// [A,B]
+// [C,D]
+// Matrix.
 func Determinant2x2(m1 Mat2x2) float64 {
 	return m1.Elems[0]*m1.Elems[3] - m1.Elems[1]*m1.Elems[2]
 }
 
+// Determinant3x3 takes the first row of the massed matrix, summing the colvalue * Cofactor of the same col
+func Determinant3x3(m1 *Mat3x3) float64 {
+	det := 0.0
+	for col := 0; col < 3; col++ {
+		det = det + m1.Elems[col]*Cofactor3x3(m1, 0, col)
+	}
+	return det
+}
+
+// Determinant4x4
+func Determinant4x4(m1 *Mat4x4) float64 {
+	det := 0.0
+	for col := 0; col < 4; col++ {
+		det = det + m1.Elems[col]*Cofactor4x4(m1, 0, col)
+	}
+	return det
+}
+
+// Submatrix3x3 extracts the 2x2 submatrix after deleting row and col from the passed 3x3
 func Submatrix3x3(m1 Mat3x3, deleteRow, deleteCol int) *Mat2x2 {
 	m3 := NewMat2x2(make([]float64, 4))
 	idx := 0
@@ -126,6 +149,8 @@ func Submatrix3x3(m1 Mat3x3, deleteRow, deleteCol int) *Mat2x2 {
 	}
 	return m3
 }
+
+// Submatrix4x4 extracts the 3x3 submatrix after deleting row and col from the passed 4x4
 func Submatrix4x4(m1 Mat4x4, deleteRow, deleteCol int) *Mat3x3 {
 	m3 := NewMat3x3(make([]float64, 9))
 	idx := 0
@@ -144,24 +169,28 @@ func Submatrix4x4(m1 Mat4x4, deleteRow, deleteCol int) *Mat3x3 {
 	return m3
 }
 
-func Minor(m1 *Mat3x3, row, col int) float64 {
+// Minor3x3 computes the submatrix at row/col and returns the determinant of the computed matrix.
+func Minor3x3(m1 *Mat3x3, row, col int) float64 {
 	m2 := Submatrix3x3(*m1, row, col)
 	return Determinant2x2(*m2)
 }
 
+// Minor4x4 computes the submatrix at row/col and returns the determinant of the computed matrix.
 func Minor4x4(m1 *Mat4x4, row, col int) float64 {
 	m2 := Submatrix4x4(*m1, row, col)
 	return Determinant3x3(m2)
 }
 
+// Cofactor3x3 may change the sign of the computed minor of the passed matrix
 func Cofactor3x3(m1 *Mat3x3, row, col int) float64 {
-	minor := Minor(m1, row, col)
+	minor := Minor3x3(m1, row, col)
 	if (row+col)%2 != 0 {
 		return -minor
 	}
 	return minor
 }
 
+// Cofactor4x4 may change the sign of the computed minor of the passed matrix
 func Cofactor4x4(m1 *Mat4x4, row, col int) float64 {
 	minor := Minor4x4(m1, row, col)
 	if (row+col)%2 != 0 {
@@ -170,20 +199,6 @@ func Cofactor4x4(m1 *Mat4x4, row, col int) float64 {
 	return minor
 }
 
-func Determinant3x3(m1 *Mat3x3) float64 {
-	det := 0.0
-	for col := 0; col < 3; col++ {
-		det = det + m1.Elems[col]*Cofactor3x3(m1, 0, col)
-	}
-	return det
-}
-func Determinant4x4(m1 *Mat4x4) float64 {
-	det := 0.0
-	for col := 0; col < 4; col++ {
-		det = det + m1.Elems[col]*Cofactor4x4(m1, 0, col)
-	}
-	return det
-}
 func IsInvertible(m1 *Mat4x4) bool {
 	return Determinant4x4(m1) != 0.0
 }

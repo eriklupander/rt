@@ -120,16 +120,16 @@ func TestMinor(t *testing.T) {
 	determ := Determinant2x2(*m2)
 	assert.Equal(t, 25.0, determ)
 
-	minor := Minor(m1, 1, 0)
+	minor := Minor3x3(m1, 1, 0)
 	assert.Equal(t, 25.0, minor)
 }
 
 func TestCofactor3x3(t *testing.T) {
 	m1 := NewMat3x3([]float64{3, 5, 0, 2, -1, -7, 6, -1, 5})
-	minor1 := Minor(m1, 0, 0)
+	minor1 := Minor3x3(m1, 0, 0)
 	cofactor1 := Cofactor3x3(m1, 0, 0)
 
-	minor2 := Minor(m1, 1, 0)
+	minor2 := Minor3x3(m1, 1, 0)
 	cofactor2 := Cofactor3x3(m1, 1, 0)
 
 	assert.Equal(t, -12.0, minor1)
