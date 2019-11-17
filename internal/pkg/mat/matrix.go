@@ -1,10 +1,16 @@
 package mat
 
-
+var IdentityMatrix = &Mat4x4{[]float64{
+	1, 0, 0, 0,
+	0, 1, 0, 0,
+	0, 0, 1, 0,
+	0, 0, 0, 1},
+}
 
 type Mat2x2 struct {
 	Elems []float64
 }
+
 func NewMat2x2(elems []float64) *Mat2x2 {
 	return &Mat2x2{Elems: elems}
 }
@@ -12,6 +18,7 @@ func NewMat2x2(elems []float64) *Mat2x2 {
 type Mat3x3 struct {
 	Elems []float64
 }
+
 func NewMat3x3(elems []float64) *Mat3x3 {
 	return &Mat3x3{Elems: elems}
 }
@@ -19,23 +26,44 @@ func NewMat3x3(elems []float64) *Mat3x3 {
 type Mat4x4 struct {
 	Elems []float64
 }
+
 func NewMat4x4(elems []float64) *Mat4x4 {
 	return &Mat4x4{Elems: elems}
 }
 
 func (m Mat2x2) Get(row int, col int) float64 {
-	return m.Elems[(row * 2) + col]
+	return m.Elems[(row*2)+col]
 }
 func (m Mat3x3) Get(row int, col int) float64 {
-	return m.Elems[(row * 3) + col]
+	return m.Elems[(row*3)+col]
 }
 func (m Mat4x4) Get(row int, col int) float64 {
-	return m.Elems[(row * 4) + col]
+	return m.Elems[(row*4)+col]
 }
 
 func Equals(m1, m2 Mat4x4) bool {
-	for row:=0; row < 4; row++ {
-		for col:=0; col < 4; col++ {
+	for row := 0; row < 4; row++ {
+		for col := 0; col < 4; col++ {
+			if m1.Get(row, col) != m2.Get(row, col) {
+				return false
+			}
+		}
+	}
+	return true
+}
+func Equals3x3(m1, m2 Mat3x3) bool {
+	for row := 0; row < 3; row++ {
+		for col := 0; col < 3; col++ {
+			if m1.Get(row, col) != m2.Get(row, col) {
+				return false
+			}
+		}
+	}
+	return true
+}
+func Equals2x2(m1, m2 Mat2x2) bool {
+	for row := 0; row < 2; row++ {
+		for col := 0; col < 2; col++ {
 			if m1.Get(row, col) != m2.Get(row, col) {
 				return false
 			}
@@ -44,12 +72,11 @@ func Equals(m1, m2 Mat4x4) bool {
 	return true
 }
 
-
 func Multiply(m1 *Mat4x4, m2 *Mat4x4) *Mat4x4 {
 	m3 := NewMat4x4(make([]float64, 16))
-	for row:=0; row < 4; row++ {
-		for col:=0; col < 4; col++ {
-			m3.Elems[(row * 4) + col] = multiply4x4(m1, m2, row, col)
+	for row := 0; row < 4; row++ {
+		for col := 0; col < 4; col++ {
+			m3.Elems[(row*4)+col] = multiply4x4(m1, m2, row, col)
 		}
 	}
 	return m3
@@ -57,13 +84,62 @@ func Multiply(m1 *Mat4x4, m2 *Mat4x4) *Mat4x4 {
 
 func MultiplyByTuple(m1 Mat4x4, t Tuple4) *Tuple4 {
 	t1 := NewTuple4(make([]float64, 4))
-	for row:=0; row < 4; row++ {
+	for row := 0; row < 4; row++ {
 		t1.Elems[row] = (m1.Get(row, 0) * t.Get(0)) +
 			(m1.Get(row, 1) * t.Get(1)) +
 			(m1.Get(row, 2) * t.Get(2)) +
 			(m1.Get(row, 3) * t.Get(3))
 	}
 	return t1
+}
+
+func Transpose(m1 Mat4x4) *Mat4x4 {
+	m3 := NewMat4x4(make([]float64, 16))
+	for col := 0; col < 4; col++ {
+		for row := 0; row < 4; row++ {
+			m3.Elems[(row*4)+col] = m1.Get(col, row)
+		}
+	}
+	return m3
+}
+
+func Determinant2x2(m1 Mat2x2) float64 {
+	return m1.Elems[0] * m1.Elems[3] - m1.Elems[1] *m1.Elems[2]
+}
+
+func Submatrix3x3(m1 Mat3x3, deleteRow, deleteCol int) *Mat2x2 {
+	m3 := NewMat2x2(make([]float64, 4))
+	idx := 0
+	for row := 0; row < 3; row++ {
+		if row == deleteRow {
+			continue
+		}
+		for col := 0; col < 3; col++ {
+			if col == deleteCol {
+				continue
+			}
+			m3.Elems[idx] = m1.Get(row, col)
+			idx++
+		}
+	}
+	return m3
+}
+func Submatrix4x4(m1 Mat4x4, deleteRow, deleteCol int) *Mat3x3 {
+	m3 := NewMat3x3(make([]float64, 9))
+	idx := 0
+	for row := 0; row < 4; row++ {
+		if row == deleteRow {
+			continue
+		}
+		for col := 0; col < 4; col++ {
+			if col == deleteCol {
+				continue
+			}
+			m3.Elems[idx] = m1.Get(row, col)
+			idx++
+		}
+	}
+	return m3
 }
 
 func multiply4x4(m1 *Mat4x4, m2 *Mat4x4, row int, col int) float64 {
