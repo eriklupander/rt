@@ -9,10 +9,10 @@ import (
 )
 
 type Canvas struct {
-	W      int
-	H      int
+	W        int
+	H        int
 	MaxIndex int
-	Pixels []*mat.Tuple4
+	Pixels   []*mat.Tuple4
 }
 
 func NewCanvas(w int, h int) *Canvas {
@@ -20,7 +20,7 @@ func NewCanvas(w int, h int) *Canvas {
 	for i, _ := range pixels {
 		pixels[i] = mat.NewColor(0, 0, 0)
 	}
-	return &Canvas{W: w, H: h, Pixels: pixels, MaxIndex: w*h}
+	return &Canvas{W: w, H: h, Pixels: pixels, MaxIndex: w * h}
 }
 
 func (c *Canvas) WritePixel(col, row int, color *mat.Tuple4) {
@@ -58,7 +58,7 @@ func (c *Canvas) ToPPM() string {
 		final += out + "\n"
 	}
 	final = strings.TrimSuffix(final, "\n")
-	return 	fmt.Sprintf("P3\n%d %d\n255\n", c.W, c.H) + final
+	return fmt.Sprintf("P3\n%d %d\n255\n", c.W, c.H) + final
 }
 
 func clamp(color *mat.Tuple4, buf *strings.Builder, written *int) {
@@ -70,14 +70,14 @@ func clamp(color *mat.Tuple4, buf *strings.Builder, written *int) {
 		} else if rounded < 0.0 {
 			rounded = 0.0
 		}
-		if *written + 3 > 69 {
+		if *written+3 > 69 {
 			buf.WriteString("\n")
 			buf.WriteString(strconv.Itoa(int(rounded)))
 			buf.WriteString(" ")
 			*written = 3
 		} else {
 			buf.WriteString(strconv.Itoa(int(rounded)))
-			if *written + 6 < 69 {
+			if *written+6 < 69 {
 				buf.WriteString(" ")
 			}
 			*written = *written + 4

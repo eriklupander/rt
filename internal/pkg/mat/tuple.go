@@ -7,13 +7,13 @@ type Tuple4 struct {
 }
 
 func NewVector(x, y, z float64) *Tuple4 {
-	return &Tuple4{[]float64{x, y ,z, 0.0}}
+	return &Tuple4{[]float64{x, y, z, 0.0}}
 }
 func NewPoint(x, y, z float64) *Tuple4 {
-	return &Tuple4{[]float64{x, y ,z, 1.0}}
+	return &Tuple4{[]float64{x, y, z, 1.0}}
 }
 func NewColor(r, g, b float64) *Tuple4 {
-	return &Tuple4{[]float64{r, g ,b, 1.0}}
+	return &Tuple4{[]float64{r, g, b, 1.0}}
 }
 
 func NewTuple4(elems []float64) *Tuple4 {
@@ -88,7 +88,7 @@ func Normalize(t1 Tuple4) *Tuple4 {
 
 func Dot(t1 Tuple4, t2 Tuple4) float64 {
 	sum := 0.0
-	for i:=0;i < 4;i++ {
+	for i := 0; i < 4; i++ {
 		sum += t1.Get(i) * t2.Get(i)
 	}
 	return sum
@@ -97,9 +97,9 @@ func Dot(t1 Tuple4, t2 Tuple4) float64 {
 func Cross(t1 Tuple4, t2 Tuple4) *Tuple4 {
 	t3 := &Tuple4{Elems: make([]float64, 4)}
 
-	t3.Elems[0] = t1.Get(1)* t2.Get(2) - t1.Get(2) * t2.Get(1)
-	t3.Elems[1] = t1.Get(2)* t2.Get(0) - t1.Get(0) * t2.Get(2)
-	t3.Elems[2] = t1.Get(0)* t2.Get(1) - t1.Get(1) * t2.Get(0)
+	t3.Elems[0] = t1.Get(1)*t2.Get(2) - t1.Get(2)*t2.Get(1)
+	t3.Elems[1] = t1.Get(2)*t2.Get(0) - t1.Get(0)*t2.Get(2)
+	t3.Elems[2] = t1.Get(0)*t2.Get(1) - t1.Get(1)*t2.Get(0)
 	t3.Elems[3] = 0
 	return t3
 }

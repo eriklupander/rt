@@ -65,7 +65,7 @@ func TestCanvas_ToPPM70(t *testing.T) {
 
 	c1 := mat.NewColor(1, 0.8, 0.6)
 	canvas := NewCanvas(10, 2)
-	for i:=0; i < 10*2; i++ {
+	for i := 0; i < 10*2; i++ {
 		canvas.WritePixelToIndex(i, c1)
 	}
 

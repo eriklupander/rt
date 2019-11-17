@@ -21,8 +21,8 @@ func projectileDemo() {
 		tick(prj, env)
 		//time.Sleep(time.Millisecond * 100)
 		fmt.Printf("Projectile pos %v at height %v with velocity %v\n", mat.Magnitude(*prj.pos), prj.pos.Get(1), *prj.velocity)
-		fmt.Printf("Drawing at: %d %d\n", int(prj.pos.Get(0)), c.H - int(prj.pos.Get(1)))
-		c.WritePixel(int(prj.pos.Get(0)), c.H - int(prj.pos.Get(1)), red)
+		fmt.Printf("Drawing at: %d %d\n", int(prj.pos.Get(0)), c.H-int(prj.pos.Get(1)))
+		c.WritePixel(int(prj.pos.Get(0)), c.H-int(prj.pos.Get(1)), red)
 	}
 	fmt.Printf("Projectile flew %v\n", mat.Magnitude(*prj.pos))
 	data := c.ToPPM()
@@ -40,7 +40,7 @@ func tick(prj *Projectile, env *Environment) {
 
 type Environment struct {
 	gravity *mat.Tuple4
-	wind *mat.Tuple4
+	wind    *mat.Tuple4
 }
 
 func NewEnvironment(gravity *mat.Tuple4, wind *mat.Tuple4) *Environment {
@@ -48,7 +48,7 @@ func NewEnvironment(gravity *mat.Tuple4, wind *mat.Tuple4) *Environment {
 }
 
 type Projectile struct {
-	pos *mat.Tuple4
+	pos      *mat.Tuple4
 	velocity *mat.Tuple4
 }
 

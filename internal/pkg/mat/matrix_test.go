@@ -1,6 +1,7 @@
 package mat
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -82,13 +83,13 @@ func TestMultiplyTupleByIdentityMatrix(t *testing.T) {
 }
 
 func TestTransposeMatrix(t *testing.T) {
-	m1 := NewMat4x4([]float64{0,9,3,0, 9,8,0,8, 1,8,5,3, 0,0,5,8})
-	expected := NewMat4x4([]float64{0,9,1,0, 9,8,8,0, 3,0,5,5, 0,8,3,8 })
+	m1 := NewMat4x4([]float64{0, 9, 3, 0, 9, 8, 0, 8, 1, 8, 5, 3, 0, 0, 5, 8})
+	expected := NewMat4x4([]float64{0, 9, 1, 0, 9, 8, 8, 0, 3, 0, 5, 5, 0, 8, 3, 8})
 	m3 := Transpose(*m1)
 	assert.True(t, Equals(*m3, *expected))
 }
 
-func TestTransportIdentityMatrix(t *testing.T) {
+func TestTransposeIdentityMatrix(t *testing.T) {
 	m3 := Transpose(*IdentityMatrix)
 	assert.True(t, Equals(*m3, *IdentityMatrix))
 }
@@ -100,8 +101,106 @@ func TestDeterminant2x2(t *testing.T) {
 }
 
 func TestSubmatrix3x3(t *testing.T) {
-	m1 := NewMat3x3([]float64{1,5,0,  -3,2,7, 0,6,-3})
+	m1 := NewMat3x3([]float64{1, 5, 0, -3, 2, 7, 0, 6, -3})
 	expected := NewMat2x2([]float64{-3, 2, 0, 6})
-	m3 := Submatrix3x3(*m1,0, 2)
+	m3 := Submatrix3x3(*m1, 0, 2)
 	assert.True(t, Equals2x2(*m3, *expected))
+}
+
+func TestSubmatrix4x4(t *testing.T) {
+	m1 := NewMat4x4([]float64{-6, 1, 1, 6, -8, 5, 8, 6, -1, 0, 8, 2, -7, 1, -1, 1})
+	expected := NewMat3x3([]float64{-6, 1, 6, -8, 8, 6, -7, -1, 1})
+	m3 := Submatrix4x4(*m1, 2, 1)
+	assert.True(t, Equals3x3(*m3, *expected))
+}
+
+func TestMinor(t *testing.T) {
+	m1 := NewMat3x3([]float64{3, 5, 0, 2, -1, -7, 6, -1, 5})
+	m2 := Submatrix3x3(*m1, 1, 0)
+	determ := Determinant2x2(*m2)
+	assert.Equal(t, 25.0, determ)
+
+	minor := Minor(m1, 1, 0)
+	assert.Equal(t, 25.0, minor)
+}
+
+func TestCofactor3x3(t *testing.T) {
+	m1 := NewMat3x3([]float64{3, 5, 0, 2, -1, -7, 6, -1, 5})
+	minor1 := Minor(m1, 0, 0)
+	cofactor1 := Cofactor3x3(m1, 0, 0)
+
+	minor2 := Minor(m1, 1, 0)
+	cofactor2 := Cofactor3x3(m1, 1, 0)
+
+	assert.Equal(t, -12.0, minor1)
+	assert.Equal(t, -12.0, cofactor1)
+	assert.Equal(t, 25.0, minor2)
+	assert.Equal(t, -25.0, cofactor2)
+}
+
+func TestDeterminant3x3(t *testing.T) {
+	m1 := NewMat3x3([]float64{1, 2, 6, -5, 8, -4, 2, 6, 4})
+	cf1 := Cofactor3x3(m1, 0, 0)
+	cf2 := Cofactor3x3(m1, 0, 1)
+	cf3 := Cofactor3x3(m1, 0, 2)
+	determinant := Determinant3x3(m1)
+
+	assert.Equal(t, 56.0, cf1)
+	assert.Equal(t, 12.0, cf2)
+	assert.Equal(t, -46.0, cf3)
+	assert.Equal(t, -196.0, determinant)
+}
+
+func TestDeterminant4x4(t *testing.T) {
+	m1 := NewMat4x4([]float64{-2, -8, 3, 5, -3, 1, 7, 3, 1, 2, -9, 6, -6, 7, 7, -9})
+	cf1 := Cofactor4x4(m1, 0, 0)
+	cf2 := Cofactor4x4(m1, 0, 1)
+	cf3 := Cofactor4x4(m1, 0, 2)
+	cf4 := Cofactor4x4(m1, 0, 3)
+	determinant := Determinant4x4(m1)
+
+	assert.Equal(t, 690.0, cf1)
+	assert.Equal(t, 447.0, cf2)
+	assert.Equal(t, 210.0, cf3)
+	assert.Equal(t, 51.0, cf4)
+	assert.Equal(t, -4071.0, determinant)
+}
+
+func TestIsInvertible(t *testing.T) {
+	m1 := NewMat4x4([]float64{6, 4, 4, 4, 5, 5, 7, 6, 4, -9, 3, -7, 9, 1, 7, -6})
+	determinant := Determinant4x4(m1)
+	assert.Equal(t, -2120.0, determinant)
+
+	isInvertible := IsInvertible(m1)
+	assert.True(t, isInvertible)
+}
+
+func TestIsNotInvertible(t *testing.T) {
+	m1 := NewMat4x4([]float64{-4, 2, -2, -3, 9, 6, 2, 6, 0, -5, 1, -5, 0, 0, 0, 0})
+	determinant := Determinant4x4(m1)
+	assert.Equal(t, 0.0, determinant)
+
+	isInvertible := IsInvertible(m1)
+	assert.False(t, isInvertible)
+}
+
+func TestInverse(t *testing.T) {
+	m1 := NewMat4x4([]float64{-5, 2, 6, -8, 1, -5, 1, 8, 7, 7, -6, -7, 1, -3, 7, 4})
+	m3 := Inverse(m1)
+
+	cf1 := Cofactor4x4(m1, 2, 3)
+	cf2 := Cofactor4x4(m1, 3, 2)
+	determinant := Determinant4x4(m1)
+	assert.Equal(t, 532.0, determinant)
+	assert.Equal(t, -160.0, cf1)
+	assert.Equal(t, 105.0, cf2)
+
+	expected := NewMat4x4([]float64{0.21805, 0.45113, 0.24060, -0.04511,
+		-0.80827, -1.45677, -0.44361, 0.52068,
+		-0.07895, -0.22368, -0.05263, 0.19737,
+		-0.52256, -0.81391, -0.30075, 0.30639})
+
+	for i := 0; i < 16; i++ {
+		assert.InEpsilon(t, expected.Elems[i], m3.Elems[i], Epsilon, fmt.Sprintf("index %d failed: values: %v %v", i, expected.Elems[i], m3.Elems[i]))
+	}
 }

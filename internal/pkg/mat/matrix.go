@@ -93,6 +93,7 @@ func MultiplyByTuple(m1 Mat4x4, t Tuple4) *Tuple4 {
 	return t1
 }
 
+// Transpose flips rows and cols
 func Transpose(m1 Mat4x4) *Mat4x4 {
 	m3 := NewMat4x4(make([]float64, 16))
 	for col := 0; col < 4; col++ {
@@ -104,7 +105,7 @@ func Transpose(m1 Mat4x4) *Mat4x4 {
 }
 
 func Determinant2x2(m1 Mat2x2) float64 {
-	return m1.Elems[0] * m1.Elems[3] - m1.Elems[1] *m1.Elems[2]
+	return m1.Elems[0]*m1.Elems[3] - m1.Elems[1]*m1.Elems[2]
 }
 
 func Submatrix3x3(m1 Mat3x3, deleteRow, deleteCol int) *Mat2x2 {
@@ -118,6 +119,7 @@ func Submatrix3x3(m1 Mat3x3, deleteRow, deleteCol int) *Mat2x2 {
 			if col == deleteCol {
 				continue
 			}
+
 			m3.Elems[idx] = m1.Get(row, col)
 			idx++
 		}
@@ -137,6 +139,65 @@ func Submatrix4x4(m1 Mat4x4, deleteRow, deleteCol int) *Mat3x3 {
 			}
 			m3.Elems[idx] = m1.Get(row, col)
 			idx++
+		}
+	}
+	return m3
+}
+
+func Minor(m1 *Mat3x3, row, col int) float64 {
+	m2 := Submatrix3x3(*m1, row, col)
+	return Determinant2x2(*m2)
+}
+
+func Minor4x4(m1 *Mat4x4, row, col int) float64 {
+	m2 := Submatrix4x4(*m1, row, col)
+	return Determinant3x3(m2)
+}
+
+func Cofactor3x3(m1 *Mat3x3, row, col int) float64 {
+	minor := Minor(m1, row, col)
+	if (row+col)%2 != 0 {
+		return -minor
+	}
+	return minor
+}
+
+func Cofactor4x4(m1 *Mat4x4, row, col int) float64 {
+	minor := Minor4x4(m1, row, col)
+	if (row+col)%2 != 0 {
+		return -minor
+	}
+	return minor
+}
+
+func Determinant3x3(m1 *Mat3x3) float64 {
+	det := 0.0
+	for col := 0; col < 3; col++ {
+		det = det + m1.Elems[col]*Cofactor3x3(m1, 0, col)
+	}
+	return det
+}
+func Determinant4x4(m1 *Mat4x4) float64 {
+	det := 0.0
+	for col := 0; col < 4; col++ {
+		det = det + m1.Elems[col]*Cofactor4x4(m1, 0, col)
+	}
+	return det
+}
+func IsInvertible(m1 *Mat4x4) bool {
+	return Determinant4x4(m1) != 0.0
+}
+
+func Inverse(m1 *Mat4x4) *Mat4x4 {
+	m3 := NewMat4x4(make([]float64, 16))
+	d4 := Determinant4x4(m1)
+	for row := 0; row < 4; row++ {
+
+		for col := 0; col < 4; col++ {
+			c := Cofactor4x4(m1, row, col)
+			// note that "col, row" here, instead of "row, col",
+			// accomplishes the transpose operation!
+			m3.Elems[col*4+row] = c / d4
 		}
 	}
 	return m3
