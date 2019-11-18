@@ -62,3 +62,10 @@ func TestApplyChained(t *testing.T) {
 	p4 := MultiplyByTuple(*m3, *p)
 	assert.True(t, TupleEquals(*p4, *NewPoint(15, 0, 7)))
 }
+
+func TestTranslateSphere(t *testing.T) {
+	s := NewSphere()
+	t1 := Translate(2, 3, 4)
+	SetTransform(s, t1)
+	assert.True(t, Equals(*s.Transform, *t1))
+}

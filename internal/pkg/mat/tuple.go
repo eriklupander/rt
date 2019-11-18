@@ -71,12 +71,16 @@ func DivideByScalar(t1 Tuple4, scalar float64) *Tuple4 {
 	return t3
 }
 
+// Magnitude measures the length of the passed vector. It's basically pythagoras sqrt(x2 + y2 + z2 + w2)
 func Magnitude(t1 Tuple4) float64 {
 	return math.Sqrt(t1.Elems[0]*t1.Elems[0] +
 		t1.Elems[1]*t1.Elems[1] +
 		t1.Elems[2]*t1.Elems[2])
 
 }
+
+// Normalize measures the length (magnitude) of the passed Vector. Each component in t1 is then divided my the magnitude
+// in order to Normalize it to unit (1) size.
 func Normalize(t1 Tuple4) *Tuple4 {
 	t3 := &Tuple4{Elems: make([]float64, 4)}
 	magnitude := Magnitude(t1)
@@ -86,6 +90,9 @@ func Normalize(t1 Tuple4) *Tuple4 {
 	return t3
 }
 
+// Dot product is the sum of the products of the corresponding entries of the two sequences of numbers
+// a product is simply put the result of a multiplication. The dot product of two tuples is simply
+// t1.x * t2.x + t1.y * t2.y + t1.z * t2.z + t1.w * t2.w
 func Dot(t1 Tuple4, t2 Tuple4) float64 {
 	sum := 0.0
 	for i := 0; i < 4; i++ {

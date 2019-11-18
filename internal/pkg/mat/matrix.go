@@ -1,11 +1,8 @@
 package mat
 
-var IdentityMatrix = &Mat4x4{[]float64{
-	1, 0, 0, 0,
-	0, 1, 0, 0,
-	0, 0, 1, 0,
-	0, 0, 0, 1},
-}
+import "github.com/eriklupander/rt/internal/pkg/identity"
+
+var IdentityMatrix = &Mat4x4{identity.Matrix}
 
 func NewIdentityMatrix() *Mat4x4 {
 	m1 := NewMat4x4(make([]float64, 16))
