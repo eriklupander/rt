@@ -13,8 +13,12 @@ func NewSphere() *Sphere {
 type Sphere struct {
 	Id        int64
 	Transform *Mat4x4
+	Material  *Material
 }
 
 func SetTransform(s *Sphere, translation *Mat4x4) {
 	s.Transform = Multiply(s.Transform, translation)
+}
+func SetMaterial(s *Sphere, m *Material) {
+	s.Material = m
 }
