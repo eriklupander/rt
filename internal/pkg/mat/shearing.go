@@ -1,6 +1,6 @@
 package mat
 
-func Shear(xy, xz, yx, yz, zx, zy float64) *Mat4x4 {
+func Shear(xy, xz, yx, yz, zx, zy float64) Mat4x4 {
 	m1 := NewMat4x4(make([]float64, 16))
 	copy(m1.Elems, IdentityMatrix.Elems)
 	m1.Elems[1] = xy
@@ -11,7 +11,7 @@ func Shear(xy, xz, yx, yz, zx, zy float64) *Mat4x4 {
 	m1.Elems[9] = zy
 	return m1
 }
-func ShearBy(args []float64) *Mat4x4 {
+func ShearBy(args []float64) Mat4x4 {
 	m1 := NewMat4x4(make([]float64, 16))
 	copy(m1.Elems, IdentityMatrix.Elems)
 	m1.Elems[1] = args[0]

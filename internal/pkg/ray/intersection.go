@@ -6,10 +6,10 @@ import (
 
 type Intersection struct {
 	T float64
-	S *mat.Sphere
+	S mat.Sphere
 }
 
-func NewIntersection(t float64, s *mat.Sphere) *Intersection {
+func NewIntersection(t float64, s mat.Sphere) *Intersection {
 	return &Intersection{T: t, S: s}
 }
 

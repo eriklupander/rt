@@ -5,27 +5,27 @@ import "math"
 var black = NewColor(0, 0, 0)
 
 type Light struct {
-	Position  *Tuple4
-	Intensity *Tuple4
+	Position  Tuple4
+	Intensity Tuple4
 }
 
-func NewLight(position *Tuple4, intensity *Tuple4) *Light {
-	return &Light{Position: position, Intensity: intensity}
+func NewLight(position Tuple4, intensity Tuple4) Light {
+	return Light{Position: position, Intensity: intensity}
 }
 
 // Lighting computes the color of a given pixel given phong shading
-func Lighting(material *Material, light *Light, position, eyeVec, normalVec *Tuple4) *Tuple4 {
-	effectiveColor := Hadamard(*material.Color, *light.Intensity)
+func Lighting(material Material, light Light, position, eyeVec, normalVec Tuple4) Tuple4 {
+	effectiveColor := Hadamard(material.Color, light.Intensity)
 
 	// get vector from point on sphere to light source by subtracting, normalized into unit space.
-	lightVec := Normalize(*Sub(*light.Position, *position))
+	lightVec := Normalize(Sub(light.Position, position))
 
 	// Add the ambient portion
-	ambient := MultiplyByScalar(*effectiveColor, material.Ambient)
+	ambient := MultiplyByScalar(effectiveColor, material.Ambient)
 
 	// get dot product (angle) between the light and normal  vectors. If negative, it means the light source is
 	// on the backside
-	lightDotNormal := Dot(*lightVec, *normalVec)
+	lightDotNormal := Dot(lightVec, normalVec)
 	specular := NewColor(0, 0, 0)
 	diffuse := NewColor(0, 0, 0)
 	if lightDotNormal < 0 {
@@ -33,15 +33,15 @@ func Lighting(material *Material, light *Light, position, eyeVec, normalVec *Tup
 		specular = black
 	} else {
 		// Diffuse contribution Precedense here??
-		diffuse = MultiplyByScalar(*effectiveColor, material.Diffuse*lightDotNormal)
+		diffuse = MultiplyByScalar(effectiveColor, material.Diffuse*lightDotNormal)
 
 		// reflect_dot_eye represents the cosine of the angle between the
 		// reflection vector and the eye vector. A negative number means the
 		// light reflects away from the eye.
 		// Note that we negate the light vector since we want to angle of the bounce
 		// of the light rather than the incoming light vector.
-		reflectVec := Reflect(Negate(*lightVec), normalVec)
-		reflectDotEye := Dot(*reflectVec, *eyeVec)
+		reflectVec := Reflect(Negate(lightVec), normalVec)
+		reflectDotEye := Dot(reflectVec, eyeVec)
 
 		if reflectDotEye <= 0.0 {
 			specular = black
@@ -51,10 +51,10 @@ func Lighting(material *Material, light *Light, position, eyeVec, normalVec *Tup
 			factor := math.Pow(reflectDotEye, material.Shininess)
 
 			// again, check precedense here
-			specular = MultiplyByScalar(*light.Intensity, material.Specular*factor)
+			specular = MultiplyByScalar(light.Intensity, material.Specular*factor)
 		}
 	}
 	// Add the three contributions together to get the final shading
 	// Uses standard Tuple addition
-	return Add(*Add(*ambient, *diffuse), *specular)
+	return Add(Add(ambient, diffuse), specular)
 }

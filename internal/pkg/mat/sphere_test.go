@@ -7,5 +7,5 @@ import (
 
 func TestSphereHasIdentity(t *testing.T) {
 	sphere := NewSphere()
-	assert.True(t, Equals(*sphere.Transform, *IdentityMatrix))
+	assert.True(t, Equals(sphere.Transform, IdentityMatrix))
 }

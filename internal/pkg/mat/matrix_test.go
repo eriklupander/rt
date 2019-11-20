@@ -37,13 +37,13 @@ func TestCompare4x4(t *testing.T) {
 	m1 := NewMat4x4([]float64{1, 2, 3, 4, 5, 6, 7, 8, 9, 8, 7, 6, 5, 4, 3, 2})
 	m2 := NewMat4x4([]float64{1, 2, 3, 4, 5, 6, 7, 8, 9, 8, 7, 6, 5, 4, 3, 2})
 
-	assert.True(t, Equals(*m1, *m2))
+	assert.True(t, Equals(m1, m2))
 }
 func TestCompare4x4NotEqual(t *testing.T) {
 	m1 := NewMat4x4([]float64{1, 2, 3, 4, 5, 6, 7, 8, 9, 8, 7, 6, 5, 4, 3, 2})
 	m2 := NewMat4x4([]float64{2, 3, 4, 5, 6, 7, 8, 9, 8, 7, 6, 5, 4, 3, 2, 1})
 
-	assert.False(t, Equals(*m1, *m2))
+	assert.False(t, Equals(m1, m2))
 }
 
 func TestMultiply4x4(t *testing.T) {
@@ -63,7 +63,7 @@ func TestMultiply4x4ByTuple(t *testing.T) {
 
 	t1 := NewTuple4([]float64{1, 2, 3, 1})
 
-	t2 := MultiplyByTuple(*m1, *t1)
+	t2 := MultiplyByTuple(m1, t1)
 	assert.Equal(t, 18.0, t2.Get(0))
 	assert.Equal(t, 24.0, t2.Get(1))
 	assert.Equal(t, 33.0, t2.Get(2))
@@ -73,51 +73,51 @@ func TestMultiply4x4ByTuple(t *testing.T) {
 func TestMultiplyByIdentityMatrix(t *testing.T) {
 	m1 := NewMat4x4([]float64{0, 1, 2, 4, 1, 2, 4, 8, 2, 4, 8, 16, 4, 8, 16, 32})
 	m3 := Multiply(m1, IdentityMatrix)
-	assert.True(t, Equals(*m1, *m3))
+	assert.True(t, Equals(m1, m3))
 }
 
 func TestMultiplyTupleByIdentityMatrix(t *testing.T) {
 	t1 := NewTuple4([]float64{1, 2, 3, 4})
-	t3 := MultiplyByTuple(*IdentityMatrix, *t1)
-	assert.True(t, TupleEquals(*t1, *t3))
+	t3 := MultiplyByTuple(IdentityMatrix, t1)
+	assert.True(t, TupleEquals(t1, t3))
 }
 
 func TestTransposeMatrix(t *testing.T) {
 	m1 := NewMat4x4([]float64{0, 9, 3, 0, 9, 8, 0, 8, 1, 8, 5, 3, 0, 0, 5, 8})
 	expected := NewMat4x4([]float64{0, 9, 1, 0, 9, 8, 8, 0, 3, 0, 5, 5, 0, 8, 3, 8})
-	m3 := Transpose(*m1)
-	assert.True(t, Equals(*m3, *expected))
+	m3 := Transpose(m1)
+	assert.True(t, Equals(m3, expected))
 }
 
 func TestTransposeIdentityMatrix(t *testing.T) {
-	m3 := Transpose(*IdentityMatrix)
-	assert.True(t, Equals(*m3, *IdentityMatrix))
+	m3 := Transpose(IdentityMatrix)
+	assert.True(t, Equals(m3, IdentityMatrix))
 }
 
 func TestDeterminant2x2(t *testing.T) {
 	m1 := NewMat2x2([]float64{1, 5, -3, 2})
-	determinant := Determinant2x2(*m1)
+	determinant := Determinant2x2(m1)
 	assert.Equal(t, 17.0, determinant)
 }
 
 func TestSubmatrix3x3(t *testing.T) {
 	m1 := NewMat3x3([]float64{1, 5, 0, -3, 2, 7, 0, 6, -3})
 	expected := NewMat2x2([]float64{-3, 2, 0, 6})
-	m3 := Submatrix3x3(*m1, 0, 2)
-	assert.True(t, Equals2x2(*m3, *expected))
+	m3 := Submatrix3x3(m1, 0, 2)
+	assert.True(t, Equals2x2(m3, expected))
 }
 
 func TestSubmatrix4x4(t *testing.T) {
 	m1 := NewMat4x4([]float64{-6, 1, 1, 6, -8, 5, 8, 6, -1, 0, 8, 2, -7, 1, -1, 1})
 	expected := NewMat3x3([]float64{-6, 1, 6, -8, 8, 6, -7, -1, 1})
-	m3 := Submatrix4x4(*m1, 2, 1)
-	assert.True(t, Equals3x3(*m3, *expected))
+	m3 := Submatrix4x4(m1, 2, 1)
+	assert.True(t, Equals3x3(m3, expected))
 }
 
 func TestMinor(t *testing.T) {
 	m1 := NewMat3x3([]float64{3, 5, 0, 2, -1, -7, 6, -1, 5})
-	m2 := Submatrix3x3(*m1, 1, 0)
-	determ := Determinant2x2(*m2)
+	m2 := Submatrix3x3(m1, 1, 0)
+	determ := Determinant2x2(m2)
 	assert.Equal(t, 25.0, determ)
 
 	minor := Minor3x3(m1, 1, 0)
@@ -250,7 +250,7 @@ func TestMultiplyByInverse(t *testing.T) {
 
 	m3 := Multiply(m1, m2)
 
-	Equals(*Multiply(m3, Inverse(m2)), *m1)
+	Equals(Multiply(m3, Inverse(m2)), m1)
 }
 
 func TestInvertIdentity(t *testing.T) {
@@ -270,21 +270,21 @@ func TestInvertIdentity(t *testing.T) {
 	fmt.Printf("%+v\n", m3)
 
 	// The transpose + inverse is equal to the inverse + transpose
-	t2 := Transpose(*m1)
+	t2 := Transpose(m1)
 	i3 := Inverse(t2)
 
 	i1 := Inverse(m1)
-	t3 := Transpose(*i1)
+	t3 := Transpose(i1)
 
 	fmt.Printf("%+v\n", i3)
 	fmt.Printf("%+v\n", t3)
 
 	tuple := NewTuple4([]float64{1, 2, 3, 0})
 	id1 := NewIdentityMatrix()
-	firstTuple := MultiplyByTuple(*id1, *tuple)
+	firstTuple := MultiplyByTuple(id1, tuple)
 
 	id1.Elems[5] = 7.0
-	secondTuple := MultiplyByTuple(*id1, *tuple)
+	secondTuple := MultiplyByTuple(id1, tuple)
 
 	fmt.Printf("%+v\n", firstTuple)
 	fmt.Printf("%+v\n", secondTuple)

@@ -9,7 +9,7 @@ import (
 func TestScale(t *testing.T) {
 	scaleTransform := Scale(2, 3, 4)
 	p := NewPoint(-4, 6, 8)
-	p2 := MultiplyByTuple(*scaleTransform, *p)
+	p2 := MultiplyByTuple(scaleTransform, p)
 
 	assert.Equal(t, -8.0, p2.Get(0))
 	assert.Equal(t, 18.0, p2.Get(1))
@@ -19,7 +19,7 @@ func TestScale(t *testing.T) {
 func TestScaleVector(t *testing.T) {
 	scaleTransform := Scale(2, 3, 4)
 	v := NewVector(-4, 6, 8)
-	p2 := MultiplyByTuple(*scaleTransform, *v)
+	p2 := MultiplyByTuple(scaleTransform, v)
 
 	assert.Equal(t, -8.0, p2.Get(0))
 	assert.Equal(t, 18.0, p2.Get(1))
@@ -31,7 +31,7 @@ func TestScaleByInverse(t *testing.T) {
 	scaleTransform := Scale(2, 3, 4)
 	v := NewVector(-4, 6, 8)
 	inv := Inverse(scaleTransform)
-	p2 := MultiplyByTuple(*inv, *v)
+	p2 := MultiplyByTuple(inv, v)
 	assert.Equal(t, -2.0, p2.Get(0))
 	assert.Equal(t, 2.0, p2.Get(1))
 	assert.Equal(t, 2.0, p2.Get(2))
@@ -41,7 +41,7 @@ func TestScaleByInverse(t *testing.T) {
 func TestReflect(t *testing.T) {
 	scaleTransform := Scale(-1, 1, 1)
 	p := NewPoint(2, 3, 4)
-	p2 := MultiplyByTuple(*scaleTransform, *p)
+	p2 := MultiplyByTuple(scaleTransform, p)
 	assert.Equal(t, -2.0, p2.Get(0))
 	assert.Equal(t, 3.0, p2.Get(1))
 	assert.Equal(t, 4.0, p2.Get(2))

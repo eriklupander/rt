@@ -8,14 +8,14 @@ import (
 
 func TestNewRay(t *testing.T) {
 	r := New(mat.NewPoint(1, 2, 3), mat.NewVector(4, 5, 6))
-	assert.True(t, mat.TupleEquals(*r.Origin, *mat.NewPoint(1, 2, 3)))
-	assert.True(t, mat.TupleEquals(*r.Direction, *mat.NewVector(4, 5, 6)))
+	assert.True(t, mat.TupleEquals(r.Origin, mat.NewPoint(1, 2, 3)))
+	assert.True(t, mat.TupleEquals(r.Direction, mat.NewVector(4, 5, 6)))
 }
 
 func TestDistanceFromPoint(t *testing.T) {
 	r := New(mat.NewPoint(2, 3, 4), mat.NewVector(1, 0, 0))
 	p1 := Position(r, 0)
-	assert.Equal(t, *mat.NewPoint(2, 3, 4), *p1)
+	assert.Equal(t, mat.NewPoint(2, 3, 4), p1)
 }
 
 func TestIntersectSphere(t *testing.T) {
@@ -103,22 +103,22 @@ func TestTranslateRay(t *testing.T) {
 	r := New(mat.NewPoint(1, 2, 3), mat.NewVector(0, 1, 0))
 	m1 := mat.Translate(3, 4, 5)
 	r2 := Transform(r, m1)
-	assert.True(t, mat.TupleEquals(*r2.Origin, *mat.NewPoint(4, 6, 8)))
-	assert.True(t, mat.TupleEquals(*r2.Direction, *mat.NewVector(0, 1, 0)))
+	assert.True(t, mat.TupleEquals(r2.Origin, mat.NewPoint(4, 6, 8)))
+	assert.True(t, mat.TupleEquals(r2.Direction, mat.NewVector(0, 1, 0)))
 }
 
 func TestScaleRay(t *testing.T) {
 	r := New(mat.NewPoint(1, 2, 3), mat.NewVector(0, 1, 0))
 	m1 := mat.Scale(2, 3, 4)
 	r2 := Transform(r, m1)
-	assert.True(t, mat.TupleEquals(*r2.Origin, *mat.NewPoint(2, 6, 12)))
-	assert.True(t, mat.TupleEquals(*r2.Direction, *mat.NewVector(0, 3, 0)))
+	assert.True(t, mat.TupleEquals(r2.Origin, mat.NewPoint(2, 6, 12)))
+	assert.True(t, mat.TupleEquals(r2.Direction, mat.NewVector(0, 3, 0)))
 }
 
 func TestIntersectScaledSphereWithRay(t *testing.T) {
 	r := New(mat.NewPoint(0, 0, -5), mat.NewVector(0, 0, 1))
 	s := mat.NewSphere()
-	mat.SetTransform(s, mat.Scale(2, 2, 2))
+	mat.SetTransform(&s, mat.Scale(2, 2, 2))
 	intersections := IntersectRayWithSphere(s, r)
 	assert.Len(t, intersections, 2)
 	assert.Equal(t, 3.0, intersections[0].T)
@@ -128,7 +128,7 @@ func TestIntersectScaledSphereWithRay(t *testing.T) {
 func TestIntersectTranslatedSphereWithRay(t *testing.T) {
 	r := New(mat.NewPoint(0, 0, -5), mat.NewVector(0, 0, 1))
 	s := mat.NewSphere()
-	mat.SetTransform(s, mat.Translate(5, 0, 0))
+	mat.SetTransform(&s, mat.Translate(5, 0, 0))
 	intersections := IntersectRayWithSphere(s, r)
 	assert.Len(t, intersections, 0)
 }

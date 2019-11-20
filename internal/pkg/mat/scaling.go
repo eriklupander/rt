@@ -1,6 +1,6 @@
 package mat
 
-func Scale(x, y, z float64) *Mat4x4 {
+func Scale(x, y, z float64) Mat4x4 {
 	scaleMatrix := NewMat4x4(make([]float64, 16))
 	copy(scaleMatrix.Elems, IdentityMatrix.Elems)
 	scaleMatrix.Elems[0] = x

@@ -11,9 +11,65 @@ import (
 )
 
 func main() {
-	circleDemo()
+	shadedSphereDemo()
+	//circleDemo()
 	//clockDemo()
 	//projectileDemo()
+}
+
+func shadedSphereDemo() {
+	c := canvas.NewCanvas(512, 512)
+
+	// this is our eye starting 15 units "in front" of origo.
+	rayOrigin := mat.NewPoint(0, 0, -15.0)
+
+	// Note!! If I understand this correctly, the "wall" in this case is actually an abstraction
+	// of the "far" wall of the view frustum, giving something to cast our ray against, forming a vector between
+	// the eye and a point in world space.
+	wallZ := 20.0
+	wallSize := 7.0
+	pixelSize := wallSize / float64(c.W)
+	half := wallSize / 2
+	sphere := mat.NewSphere()
+	//mat.SetTransform(&sphere, mat.Translate(1, 1, 1))
+	material := mat.NewDefaultMaterial()
+	material.Color = mat.NewColor(1, 0.2, 1)
+	mat.SetMaterial(&sphere, material)
+
+	lightPos := mat.NewPoint(-10, 10, -10)
+	lightColor := mat.NewColor(1, 1, 1)
+	light := mat.NewLight(lightPos, lightColor)
+
+	for row := 0; row < c.W; row++ {
+		worldY := half - pixelSize*float64(row)
+
+		for col := 0; col < c.H; col++ {
+			worldX := -half + pixelSize*float64(col)
+			posOnWall := mat.NewPoint(worldX, worldY, wallZ)
+
+			// Build a ray (origin + direction)
+			rayFromOriginToPosOnWall := ray.New(rayOrigin, mat.Normalize(mat.Sub(posOnWall, rayOrigin)))
+
+			// check if our ray intersects the sphere
+			intersections := ray.IntersectRayWithSphere(sphere, rayFromOriginToPosOnWall)
+			intersection := ray.Hit(intersections)
+
+			if intersection != nil {
+				pointOfHit := ray.Position(rayFromOriginToPosOnWall, intersection.T)
+				normalAtHit := mat.NormalAtPoint(sphere, pointOfHit)
+				minusEyeRayVector := mat.Negate(rayFromOriginToPosOnWall.Direction)
+				color := mat.Lighting(sphere.Material, light, pointOfHit, minusEyeRayVector, normalAtHit)
+
+				c.WritePixel(col, c.H-row, color)
+			}
+		}
+	}
+	// write
+	data := c.ToPPM()
+	err := ioutil.WriteFile("shadedcircle.ppm", []byte(data), os.FileMode(0755))
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 }
 
 func circleDemo() {
@@ -37,7 +93,7 @@ func circleDemo() {
 			worldX := -half + pixelSize*float64(col)
 			posOnWall := mat.NewPoint(worldX, worldY, wallZ)
 
-			rayFromOriginToPosOnWall := ray.New(rayOrigin, mat.Normalize(*mat.Sub(*posOnWall, *rayOrigin)))
+			rayFromOriginToPosOnWall := ray.New(rayOrigin, mat.Normalize(mat.Sub(posOnWall, rayOrigin)))
 
 			// check if our ray intersects the sphere
 			intersections := ray.IntersectRayWithSphere(sphere, rayFromOriginToPosOnWall)
@@ -64,8 +120,8 @@ func clockDemo() {
 	for i := 0; i < 12; i++ {
 		rotation := float64(i) * (2 * math.Pi) / 12
 		rotMat := mat.RotateZ(rotation)
-		p2 := mat.MultiplyByTuple(*rotMat, *point)
-		p2 = mat.MultiplyByScalar(*p2, 30.0)
+		p2 := mat.MultiplyByTuple(rotMat, point)
+		p2 = mat.MultiplyByScalar(p2, 30.0)
 		c.WritePixel(center+int(p2.Get(0)), center-int(p2.Get(1)), white)
 	}
 
@@ -78,18 +134,18 @@ func clockDemo() {
 }
 
 func projectileDemo() {
-	prj := NewProjectile(mat.NewPoint(0, 1, 0), mat.MultiplyByScalar(*mat.Normalize(*mat.NewVector(1, 1.8, 0)), 11.25))
+	prj := NewProjectile(mat.NewPoint(0, 1, 0), mat.MultiplyByScalar(mat.Normalize(mat.NewVector(1, 1.8, 0)), 11.25))
 	env := NewEnvironment(mat.NewVector(0, -0.1, 0), mat.NewVector(-0.01, 0, 0))
 	c := canvas.NewCanvas(900, 550)
 	red := mat.NewColor(1, 1, 1)
 	for prj.pos.Get(1) > 0.0 {
 		tick(prj, env)
 		//time.Sleep(time.Millisecond * 100)
-		fmt.Printf("Projectile pos %v at height %v with velocity %v\n", mat.Magnitude(*prj.pos), prj.pos.Get(1), *prj.velocity)
+		fmt.Printf("Projectile pos %v at height %v with velocity %v\n", mat.Magnitude(prj.pos), prj.pos.Get(1), prj.velocity)
 		fmt.Printf("Drawing at: %d %d\n", int(prj.pos.Get(0)), c.H-int(prj.pos.Get(1)))
 		c.WritePixel(int(prj.pos.Get(0)), c.H-int(prj.pos.Get(1)), red)
 	}
-	fmt.Printf("Projectile flew %v\n", mat.Magnitude(*prj.pos))
+	fmt.Printf("Projectile flew %v\n", mat.Magnitude(prj.pos))
 	data := c.ToPPM()
 	err := ioutil.WriteFile("pic.ppm", []byte(data), os.FileMode(0755))
 	if err != nil {
@@ -98,25 +154,25 @@ func projectileDemo() {
 }
 
 func tick(prj *Projectile, env *Environment) {
-	prj.pos = mat.Add(*prj.pos, *prj.velocity)
-	prj.velocity = mat.Add(*prj.velocity, *env.gravity)
-	prj.velocity = mat.Add(*prj.velocity, *env.wind)
+	prj.pos = mat.Add(prj.pos, prj.velocity)
+	prj.velocity = mat.Add(prj.velocity, env.gravity)
+	prj.velocity = mat.Add(prj.velocity, env.wind)
 }
 
 type Environment struct {
-	gravity *mat.Tuple4
-	wind    *mat.Tuple4
+	gravity mat.Tuple4
+	wind    mat.Tuple4
 }
 
-func NewEnvironment(gravity *mat.Tuple4, wind *mat.Tuple4) *Environment {
+func NewEnvironment(gravity mat.Tuple4, wind mat.Tuple4) *Environment {
 	return &Environment{gravity: gravity, wind: wind}
 }
 
 type Projectile struct {
-	pos      *mat.Tuple4
-	velocity *mat.Tuple4
+	pos      mat.Tuple4
+	velocity mat.Tuple4
 }
 
-func NewProjectile(pos *mat.Tuple4, velocity *mat.Tuple4) *Projectile {
+func NewProjectile(pos mat.Tuple4, velocity mat.Tuple4) *Projectile {
 	return &Projectile{pos: pos, velocity: velocity}
 }

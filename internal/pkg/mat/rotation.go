@@ -2,7 +2,7 @@ package mat
 
 import "math"
 
-func RotateX(radians float64) *Mat4x4 {
+func RotateX(radians float64) Mat4x4 {
 	m1 := NewMat4x4(make([]float64, 16))
 	copy(m1.Elems, IdentityMatrix.Elems)
 	m1.Elems[5] = math.Cos(radians)
@@ -12,7 +12,7 @@ func RotateX(radians float64) *Mat4x4 {
 	return m1
 }
 
-func RotateY(radians float64) *Mat4x4 {
+func RotateY(radians float64) Mat4x4 {
 	m1 := NewMat4x4(make([]float64, 16))
 	copy(m1.Elems, IdentityMatrix.Elems)
 	m1.Elems[0] = math.Cos(radians)
@@ -22,7 +22,7 @@ func RotateY(radians float64) *Mat4x4 {
 	return m1
 }
 
-func RotateZ(radians float64) *Mat4x4 {
+func RotateZ(radians float64) Mat4x4 {
 	m1 := NewMat4x4(make([]float64, 16))
 	copy(m1.Elems, IdentityMatrix.Elems)
 	m1.Elems[0] = math.Cos(radians)
