@@ -7,7 +7,7 @@ import (
 func NewSphere() Sphere {
 	m1 := NewMat4x4(make([]float64, 16))
 	copy(m1.Elems, IdentityMatrix.Elems)
-	return Sphere{Id: rand.Int63(), Transform: m1}
+	return Sphere{Id: rand.Int63(), Transform: m1, Material: NewDefaultMaterial()}
 }
 
 type Sphere struct {

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/eriklupander/rt/internal/pkg/canvas"
 	"github.com/eriklupander/rt/internal/pkg/mat"
-	"github.com/eriklupander/rt/internal/pkg/ray"
 	"io/ioutil"
 	"math"
 	"os"
@@ -48,14 +47,14 @@ func shadedSphereDemo() {
 			posOnWall := mat.NewPoint(worldX, worldY, wallZ)
 
 			// Build a ray (origin + direction)
-			rayFromOriginToPosOnWall := ray.New(rayOrigin, mat.Normalize(mat.Sub(posOnWall, rayOrigin)))
+			rayFromOriginToPosOnWall := mat.NewRay(rayOrigin, mat.Normalize(mat.Sub(posOnWall, rayOrigin)))
 
 			// check if our ray intersects the sphere
-			intersections := ray.IntersectRayWithSphere(sphere, rayFromOriginToPosOnWall)
-			intersection := ray.Hit(intersections)
+			intersections := mat.IntersectRayWithSphere(sphere, rayFromOriginToPosOnWall)
+			intersection, found := mat.Hit(intersections)
 
-			if intersection != nil {
-				pointOfHit := ray.Position(rayFromOriginToPosOnWall, intersection.T)
+			if found {
+				pointOfHit := mat.Position(rayFromOriginToPosOnWall, intersection.T)
 				normalAtHit := mat.NormalAtPoint(sphere, pointOfHit)
 				minusEyeRayVector := mat.Negate(rayFromOriginToPosOnWall.Direction)
 				color := mat.Lighting(sphere.Material, light, pointOfHit, minusEyeRayVector, normalAtHit)
@@ -93,12 +92,12 @@ func circleDemo() {
 			worldX := -half + pixelSize*float64(col)
 			posOnWall := mat.NewPoint(worldX, worldY, wallZ)
 
-			rayFromOriginToPosOnWall := ray.New(rayOrigin, mat.Normalize(mat.Sub(posOnWall, rayOrigin)))
+			rayFromOriginToPosOnWall := mat.NewRay(rayOrigin, mat.Normalize(mat.Sub(posOnWall, rayOrigin)))
 
 			// check if our ray intersects the sphere
-			intersections := ray.IntersectRayWithSphere(sphere, rayFromOriginToPosOnWall)
-			intersection := ray.Hit(intersections)
-			if intersection != nil {
+			intersections := mat.IntersectRayWithSphere(sphere, rayFromOriginToPosOnWall)
+			_, found := mat.Hit(intersections)
+			if found {
 				c.WritePixel(col, c.H-row, color)
 			}
 		}
