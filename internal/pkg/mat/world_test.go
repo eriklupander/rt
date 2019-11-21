@@ -60,6 +60,7 @@ func TestPrepareComputeInsideHit(t *testing.T) {
 
 }
 
+// Page 95
 func TestShadeIntersection(t *testing.T) {
 	w := NewDefaultWorld()
 	r := NewRay(NewPoint(0, 0, -5), NewVector(0, 0, 1))
@@ -103,9 +104,11 @@ func TestColorWhenRayHits(t *testing.T) {
 	assert.InEpsilon(t, 0.2855, color.Get(2), Epsilon)
 }
 
+// Page 97
 func TestColorWhenCastWithinSphereAtInsideSphere(t *testing.T) {
 	w := NewDefaultWorld()
 	w.Objects[0].Material.Ambient = 1.0
+	w.Objects[1].Material = NewMaterial(NewColor(0.8, 1.0, 0.6), 0.1, 0.7, 0.2, 200)
 	w.Objects[1].Material.Ambient = 1.0
 
 	r := NewRay(NewPoint(0, 0, 0.75), NewVector(0, 0, -1))

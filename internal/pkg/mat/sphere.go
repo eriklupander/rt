@@ -14,6 +14,7 @@ type Sphere struct {
 	Id        int64
 	Transform Mat4x4
 	Material  Material
+	Label     string
 }
 
 // SetTransform passes a pointer to the Sphere on which to apply the translation matrix

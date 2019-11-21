@@ -20,9 +20,14 @@ func IntersectWithWorld(w World, r Ray) []Intersection {
 	for idx, _ := range w.Objects {
 		intersections := IntersectRayWithSphere(w.Objects[idx], r)
 		if len(intersections) > 0 {
-			xs = append(xs, intersections...)
+			for innerIdx := range intersections {
+				if intersections[innerIdx].T >= 0.0 {
+					xs = append(xs, intersections[innerIdx])
+				}
+			}
 		}
 	}
+	// Remember that we must sort away negative ones?
 	sort.Slice(xs, func(i, j int) bool {
 		return xs[i].T < xs[j].T
 	})

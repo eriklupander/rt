@@ -84,9 +84,8 @@ func TestHitWhenAllIntersectsHaveNegativeT(t *testing.T) {
 	i1 := NewIntersection(-2.0, s)
 	i2 := NewIntersection(-1.0, s)
 	xs := []Intersection{i1, i2}
-	i, found := Hit(xs)
+	_, found := Hit(xs)
 	assert.False(t, found)
-	assert.Nil(t, i)
 }
 
 func TestHitIsLowestNonNegativeT(t *testing.T) {

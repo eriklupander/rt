@@ -1,6 +1,7 @@
 package mat
 
 import (
+	"fmt"
 	"math"
 	"sort"
 )
@@ -90,6 +91,7 @@ func ShadeHit(w World, comps Computation) Tuple4 {
 func ColorAt(w World, r Ray) Tuple4 {
 	xs := IntersectWithWorld(w, r)
 	if len(xs) > 0 {
+		fmt.Println(xs[0].S.Label)
 		comps := PrepareComputationForIntersection(xs[0], r)
 		return ShadeHit(w, comps)
 	} else {
