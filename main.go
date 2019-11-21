@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/eriklupander/rt/internal/pkg/canvas"
 	"github.com/eriklupander/rt/internal/pkg/mat"
 	"io/ioutil"
 	"math"
@@ -10,14 +9,97 @@ import (
 )
 
 func main() {
-	shadedSphereDemo()
+	world()
+	//shadedSphereDemo()
 	//circleDemo()
 	//clockDemo()
 	//projectileDemo()
 }
 
+func world() {
+	w := mat.NewWorld()
+	w.Light = mat.NewLight(mat.NewPoint(-10, 1, -10), mat.NewColor(1, 1, 1))
+
+	camera := mat.NewCamera(1024, 768, math.Pi/3)
+	viewTransform := mat.ViewTransform(mat.NewPoint(0, 1.5, -5), mat.NewPoint(0, 1, 0), mat.NewVector(0, 1, 0))
+	camera.Transform = viewTransform
+
+	// Create floor
+	floor := mat.NewSphere()
+	floor.Transform = mat.Scale(10, 0.01, 10)
+	floor.Material = mat.NewDefaultMaterial()
+	floor.Material.Color = mat.NewColor(1, 0.9, 0.9)
+	floor.Material.Specular = 0.0
+	w.Objects = append(w.Objects, floor)
+
+	// create left wall
+	leftWall := mat.NewSphere()
+
+	scaleM := mat.Scale(10, 0.01, 10)
+	rotXM := mat.RotateX(math.Pi / 2)
+	rotYM := mat.RotateY(-math.Pi / 4)
+	transM := mat.Translate(0, 0, 5)
+
+	m1 := mat.Multiply(transM, rotYM)
+	m2 := mat.Multiply(m1, rotXM)
+	m3 := mat.Multiply(m2, scaleM)
+	leftWall.Transform = m3
+	leftWall.Material = floor.Material
+	w.Objects = append(w.Objects, leftWall)
+
+	// create right wall
+	rightWall := mat.NewSphere()
+
+	scaleM = mat.Scale(10, 0.01, 10)
+	rotXM = mat.RotateX(math.Pi / 2)
+	rotYM = mat.RotateY(math.Pi / 4)
+	transM = mat.Translate(0, 0, 5)
+
+	m1 = mat.Multiply(transM, rotYM)
+	m2 = mat.Multiply(m1, rotXM)
+	m3 = mat.Multiply(m2, scaleM)
+	rightWall.Transform = m3
+	rightWall.Material = floor.Material
+	w.Objects = append(w.Objects, rightWall)
+
+	// middle sphere
+	middle := mat.NewSphere()
+	middle.Transform = mat.Translate(-0.5, 1, 0.5)
+	middle.Material = mat.NewDefaultMaterial()
+	middle.Material.Color = mat.NewColor(0.1, 1, 0.5)
+	middle.Material.Diffuse = 0.7
+	middle.Material.Specular = 0.3
+	w.Objects = append(w.Objects, middle)
+
+	// right sphere
+	right := mat.NewSphere()
+	right.Transform = mat.Multiply(mat.Translate(1.5, 0.5, -0.5), mat.Scale(0.5, 0.5, 0.5))
+	right.Material = mat.NewDefaultMaterial()
+	right.Material.Color = mat.NewColor(0.5, 1, 0.1)
+	right.Material.Diffuse = 0.7
+	right.Material.Specular = 0.3
+	w.Objects = append(w.Objects, right)
+
+	// left sphere
+	left := mat.NewSphere()
+	left.Transform = mat.Multiply(mat.Translate(-1.5, 0.33, -0.75), mat.Scale(0.33, 0.33, 0.33))
+	left.Material = mat.NewDefaultMaterial()
+	left.Material.Color = mat.NewColor(1, 0.8, 0.1)
+	left.Material.Diffuse = 0.7
+	left.Material.Specular = 0.3
+	w.Objects = append(w.Objects, left)
+
+	canvas := mat.Render(camera, w)
+	// write
+	data := canvas.ToPPM()
+	err := ioutil.WriteFile("world1.ppm", []byte(data), os.FileMode(0755))
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+}
+
 func shadedSphereDemo() {
-	c := canvas.NewCanvas(512, 512)
+	c := mat.NewCanvas(512, 512)
 
 	// this is our eye starting 15 units "in front" of origo.
 	rayOrigin := mat.NewPoint(0, 0, -15.0)
@@ -57,7 +139,7 @@ func shadedSphereDemo() {
 				pointOfHit := mat.Position(rayFromOriginToPosOnWall, intersection.T)
 				normalAtHit := mat.NormalAtPoint(sphere, pointOfHit)
 				minusEyeRayVector := mat.Negate(rayFromOriginToPosOnWall.Direction)
-				color := mat.Lighting(sphere.Material, light, pointOfHit, minusEyeRayVector, normalAtHit)
+				color := mat.Lighting(sphere.Material, light, pointOfHit, minusEyeRayVector, normalAtHit, false)
 
 				c.WritePixel(col, c.H-row, color)
 			}
@@ -72,7 +154,7 @@ func shadedSphereDemo() {
 }
 
 func circleDemo() {
-	c := canvas.NewCanvas(100, 100)
+	c := mat.NewCanvas(100, 100)
 
 	rayOrigin := mat.NewPoint(0, 0, -15.0)
 	wallZ := 20.0
@@ -111,7 +193,7 @@ func circleDemo() {
 }
 
 func clockDemo() {
-	c := canvas.NewCanvas(80, 80)
+	c := mat.NewCanvas(80, 80)
 	center := (c.W/2 + c.H/2) / 2
 	white := mat.NewColor(1, 1, 1)
 
@@ -135,7 +217,7 @@ func clockDemo() {
 func projectileDemo() {
 	prj := NewProjectile(mat.NewPoint(0, 1, 0), mat.MultiplyByScalar(mat.Normalize(mat.NewVector(1, 1.8, 0)), 11.25))
 	env := NewEnvironment(mat.NewVector(0, -0.1, 0), mat.NewVector(-0.01, 0, 0))
-	c := canvas.NewCanvas(900, 550)
+	c := mat.NewCanvas(900, 550)
 	red := mat.NewColor(1, 1, 1)
 	for prj.pos.Get(1) > 0.0 {
 		tick(prj, env)

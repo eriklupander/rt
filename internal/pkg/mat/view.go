@@ -1,16 +1,17 @@
 package mat
 
 import (
+	"fmt"
 	"math"
 )
 
 type Camera struct {
-	Width int
-	Height int
-	Fov float64
-	Transform Mat4x4
-	PixelSize float64
-	HalfWidth float64
+	Width      int
+	Height     int
+	Fov        float64
+	Transform  Mat4x4
+	PixelSize  float64
+	HalfWidth  float64
 	HalfHeight float64
 }
 
@@ -31,12 +32,12 @@ func NewCamera(width int, height int, fov float64) Camera {
 	transform := make([]float64, 16)
 	copy(transform, IdentityMatrix.Elems)
 	return Camera{
-		Width: width,
-		Height: height,
-		Fov: fov,
-		Transform: Mat4x4{Elems: transform},
-		PixelSize: pixelSize,
-		HalfWidth: halfWidth,
+		Width:      width,
+		Height:     height,
+		Fov:        fov,
+		Transform:  Mat4x4{Elems: transform},
+		PixelSize:  pixelSize,
+		HalfWidth:  halfWidth,
 		HalfHeight: halfHeight,
 	}
 }
@@ -77,8 +78,8 @@ func ViewTransform(from, to, up Tuple4) Mat4x4 {
 
 func RayForPixel(cam Camera, x, y int) Ray {
 
-	xOffset := cam.PixelSize * (float64(x)+0.5)
-	yOffset := cam.PixelSize * (float64(y)+0.5)
+	xOffset := cam.PixelSize * (float64(x) + 0.5)
+	yOffset := cam.PixelSize * (float64(y) + 0.5)
 
 	// this feels a little hacky but actually works.
 	worldX := cam.HalfWidth - xOffset
@@ -88,4 +89,17 @@ func RayForPixel(cam Camera, x, y int) Ray {
 	origin := MultiplyByTuple(Inverse(cam.Transform), NewPoint(0, 0, 0))
 	direction := Normalize(Sub(pixel, origin))
 	return NewRay(origin, direction)
+}
+
+func Render(c Camera, w World) *Canvas {
+	canvas := NewCanvas(c.Width, c.Height)
+	for row := 0; row < c.Height; row++ {
+		for col := 0; col < c.Width; col++ {
+			ray := RayForPixel(c, col, row)
+			color := ColorAt(w, ray)
+			canvas.WritePixel(col, row, color)
+		}
+		fmt.Printf("%d / %d\n", row+1, c.Height)
+	}
+	return canvas
 }

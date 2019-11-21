@@ -1,7 +1,6 @@
-package canvas
+package mat
 
 import (
-	"github.com/eriklupander/rt/internal/pkg/mat"
 	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
@@ -20,7 +19,7 @@ func TestNewCanvas(t *testing.T) {
 
 func TestCanvas_WritePixel(t *testing.T) {
 	canvas := NewCanvas(10, 20)
-	canvas.WritePixel(2, 3, mat.NewColor(1, 0, 0))
+	canvas.WritePixel(2, 3, NewColor(1, 0, 0))
 	px := canvas.ColorAt(2, 3)
 	assert.True(t, px.Get(0) == 1.0)
 	assert.True(t, px.Get(1) == 0.0)
@@ -37,9 +36,9 @@ func TestCanvas_ToPPMHeader(t *testing.T) {
 
 func TestCanvas_ToPPM(t *testing.T) {
 	canvas := NewCanvas(5, 3)
-	c1 := mat.NewColor(1.5, 0, 0)
-	c2 := mat.NewColor(0, 0.5, 0)
-	c3 := mat.NewColor(-0.5, 0, 1)
+	c1 := NewColor(1.5, 0, 0)
+	c2 := NewColor(0, 0.5, 0)
+	c3 := NewColor(-0.5, 0, 1)
 	canvas.WritePixel(0, 0, c1)
 	canvas.WritePixel(2, 1, c2)
 	canvas.WritePixel(4, 2, c3)
@@ -65,7 +64,7 @@ func TestCanvas_ToPPM70(t *testing.T) {
 153 255 204 153 255 204 153 255 204 153 255 204 153
 `
 
-	c1 := mat.NewColor(1, 0.8, 0.6)
+	c1 := NewColor(1, 0.8, 0.6)
 	canvas := NewCanvas(10, 2)
 	for i := 0; i < 10*2; i++ {
 		canvas.WritePixelToIndex(i, c1)

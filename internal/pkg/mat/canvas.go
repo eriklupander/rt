@@ -1,8 +1,7 @@
-package canvas
+package mat
 
 import (
 	"fmt"
-	"github.com/eriklupander/rt/internal/pkg/mat"
 	"math"
 	"strconv"
 	"strings"
@@ -12,18 +11,18 @@ type Canvas struct {
 	W        int
 	H        int
 	MaxIndex int
-	Pixels   []mat.Tuple4
+	Pixels   []Tuple4
 }
 
 func NewCanvas(w int, h int) *Canvas {
-	pixels := make([]mat.Tuple4, w*h)
+	pixels := make([]Tuple4, w*h)
 	for i, _ := range pixels {
-		pixels[i] = mat.NewColor(0, 0, 0)
+		pixels[i] = NewColor(0, 0, 0)
 	}
 	return &Canvas{W: w, H: h, Pixels: pixels, MaxIndex: w * h}
 }
 
-func (c *Canvas) WritePixel(col, row int, color mat.Tuple4) {
+func (c *Canvas) WritePixel(col, row int, color Tuple4) {
 	if row < 0 || col < 0 || row >= c.H || col > c.W {
 		fmt.Println("pixel was out of bounds")
 		return
@@ -35,11 +34,11 @@ func (c *Canvas) WritePixel(col, row int, color mat.Tuple4) {
 	c.Pixels[c.toIdx(col, row)] = color
 }
 
-func (c *Canvas) WritePixelToIndex(idx int, color mat.Tuple4) {
+func (c *Canvas) WritePixelToIndex(idx int, color Tuple4) {
 	c.Pixels[idx] = color
 }
 
-func (c *Canvas) ColorAt(col, row int) mat.Tuple4 {
+func (c *Canvas) ColorAt(col, row int) Tuple4 {
 	return c.Pixels[c.toIdx(col, row)]
 }
 
@@ -65,7 +64,7 @@ func (c *Canvas) ToPPM() string {
 	return final
 }
 
-func clamp(color mat.Tuple4, buf *strings.Builder, written *int) {
+func clamp(color Tuple4, buf *strings.Builder, written *int) {
 	for i := 0; i < 3; i++ {
 		c := color.Get(i) * 255.0
 		rounded := math.Round(c)

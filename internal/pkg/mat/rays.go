@@ -1,7 +1,6 @@
 package mat
 
 import (
-	"fmt"
 	"math"
 	"sort"
 )
@@ -85,13 +84,30 @@ func Transform(r Ray, m1 Mat4x4) Ray {
 }
 
 func ShadeHit(w World, comps Computation) Tuple4 {
-	return Lighting(comps.Object.Material, w.Light, comps.Point, comps.EyeVec, comps.NormalVec)
+	inShadow := InShadow(w, comps)
+	return Lighting(comps.Object.Material, w.Light, comps.Point, comps.EyeVec, comps.NormalVec, inShadow)
+}
+
+func InShadow(w World, comps Computation) bool {
+	vecToLight := Sub(w.Light.Position, comps.Point)
+	distance := Magnitude(vecToLight)
+
+	movedPos := Add(comps.Point, MultiplyByScalar(comps.NormalVec, 0.1))
+	ray := NewRay(movedPos, Normalize(vecToLight))
+	xs := IntersectWithWorld(w, ray)
+	if len(xs) > 0 {
+		for _, x := range xs {
+			if x.T < distance {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func ColorAt(w World, r Ray) Tuple4 {
 	xs := IntersectWithWorld(w, r)
 	if len(xs) > 0 {
-		fmt.Println(xs[0].S.Label)
 		comps := PrepareComputationForIntersection(xs[0], r)
 		return ShadeHit(w, comps)
 	} else {

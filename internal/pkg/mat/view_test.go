@@ -74,3 +74,29 @@ func TestRayForPixelWhenCamIsTransformed(t *testing.T) {
 	assert.Equal(t, NewPoint(0, 2, -5), r.Origin)
 	assert.True(t, TupleEquals(NewVector(math.Sqrt(2.0)/2.0, 0.0, -math.Sqrt(2.0)/2.0), r.Direction))
 }
+
+// Page 104
+func TestRender(t *testing.T) {
+	/*
+		Scenario: Rendering a world with a camera
+		Given w ← default_world()
+		And c ← camera(11, 11, π/2)
+		And from ← point(0, 0, -5)
+		And to ← point(0, 0, 0)
+		And up ← vector(0, 1, 0)
+		And c.transform ← view_transform(from, to, up)
+		When image ← render(c, w)
+		Then pixel_at(image, 5, 5) = color(0.38066, 0.47583, 0.2855)
+	*/
+	w := NewDefaultWorld()
+	c := NewCamera(11, 11, math.Pi/2)
+	from := NewPoint(0, 0, -5)
+	to := NewPoint(0, 0, 0)
+	upVec := NewVector(0, 1, 0)
+	c.Transform = ViewTransform(from, to, upVec)
+	canvas := Render(c, w)
+
+	assert.InEpsilon(t, 0.38066, canvas.ColorAt(5, 5).Get(0), Epsilon)
+	assert.InEpsilon(t, 0.47583, canvas.ColorAt(5, 5).Get(1), Epsilon)
+	assert.InEpsilon(t, 0.2855, canvas.ColorAt(5, 5).Get(2), Epsilon)
+}

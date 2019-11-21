@@ -14,7 +14,10 @@ func NewLight(position Tuple4, intensity Tuple4) Light {
 }
 
 // Lighting computes the color of a given pixel given phong shading
-func Lighting(material Material, light Light, position, eyeVec, normalVec Tuple4) Tuple4 {
+func Lighting(material Material, light Light, position, eyeVec, normalVec Tuple4, inShadow bool) Tuple4 {
+	if inShadow {
+		return MultiplyByScalar(material.Color, material.Ambient)
+	}
 	effectiveColor := Hadamard(material.Color, light.Intensity)
 
 	// get vector from point on sphere to light source by subtracting, normalized into unit space.
