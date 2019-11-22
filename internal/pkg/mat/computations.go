@@ -9,6 +9,7 @@ func PrepareComputationForIntersection(i Intersection, r Ray) Computation {
 		inside = true
 		normalVec = Negate(normalVec)
 	}
+	overPoint := Add(pos, MultiplyByScalar(normalVec, Epsilon))
 	return Computation{
 		T:         i.T,
 		Object:    i.S,
@@ -16,6 +17,7 @@ func PrepareComputationForIntersection(i Intersection, r Ray) Computation {
 		EyeVec:    eyeVec,
 		NormalVec: normalVec,
 		Inside:    inside,
+		OverPoint: overPoint,
 	}
 
 }
@@ -27,4 +29,5 @@ type Computation struct {
 	EyeVec    Tuple4
 	NormalVec Tuple4
 	Inside    bool
+	OverPoint Tuple4
 }

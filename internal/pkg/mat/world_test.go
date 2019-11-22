@@ -117,3 +117,60 @@ func TestColorWhenCastWithinSphereAtInsideSphere(t *testing.T) {
 	assert.InEpsilon(t, w.Objects[1].Material.Color.Get(1), color.Get(1), Epsilon)
 	assert.InEpsilon(t, w.Objects[1].Material.Color.Get(2), color.Get(2), Epsilon)
 }
+
+func TestPointNotInShadow(t *testing.T) {
+	w := NewDefaultWorld()
+	p := NewPoint(0, 10, 10)
+	assert.False(t, PointInShadow(w, p))
+}
+func TestPointInShadow(t *testing.T) {
+	w := NewDefaultWorld()
+	p := NewPoint(10, -10, 10)
+	assert.True(t, PointInShadow(w, p))
+}
+func TestPointNotInShadowWhenBehindLight(t *testing.T) {
+	w := NewDefaultWorld()
+	p := NewPoint(-20, 20, -20)
+	assert.False(t, PointInShadow(w, p))
+}
+func TestPointNotInShadowWhenBehindPoint(t *testing.T) {
+	w := NewDefaultWorld()
+	p := NewPoint(-2, 2, -2)
+	assert.False(t, PointInShadow(w, p))
+}
+
+// Big one on page 114
+func TestWorldWithShadowTest(t *testing.T) {
+	w := NewDefaultWorld()
+	w.Light = NewLight(NewPoint(0, 0, -10), NewColor(1, 1, 1))
+	s := NewSphere()
+	w.Objects = append(w.Objects, s)
+	s2 := NewSphere()
+	s2.Transform = Multiply(s2.Transform, Translate(0, 0, 10))
+	w.Objects = append(w.Objects, s2)
+
+	r := NewRay(NewPoint(0, 0, 5), NewVector(0, 0, 1))
+	i := NewIntersection(4, s2)
+	comps := PrepareComputationForIntersection(i, r)
+	color := ShadeHit(w, comps)
+	assert.Equal(t, NewTuple4([]float64{0.1, 0.1, 0.1, 0.1}), color)
+}
+
+func TestHitOffsetToFixAcne(t *testing.T) {
+	/*
+		Given r ← ray(point(0, 0, -5), vector(0, 0, 1))
+		And shape ← sphere() with:
+		| transform | translation(0, 0, 1) |
+		And i ← intersection(5, shape)
+		When comps ← prepare_computations(i, r)
+		Then comps.over_point.z < -EPSILON/2
+		And comps.point.z > comps.over_point.z
+	*/
+	r := NewRay(NewPoint(0, 0, -5), NewVector(0, 0, 1))
+	s := NewSphere()
+	s.Transform = Multiply(s.Transform, Translate(0, 0, 1))
+	i := NewIntersection(5, s)
+	comps := PrepareComputationForIntersection(i, r)
+	assert.True(t, comps.OverPoint.Get(2) < -Epsilon/2)
+	assert.True(t, comps.Point.Get(2) > comps.OverPoint.Get(2))
+}

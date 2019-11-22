@@ -20,7 +20,7 @@ func world() {
 	w := mat.NewWorld()
 	w.Light = mat.NewLight(mat.NewPoint(-10, 1, -10), mat.NewColor(1, 1, 1))
 
-	camera := mat.NewCamera(1024, 768, math.Pi/3)
+	camera := mat.NewCamera(1376, 768, math.Pi/3)
 	viewTransform := mat.ViewTransform(mat.NewPoint(0, 1.5, -5), mat.NewPoint(0, 1, 0), mat.NewVector(0, 1, 0))
 	camera.Transform = viewTransform
 

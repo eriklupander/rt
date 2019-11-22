@@ -84,16 +84,16 @@ func Transform(r Ray, m1 Mat4x4) Ray {
 }
 
 func ShadeHit(w World, comps Computation) Tuple4 {
-	inShadow := InShadow(w, comps)
+	inShadow := PointInShadow(w, comps.OverPoint)
 	return Lighting(comps.Object.Material, w.Light, comps.Point, comps.EyeVec, comps.NormalVec, inShadow)
 }
 
-func InShadow(w World, comps Computation) bool {
-	vecToLight := Sub(w.Light.Position, comps.Point)
+func PointInShadow(w World, p Tuple4) bool {
+	vecToLight := Sub(w.Light.Position, p)
 	distance := Magnitude(vecToLight)
 
-	movedPos := Add(comps.Point, MultiplyByScalar(comps.NormalVec, 0.1))
-	ray := NewRay(movedPos, Normalize(vecToLight))
+	//movedPos := Add(p, MultiplyByScalar(comps.NormalVec, 0.1))
+	ray := NewRay(p, Normalize(vecToLight))
 	xs := IntersectWithWorld(w, ray)
 	if len(xs) > 0 {
 		for _, x := range xs {
