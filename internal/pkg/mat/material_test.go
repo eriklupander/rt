@@ -18,7 +18,7 @@ func TestAssignMaterialToSphere(t *testing.T) {
 	s := NewSphere()
 	m := NewDefaultMaterial()
 	m.Ambient = 1.0
-	SetMaterial(&s, m)
+	s.SetMaterial(m)
 	assert.Equal(t, 1.0, s.Material.Ambient)
 
 }

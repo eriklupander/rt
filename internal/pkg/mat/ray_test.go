@@ -17,10 +17,10 @@ func TestDistanceFromPoint(t *testing.T) {
 	assert.Equal(t, NewPoint(2, 3, 4), p1)
 }
 
-func TestIntersectSphere(t *testing.T) {
+func TestIntersectSphereShape(t *testing.T) {
 	r := NewRay(NewPoint(0, 0, -5), NewVector(0, 0, 1))
 	s := NewSphere()
-	interects := IntersectRayWithSphere(s, r)
+	interects := IntersectRayWithShape(s, r)
 	assert.Len(t, interects, 2)
 	assert.Equal(t, 4.0, interects[0].T)
 	assert.Equal(t, 6.0, interects[1].T)
@@ -29,7 +29,7 @@ func TestIntersectSphere(t *testing.T) {
 func TestIntersectSphereAtTangent(t *testing.T) {
 	r := NewRay(NewPoint(0, 1, -5), NewVector(0, 0, 1))
 	s := NewSphere()
-	interects := IntersectRayWithSphere(s, r)
+	interects := IntersectRayWithShape(s, r)
 	assert.Len(t, interects, 2)
 	assert.Equal(t, 5.0, interects[0].T)
 	assert.Equal(t, 5.0, interects[1].T)
@@ -38,14 +38,14 @@ func TestIntersectSphereAtTangent(t *testing.T) {
 func TestIntersectMissSphere(t *testing.T) {
 	r := NewRay(NewPoint(0, 2, -5), NewVector(0, 0, 1))
 	s := NewSphere()
-	interects := IntersectRayWithSphere(s, r)
+	interects := IntersectRayWithShape(s, r)
 	assert.Len(t, interects, 0)
 }
 
 func TestIntersectSphereWhenOriginatingFromCenterOfSphere(t *testing.T) {
 	r := NewRay(NewPoint(0, 0, 0), NewVector(0, 0, 1))
 	s := NewSphere()
-	interects := IntersectRayWithSphere(s, r)
+	interects := IntersectRayWithShape(s, r)
 	assert.Len(t, interects, 2)
 	assert.Equal(t, -1.0, interects[0].T)
 	assert.Equal(t, 1.0, interects[1].T)
@@ -54,7 +54,7 @@ func TestIntersectSphereWhenOriginatingFromCenterOfSphere(t *testing.T) {
 func TestIntersectSphereBehindRay(t *testing.T) {
 	r := NewRay(NewPoint(0, 0, 5), NewVector(0, 0, 1))
 	s := NewSphere()
-	interects := IntersectRayWithSphere(s, r)
+	interects := IntersectRayWithShape(s, r)
 	assert.Len(t, interects, 2)
 	assert.Equal(t, -6.0, interects[0].T)
 	assert.Equal(t, -4.0, interects[1].T)
@@ -115,20 +115,40 @@ func TestScaleRay(t *testing.T) {
 	assert.True(t, TupleEquals(r2.Direction, NewVector(0, 3, 0)))
 }
 
+// Replaced in chapter 9
 func TestIntersectScaledSphereWithRay(t *testing.T) {
 	r := NewRay(NewPoint(0, 0, -5), NewVector(0, 0, 1))
 	s := NewSphere()
-	SetTransform(&s, Scale(2, 2, 2))
-	intersections := IntersectRayWithSphere(s, r)
+	s.SetTransform(Scale(2, 2, 2))
+	intersections := IntersectRayWithShape(s, r)
 	assert.Len(t, intersections, 2)
 	assert.Equal(t, 3.0, intersections[0].T)
 	assert.Equal(t, 7.0, intersections[1].T)
 }
 
+func TestIntersectScaledSphereWithRay2(t *testing.T) {
+	r := NewRay(NewPoint(0, 0, -5), NewVector(0, 0, 1))
+	s := NewSphere()
+	s.SetTransform(Scale(2, 2, 2))
+	intersections := IntersectRayWithShape(s, r)
+	assert.Len(t, intersections, 2)
+	assert.Equal(t, s.GetLocalRay().Origin, NewPoint(0, 0, -2.5))
+	assert.Equal(t, s.GetLocalRay().Direction, NewVector(0, 0, 0.5))
+}
+
 func TestIntersectTranslatedSphereWithRay(t *testing.T) {
 	r := NewRay(NewPoint(0, 0, -5), NewVector(0, 0, 1))
 	s := NewSphere()
-	SetTransform(&s, Translate(5, 0, 0))
-	intersections := IntersectRayWithSphere(s, r)
+	s.SetTransform(Translate(5, 0, 0))
+	intersections := IntersectRayWithShape(s, r)
 	assert.Len(t, intersections, 0)
+}
+
+func TestIntersectTranslatedSphereWithRay2(t *testing.T) {
+	r := NewRay(NewPoint(0, 0, -5), NewVector(0, 0, 1))
+	s := NewSphere()
+	s.SetTransform(Translate(5, 0, 0))
+	_ = IntersectRayWithShape(s, r)
+	assert.Equal(t, s.GetLocalRay().Origin, NewPoint(-5, 0, -5))
+	assert.Equal(t, s.GetLocalRay().Direction, NewVector(0, 0, 1))
 }

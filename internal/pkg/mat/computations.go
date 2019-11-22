@@ -3,7 +3,7 @@ package mat
 func PrepareComputationForIntersection(i Intersection, r Ray) Computation {
 	pos := Position(r, i.T)
 	eyeVec := Negate(r.Direction)
-	normalVec := NormalAtPoint(i.S, pos)
+	normalVec := NormalAt(i.S, pos)
 	inside := false
 	if Dot(eyeVec, normalVec) < 0 {
 		inside = true
@@ -24,7 +24,7 @@ func PrepareComputationForIntersection(i Intersection, r Ray) Computation {
 
 type Computation struct {
 	T         float64
-	Object    Sphere
+	Object    Shape
 	Point     Tuple4
 	EyeVec    Tuple4
 	NormalVec Tuple4

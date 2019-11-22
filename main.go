@@ -9,14 +9,74 @@ import (
 )
 
 func main() {
-	world()
+	worldWithPlane()
+	//renderworld()
 	//shadedSphereDemo()
 	//circleDemo()
 	//clockDemo()
 	//projectileDemo()
 }
 
-func world() {
+func worldWithPlane() {
+	w := mat.NewWorld()
+	w.Light = mat.NewLight(mat.NewPoint(-10, 3, -10), mat.NewColor(1, 1, 1))
+
+	camera := mat.NewCamera(1024, 768, math.Pi/3)
+	viewTransform := mat.ViewTransform(mat.NewPoint(0, 1.5, -5), mat.NewPoint(0, 1, 0), mat.NewVector(0, 1, 0))
+	camera.Transform = viewTransform
+
+	floor := mat.NewPlane()
+	floor.SetMaterial(mat.NewMaterial(mat.NewColor(1, 0.5, 0.5), 0.1, 0.9, 0.7, 200))
+	w.Objects = append(w.Objects, floor)
+
+	wall := mat.NewPlane()
+	wall.SetTransform(mat.Translate(0, 0, 10))
+	wall.SetTransform(mat.RotateX(math.Pi / 2))
+	w.Objects = append(w.Objects, wall)
+
+	rightWall := mat.NewPlane()
+	rightWall.SetTransform(mat.Translate(5, 0, 0))
+	rightWall.SetTransform(mat.RotateY(math.Pi / 2))
+	rightWall.SetTransform(mat.RotateX(math.Pi / 2))
+	w.Objects = append(w.Objects, rightWall)
+
+	// middle sphere
+	middle := mat.NewSphere()
+	middle.Transform = mat.Translate(-0.5, 1, 0.5)
+	middle.Material = mat.NewDefaultMaterial()
+	middle.Material.Color = mat.NewColor(0.1, 1, 0.5)
+	middle.Material.Diffuse = 0.7
+	middle.Material.Specular = 0.3
+	w.Objects = append(w.Objects, middle)
+
+	// right sphere
+	right := mat.NewSphere()
+	right.Transform = mat.Multiply(mat.Translate(1.5, 0.5, -0.5), mat.Scale(0.5, 0.5, 0.5))
+	right.Material = mat.NewDefaultMaterial()
+	right.Material.Color = mat.NewColor(0.5, 1, 0.1)
+	right.Material.Diffuse = 0.7
+	right.Material.Specular = 0.3
+	w.Objects = append(w.Objects, right)
+
+	// left sphere
+	left := mat.NewSphere()
+	left.Transform = mat.Multiply(mat.Translate(-1.5, 0.33, -0.75), mat.Scale(0.33, 0.33, 0.33))
+	left.Material = mat.NewDefaultMaterial()
+	left.Material.Color = mat.NewColor(1, 0.8, 0.1)
+	left.Material.Diffuse = 0.7
+	left.Material.Specular = 0.3
+	w.Objects = append(w.Objects, left)
+
+	canvas := mat.Render(camera, w)
+	// write
+	data := canvas.ToPPM()
+	err := ioutil.WriteFile("world2.ppm", []byte(data), os.FileMode(0755))
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+}
+
+func renderworld() {
 	w := mat.NewWorld()
 	w.Light = mat.NewLight(mat.NewPoint(-10, 1, -10), mat.NewColor(1, 1, 1))
 
@@ -115,7 +175,7 @@ func shadedSphereDemo() {
 	//mat.SetTransform(&sphere, mat.Translate(1, 1, 1))
 	material := mat.NewDefaultMaterial()
 	material.Color = mat.NewColor(1, 0.2, 1)
-	mat.SetMaterial(&sphere, material)
+	sphere.SetMaterial(material)
 
 	lightPos := mat.NewPoint(-10, 10, -10)
 	lightColor := mat.NewColor(1, 1, 1)
@@ -132,12 +192,12 @@ func shadedSphereDemo() {
 			rayFromOriginToPosOnWall := mat.NewRay(rayOrigin, mat.Normalize(mat.Sub(posOnWall, rayOrigin)))
 
 			// check if our ray intersects the sphere
-			intersections := mat.IntersectRayWithSphere(sphere, rayFromOriginToPosOnWall)
+			intersections := mat.IntersectRayWithShape(sphere, rayFromOriginToPosOnWall)
 			intersection, found := mat.Hit(intersections)
 
 			if found {
 				pointOfHit := mat.Position(rayFromOriginToPosOnWall, intersection.T)
-				normalAtHit := mat.NormalAtPoint(sphere, pointOfHit)
+				normalAtHit := mat.NormalAt(sphere, pointOfHit)
 				minusEyeRayVector := mat.Negate(rayFromOriginToPosOnWall.Direction)
 				color := mat.Lighting(sphere.Material, light, pointOfHit, minusEyeRayVector, normalAtHit, false)
 
@@ -177,7 +237,7 @@ func circleDemo() {
 			rayFromOriginToPosOnWall := mat.NewRay(rayOrigin, mat.Normalize(mat.Sub(posOnWall, rayOrigin)))
 
 			// check if our ray intersects the sphere
-			intersections := mat.IntersectRayWithSphere(sphere, rayFromOriginToPosOnWall)
+			intersections := mat.IntersectRayWithShape(sphere, rayFromOriginToPosOnWall)
 			_, found := mat.Hit(intersections)
 			if found {
 				c.WritePixel(col, c.H-row, color)

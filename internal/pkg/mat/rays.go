@@ -1,7 +1,6 @@
 package mat
 
 import (
-	"math"
 	"sort"
 )
 
@@ -22,37 +21,13 @@ func Position(r Ray, distance float64) Tuple4 {
 	return pos
 }
 
-func IntersectRayWithSphere(s Sphere, r2 Ray) []Intersection {
+func IntersectRayWithShape(s Shape, r2 Ray) []Intersection {
 
 	// transform ray with inverse of sphere transformation matrix to be able to intersect a translated/rotated/skewed sphere
-	r := Transform(r2, Inverse(s.Transform))
+	r := Transform(r2, Inverse(s.GetTransform()))
 
-	// this is a vector from the origin of the ray to the center of the sphere at 0,0,0
-	sphereToRay := Sub(r.Origin, NewPoint(0, 0, 0))
-
-	// This dot product is
-	a := Dot(r.Direction, r.Direction)
-
-	// Take the dot of the direction and the vector from ray origin to sphere center times 2
-	b := 2.0 * Dot(r.Direction, sphereToRay)
-
-	// Take the dot of the two sphereToRay vectors and decrease by 1 (is that because the sphere is unit length 1?
-	c := Dot(sphereToRay, sphereToRay) - 1.0
-
-	// calculate the discriminant
-	discriminant := (b * b) - 4*a*c
-	if discriminant < 0.0 {
-		return []Intersection{}
-	}
-
-	// finally, find the intersection distances on our ray. Some values:
-	//fmt.Printf("c: %v b: %v, a: %v, 2*a: %v sqrt(disc): %v discr: %v\n", c, b, a, 2*a, math.Sqrt(discriminant), discriminant)
-	t1 := (-b - math.Sqrt(discriminant)) / (2 * a)
-	t2 := (-b + math.Sqrt(discriminant)) / (2 * a)
-	return []Intersection{
-		{T: t1, S: s},
-		{T: t2, S: s},
-	}
+	// Call the intersect function provided by the shape implementation (e.g. Sphere, Plane osv)
+	return s.IntersectLocal(r)
 }
 
 func Hit(intersections []Intersection) (Intersection, bool) {
@@ -85,7 +60,7 @@ func Transform(r Ray, m1 Mat4x4) Ray {
 
 func ShadeHit(w World, comps Computation) Tuple4 {
 	inShadow := PointInShadow(w, comps.OverPoint)
-	return Lighting(comps.Object.Material, w.Light, comps.Point, comps.EyeVec, comps.NormalVec, inShadow)
+	return Lighting(comps.Object.GetMaterial(), w.Light, comps.Point, comps.EyeVec, comps.NormalVec, inShadow)
 }
 
 func PointInShadow(w World, p Tuple4) bool {

@@ -4,21 +4,21 @@ import "sort"
 
 type Intersection struct {
 	T float64
-	S Sphere
+	S Shape
 }
 
-func NewIntersection(t float64, s Sphere) Intersection {
+func NewIntersection(t float64, s Shape) Intersection {
 	return Intersection{T: t, S: s}
 }
 
 func IntersectionEqual(i1, i2 Intersection) bool {
-	return i1.T == i2.T && i1.S.Id == i2.S.Id
+	return i1.T == i2.T && i1.S.ID() == i2.S.ID()
 }
 
 func IntersectWithWorld(w World, r Ray) []Intersection {
 	xs := make([]Intersection, 0)
 	for idx, _ := range w.Objects {
-		intersections := IntersectRayWithSphere(w.Objects[idx], r)
+		intersections := IntersectRayWithShape(w.Objects[idx], r)
 		if len(intersections) > 0 {
 			for innerIdx := range intersections {
 				if intersections[innerIdx].T >= 0.0 {

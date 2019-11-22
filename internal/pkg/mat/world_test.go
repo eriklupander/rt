@@ -37,7 +37,7 @@ func TestPrepareCompute(t *testing.T) {
 
 	comps := PrepareComputationForIntersection(xs, r)
 	assert.Equal(t, comps.T, xs.T)
-	assert.Equal(t, comps.Object.Id, s.Id)
+	assert.Equal(t, comps.Object.ID(), s.Id)
 	assert.Equal(t, comps.Point, NewPoint(0, 0, -1))
 	assert.Equal(t, comps.EyeVec, NewVector(0, 0, -1))
 	assert.Equal(t, comps.NormalVec, NewVector(0, 0, -1))
@@ -52,7 +52,7 @@ func TestPrepareComputeInsideHit(t *testing.T) {
 
 	comps := PrepareComputationForIntersection(xs, r)
 	assert.Equal(t, comps.T, xs.T)
-	assert.Equal(t, comps.Object.Id, s.Id)
+	assert.Equal(t, comps.Object.ID(), s.Id)
 	assert.Equal(t, comps.Point, NewPoint(0, 0, 1))
 	assert.Equal(t, comps.EyeVec, NewVector(0, 0, -1))
 	assert.Equal(t, comps.NormalVec, NewVector(0, 0, -1))
@@ -107,15 +107,14 @@ func TestColorWhenRayHits(t *testing.T) {
 // Page 97
 func TestColorWhenCastWithinSphereAtInsideSphere(t *testing.T) {
 	w := NewDefaultWorld()
-	w.Objects[0].Material.Ambient = 1.0
-	w.Objects[1].Material = NewMaterial(NewColor(0.8, 1.0, 0.6), 0.1, 0.7, 0.2, 200)
-	w.Objects[1].Material.Ambient = 1.0
+	w.Objects[0].SetMaterial(NewMaterial(NewColor(0.8, 1.0, 0.6), 1.0, 0.7, 0.2, 200))
+	w.Objects[1].SetMaterial(NewMaterial(NewColor(0.8, 1.0, 0.6), 1.0, 0.7, 0.2, 200))
 
 	r := NewRay(NewPoint(0, 0, 0.75), NewVector(0, 0, -1))
 	color := ColorAt(w, r)
-	assert.InEpsilon(t, w.Objects[1].Material.Color.Get(0), color.Get(0), Epsilon)
-	assert.InEpsilon(t, w.Objects[1].Material.Color.Get(1), color.Get(1), Epsilon)
-	assert.InEpsilon(t, w.Objects[1].Material.Color.Get(2), color.Get(2), Epsilon)
+	assert.InEpsilon(t, w.Objects[1].GetMaterial().Color.Get(0), color.Get(0), Epsilon)
+	assert.InEpsilon(t, w.Objects[1].GetMaterial().Color.Get(1), color.Get(1), Epsilon)
+	assert.InEpsilon(t, w.Objects[1].GetMaterial().Color.Get(2), color.Get(2), Epsilon)
 }
 
 func TestPointNotInShadow(t *testing.T) {

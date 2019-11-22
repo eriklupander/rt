@@ -1,13 +1,14 @@
 package mat
 
 import (
+	"math"
 	"math/rand"
 )
 
-func NewSphere() Sphere {
+func NewSphere() *Sphere {
 	m1 := NewMat4x4(make([]float64, 16))
 	copy(m1.Elems, IdentityMatrix.Elems)
-	return Sphere{Id: rand.Int63(), Transform: m1, Material: NewDefaultMaterial()}
+	return &Sphere{Id: rand.Int63(), Transform: m1, Material: NewDefaultMaterial()}
 }
 
 type Sphere struct {
@@ -15,14 +16,64 @@ type Sphere struct {
 	Transform Mat4x4
 	Material  Material
 	Label     string
+	savedRay  Ray
+}
+
+func (s *Sphere) NormalAtLocal(localPoint Tuple4) Tuple4 {
+	return Sub(localPoint, NewPoint(0, 0, 0))
+}
+
+func (s *Sphere) GetLocalRay() Ray {
+	return s.savedRay
+}
+
+// IntersectLocal implements Sphere-ray intersection
+func (s *Sphere) IntersectLocal(r Ray) []Intersection {
+	s.savedRay = r
+	// this is a vector from the origin of the ray to the center of the sphere at 0,0,0
+	sphereToRay := Sub(r.Origin, NewPoint(0, 0, 0))
+
+	// This dot product is
+	a := Dot(r.Direction, r.Direction)
+
+	// Take the dot of the direction and the vector from ray origin to sphere center times 2
+	b := 2.0 * Dot(r.Direction, sphereToRay)
+
+	// Take the dot of the two sphereToRay vectors and decrease by 1 (is that because the sphere is unit length 1?
+	c := Dot(sphereToRay, sphereToRay) - 1.0
+
+	// calculate the discriminant
+	discriminant := (b * b) - 4*a*c
+	if discriminant < 0.0 {
+		return []Intersection{}
+	}
+
+	// finally, find the intersection distances on our ray. Some values:
+	t1 := (-b - math.Sqrt(discriminant)) / (2 * a)
+	t2 := (-b + math.Sqrt(discriminant)) / (2 * a)
+	return []Intersection{
+		{T: t1, S: s},
+		{T: t2, S: s},
+	}
+}
+
+func (s *Sphere) ID() int64 {
+	return s.Id
+}
+func (s *Sphere) GetTransform() Mat4x4 {
+	return s.Transform
+}
+
+func (s *Sphere) GetMaterial() Material {
+	return s.Material
 }
 
 // SetTransform passes a pointer to the Sphere on which to apply the translation matrix
-func SetTransform(s *Sphere, translation Mat4x4) {
+func (s *Sphere) SetTransform(translation Mat4x4) {
 	s.Transform = Multiply(s.Transform, translation)
 }
 
 // SetMaterial passes a pointer to the Sphere on which to set the material
-func SetMaterial(s *Sphere, m Material) {
+func (s *Sphere) SetMaterial(m Material) {
 	s.Material = m
 }
