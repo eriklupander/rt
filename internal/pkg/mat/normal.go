@@ -22,3 +22,13 @@ func Reflect(vec Tuple4, normal Tuple4) Tuple4 {
 	norm := MultiplyByScalar(MultiplyByScalar(normal, 2.0), dotScalar)
 	return Sub(vec, norm)
 }
+
+func ReflectedColor(w World, comps Computation, remaining int) Tuple4 {
+	if remaining == 0 || comps.Object.GetMaterial().Reflectivity == 0.0 {
+		return black
+	}
+	reflectRay := NewRay(comps.OverPoint, comps.ReflectVec)
+	remaining--
+	reflectedColor := ColorAt(w, reflectRay, remaining)
+	return MultiplyByScalar(reflectedColor, comps.Object.GetMaterial().Reflectivity)
+}

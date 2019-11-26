@@ -96,7 +96,7 @@ func Render(c Camera, w World) *Canvas {
 	for row := 0; row < c.Height; row++ {
 		for col := 0; col < c.Width; col++ {
 			ray := RayForPixel(c, col, row)
-			color := ColorAt(w, ray)
+			color := ColorAt(w, ray, 5)
 			canvas.WritePixel(col, row, color)
 		}
 		fmt.Printf("%d / %d\n", row+1, c.Height)

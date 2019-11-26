@@ -1,8 +1,8 @@
 package mat
 
-import "math"
-
-var black = NewColor(0, 0, 0)
+import (
+	"math"
+)
 
 type Light struct {
 	Position  Tuple4
@@ -14,11 +14,17 @@ func NewLight(position Tuple4, intensity Tuple4) Light {
 }
 
 // Lighting computes the color of a given pixel given phong shading
-func Lighting(material Material, light Light, position, eyeVec, normalVec Tuple4, inShadow bool) Tuple4 {
-	if inShadow {
-		return MultiplyByScalar(material.Color, material.Ambient)
+func Lighting(material Material, object Shape, light Light, position, eyeVec, normalVec Tuple4, inShadow bool) Tuple4 {
+	var color Tuple4
+	if material.HasPattern() {
+		color = PatternAtShape(material.Pattern, object, position)
+	} else {
+		color = material.Color
 	}
-	effectiveColor := Hadamard(material.Color, light.Intensity)
+	if inShadow {
+		return MultiplyByScalar(color, material.Ambient)
+	}
+	effectiveColor := Hadamard(color, light.Intensity)
 
 	// get vector from point on sphere to light source by subtracting, normalized into unit space.
 	lightVec := Normalize(Sub(light.Position, position))

@@ -20,5 +20,8 @@ func TestAssignMaterialToSphere(t *testing.T) {
 	m.Ambient = 1.0
 	s.SetMaterial(m)
 	assert.Equal(t, 1.0, s.Material.Ambient)
-
+}
+func TestReflectivityForDefaultMaterial(t *testing.T) {
+	m := NewDefaultMaterial()
+	assert.Equal(t, 0.0, m.Reflectivity)
 }

@@ -23,8 +23,8 @@ func Position(r Ray, distance float64) Tuple4 {
 
 func IntersectRayWithShape(s Shape, r2 Ray) []Intersection {
 
-	// transform ray with inverse of sphere transformation matrix to be able to intersect a translated/rotated/skewed sphere
-	r := Transform(r2, Inverse(s.GetTransform()))
+	// transform ray with inverse of shape transformation matrix to be able to intersect a translated/rotated/skewed shape
+	r := TransformRay(r2, Inverse(s.GetTransform()))
 
 	// Call the intersect function provided by the shape implementation (e.g. Sphere, Plane osv)
 	return s.IntersectLocal(r)
@@ -52,15 +52,27 @@ func Hit(intersections []Intersection) (Intersection, bool) {
 	return xs[0], true
 }
 
-func Transform(r Ray, m1 Mat4x4) Ray {
+func TransformRay(r Ray, m1 Mat4x4) Ray {
 	origin := MultiplyByTuple(m1, r.Origin)
 	direction := MultiplyByTuple(m1, r.Direction)
 	return NewRay(origin, direction)
 }
 
-func ShadeHit(w World, comps Computation) Tuple4 {
+func ColorAt(w World, r Ray, remaining int) Tuple4 {
+	xs := IntersectWithWorld(w, r)
+	if len(xs) > 0 {
+		comps := PrepareComputationForIntersection(xs[0], r)
+		return ShadeHit(w, comps, remaining)
+	} else {
+		return black
+	}
+}
+
+func ShadeHit(w World, comps Computation, remaining int) Tuple4 {
 	inShadow := PointInShadow(w, comps.OverPoint)
-	return Lighting(comps.Object.GetMaterial(), w.Light, comps.Point, comps.EyeVec, comps.NormalVec, inShadow)
+	color := Lighting(comps.Object.GetMaterial(), comps.Object, w.Light, comps.Point, comps.EyeVec, comps.NormalVec, inShadow)
+	reflectedColor := ReflectedColor(w, comps, remaining)
+	return Add(color, reflectedColor)
 }
 
 func PointInShadow(w World, p Tuple4) bool {
@@ -78,14 +90,4 @@ func PointInShadow(w World, p Tuple4) bool {
 		}
 	}
 	return false
-}
-
-func ColorAt(w World, r Ray) Tuple4 {
-	xs := IntersectWithWorld(w, r)
-	if len(xs) > 0 {
-		comps := PrepareComputationForIntersection(xs[0], r)
-		return ShadeHit(w, comps)
-	} else {
-		return black
-	}
 }

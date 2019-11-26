@@ -67,7 +67,7 @@ func TestShadeIntersection(t *testing.T) {
 	i := Intersection{T: 4.0, S: w.Objects[0]}
 
 	comps := PrepareComputationForIntersection(i, r)
-	color := ShadeHit(w, comps)
+	color := ShadeHit(w, comps, 1)
 	assert.InEpsilon(t, 0.38066, color.Get(0), Epsilon)
 	assert.InEpsilon(t, 0.47583, color.Get(1), Epsilon)
 	assert.InEpsilon(t, 0.2855, color.Get(2), Epsilon)
@@ -82,7 +82,7 @@ func TestShadeIntersectionFromInside(t *testing.T) {
 	i := Intersection{T: 0.5, S: w.Objects[1]}
 
 	comps := PrepareComputationForIntersection(i, r)
-	color := ShadeHit(w, comps)
+	color := ShadeHit(w, comps, 1)
 	assert.InEpsilon(t, 0.90498, color.Get(0), Epsilon)
 	assert.InEpsilon(t, 0.90498, color.Get(1), Epsilon)
 	assert.InEpsilon(t, 0.90498, color.Get(2), Epsilon)
@@ -91,14 +91,14 @@ func TestShadeIntersectionFromInside(t *testing.T) {
 func TestColorWhenRayMiss(t *testing.T) {
 	w := NewDefaultWorld()
 	r := NewRay(NewPoint(0, 0, -5), NewVector(0, 1, 0))
-	color := ColorAt(w, r)
+	color := ColorAt(w, r, 1)
 	assert.Equal(t, color, NewColor(0, 0, 0))
 }
 
 func TestColorWhenRayHits(t *testing.T) {
 	w := NewDefaultWorld()
 	r := NewRay(NewPoint(0, 0, -5), NewVector(0, 0, 1))
-	color := ColorAt(w, r)
+	color := ColorAt(w, r, 1)
 	assert.InEpsilon(t, 0.38066, color.Get(0), Epsilon)
 	assert.InEpsilon(t, 0.47583, color.Get(1), Epsilon)
 	assert.InEpsilon(t, 0.2855, color.Get(2), Epsilon)
@@ -111,7 +111,7 @@ func TestColorWhenCastWithinSphereAtInsideSphere(t *testing.T) {
 	w.Objects[1].SetMaterial(NewMaterial(NewColor(0.8, 1.0, 0.6), 1.0, 0.7, 0.2, 200))
 
 	r := NewRay(NewPoint(0, 0, 0.75), NewVector(0, 0, -1))
-	color := ColorAt(w, r)
+	color := ColorAt(w, r, 1)
 	assert.InEpsilon(t, w.Objects[1].GetMaterial().Color.Get(0), color.Get(0), Epsilon)
 	assert.InEpsilon(t, w.Objects[1].GetMaterial().Color.Get(1), color.Get(1), Epsilon)
 	assert.InEpsilon(t, w.Objects[1].GetMaterial().Color.Get(2), color.Get(2), Epsilon)
@@ -151,20 +151,12 @@ func TestWorldWithShadowTest(t *testing.T) {
 	r := NewRay(NewPoint(0, 0, 5), NewVector(0, 0, 1))
 	i := NewIntersection(4, s2)
 	comps := PrepareComputationForIntersection(i, r)
-	color := ShadeHit(w, comps)
-	assert.Equal(t, NewTuple4([]float64{0.1, 0.1, 0.1, 0.1}), color)
+	color := ShadeHit(w, comps, 1)
+	color.Elems[3] = 1 // just a fix for me using Tuple4 to represent colors...
+	assert.Equal(t, NewColor(0.1, 0.1, 0.1), color)
 }
 
 func TestHitOffsetToFixAcne(t *testing.T) {
-	/*
-		Given r ← ray(point(0, 0, -5), vector(0, 0, 1))
-		And shape ← sphere() with:
-		| transform | translation(0, 0, 1) |
-		And i ← intersection(5, shape)
-		When comps ← prepare_computations(i, r)
-		Then comps.over_point.z < -EPSILON/2
-		And comps.point.z > comps.over_point.z
-	*/
 	r := NewRay(NewPoint(0, 0, -5), NewVector(0, 0, 1))
 	s := NewSphere()
 	s.Transform = Multiply(s.Transform, Translate(0, 0, 1))

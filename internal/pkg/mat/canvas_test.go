@@ -1,6 +1,7 @@
 package mat
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
@@ -71,4 +72,23 @@ func TestCanvas_ToPPM70(t *testing.T) {
 	}
 
 	assert.Equal(t, expected, canvas.ToPPM())
+}
+
+func TestGradeSchoolMath(t *testing.T) {
+	a := 2
+	c := 3
+	d := 6
+	w := a + (c * d)
+
+	fmt.Printf("%v\n", w)
+	/*
+		20 = 2 + (3*6)
+		18 = 3*6
+		18 / 6 = 3
+		w = a + (c*d)
+			w - a = c*d
+			w - a
+			----- = c
+			   d
+	*/
 }

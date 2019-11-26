@@ -102,7 +102,7 @@ func TestHitIsLowestNonNegativeT(t *testing.T) {
 func TestTranslateRay(t *testing.T) {
 	r := NewRay(NewPoint(1, 2, 3), NewVector(0, 1, 0))
 	m1 := Translate(3, 4, 5)
-	r2 := Transform(r, m1)
+	r2 := TransformRay(r, m1)
 	assert.True(t, TupleEquals(r2.Origin, NewPoint(4, 6, 8)))
 	assert.True(t, TupleEquals(r2.Direction, NewVector(0, 1, 0)))
 }
@@ -110,7 +110,7 @@ func TestTranslateRay(t *testing.T) {
 func TestScaleRay(t *testing.T) {
 	r := NewRay(NewPoint(1, 2, 3), NewVector(0, 1, 0))
 	m1 := Scale(2, 3, 4)
-	r2 := Transform(r, m1)
+	r2 := TransformRay(r, m1)
 	assert.True(t, TupleEquals(r2.Origin, NewPoint(2, 6, 12)))
 	assert.True(t, TupleEquals(r2.Direction, NewVector(0, 3, 0)))
 }

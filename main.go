@@ -17,16 +17,25 @@ func main() {
 	//projectileDemo()
 }
 
+var white = mat.NewColor(1, 1, 1)
+var black = mat.NewColor(0, 0, 0)
+
 func worldWithPlane() {
 	w := mat.NewWorld()
-	w.Light = mat.NewLight(mat.NewPoint(-10, 3, -10), mat.NewColor(1, 1, 1))
+	w.Light = mat.NewLight(mat.NewPoint(-10, 5, -10), mat.NewColor(1, 1, 1))
 
 	camera := mat.NewCamera(1024, 768, math.Pi/3)
-	viewTransform := mat.ViewTransform(mat.NewPoint(0, 1.5, -5), mat.NewPoint(0, 1, 0), mat.NewVector(0, 1, 0))
+	viewTransform := mat.ViewTransform(mat.NewPoint(-2.1, 2, -5), mat.NewPoint(0, 0, 0), mat.NewVector(0, 1, 0))
 	camera.Transform = viewTransform
 
+	ref := mat.NewSphere()
+	ref.SetTransform(mat.Multiply(mat.Translate(0, 2, -0.5), mat.Scale(0.1, 0.1, 0.1)))
+	ref.Material.Color = mat.NewColor(1, 1, 1)
+	w.Objects = append(w.Objects, ref)
+
 	floor := mat.NewPlane()
-	floor.SetMaterial(mat.NewMaterial(mat.NewColor(1, 0.5, 0.5), 0.1, 0.9, 0.7, 200))
+	floor.SetMaterial(mat.NewMaterialWithReflectivity(mat.NewColor(1, 0.5, 0.5), 0.1, 0.9, 0.7, 200, 0.1))
+	floor.Material.Pattern = mat.NewCheckerPattern(white, black)
 	w.Objects = append(w.Objects, floor)
 
 	wall := mat.NewPlane()
@@ -41,12 +50,15 @@ func worldWithPlane() {
 	w.Objects = append(w.Objects, rightWall)
 
 	// middle sphere
+	pattern := mat.NewRingPattern(mat.NewColor(1, 0, 0), mat.NewColor(0, 0, 1))
+	pattern.SetPatternTransform(mat.Multiply(pattern.Transform, mat.RotateZ(math.Pi/2)))
 	middle := mat.NewSphere()
 	middle.Transform = mat.Translate(-0.5, 1, 0.5)
-	middle.Material = mat.NewDefaultMaterial()
+	middle.Material = mat.NewDefaultReflectiveMaterial(0.3)
 	middle.Material.Color = mat.NewColor(0.1, 1, 0.5)
 	middle.Material.Diffuse = 0.7
 	middle.Material.Specular = 0.3
+	middle.Material.Pattern = pattern
 	w.Objects = append(w.Objects, middle)
 
 	// right sphere
@@ -56,18 +68,23 @@ func worldWithPlane() {
 	right.Material.Color = mat.NewColor(0.5, 1, 0.1)
 	right.Material.Diffuse = 0.7
 	right.Material.Specular = 0.3
+	right.Material.Reflectivity = 0.3
 	w.Objects = append(w.Objects, right)
 
 	// left sphere
 	left := mat.NewSphere()
-	left.Transform = mat.Multiply(mat.Translate(-1.5, 0.33, -0.75), mat.Scale(0.33, 0.33, 0.33))
+	left.Transform = mat.Multiply(mat.Translate(-2, 0.33, -1.0), mat.Scale(0.33, 0.33, 0.33))
 	left.Material = mat.NewDefaultMaterial()
 	left.Material.Color = mat.NewColor(1, 0.8, 0.1)
 	left.Material.Diffuse = 0.7
 	left.Material.Specular = 0.3
+	right.Material.Reflectivity = 0.3
 	w.Objects = append(w.Objects, left)
 
 	canvas := mat.Render(camera, w)
+
+	mat.RenderReferenceAxises(canvas, camera)
+
 	// write
 	data := canvas.ToPPM()
 	err := ioutil.WriteFile("world2.ppm", []byte(data), os.FileMode(0755))
@@ -199,7 +216,7 @@ func shadedSphereDemo() {
 				pointOfHit := mat.Position(rayFromOriginToPosOnWall, intersection.T)
 				normalAtHit := mat.NormalAt(sphere, pointOfHit)
 				minusEyeRayVector := mat.Negate(rayFromOriginToPosOnWall.Direction)
-				color := mat.Lighting(sphere.Material, light, pointOfHit, minusEyeRayVector, normalAtHit, false)
+				color := mat.Lighting(sphere.Material, sphere, light, pointOfHit, minusEyeRayVector, normalAtHit, false)
 
 				c.WritePixel(col, c.H-row, color)
 			}
