@@ -3,12 +3,24 @@ package mat
 import (
 	"math"
 	"math/rand"
+	"time"
 )
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
 
 func NewSphere() *Sphere {
 	m1 := NewMat4x4(make([]float64, 16))
 	copy(m1.Elems, IdentityMatrix.Elems)
 	return &Sphere{Id: rand.Int63(), Transform: m1, Material: NewDefaultMaterial()}
+}
+
+func NewGlassSphere() *Sphere {
+	m1 := NewMat4x4(make([]float64, 16))
+	copy(m1.Elems, IdentityMatrix.Elems)
+	material := NewGlassMaterial(1.5)
+	return &Sphere{Id: rand.Int63(), Transform: m1, Material: material}
 }
 
 type Sphere struct {

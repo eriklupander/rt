@@ -1,6 +1,7 @@
 package mat
 
 import (
+	"math"
 	"sort"
 )
 
@@ -58,21 +59,30 @@ func TransformRay(r Ray, m1 Mat4x4) Ray {
 	return NewRay(origin, direction)
 }
 
-func ColorAt(w World, r Ray, remaining int) Tuple4 {
+func ColorAt(w World, r Ray, remaining1, remaining2 int) Tuple4 {
 	xs := IntersectWithWorld(w, r)
 	if len(xs) > 0 {
 		comps := PrepareComputationForIntersection(xs[0], r)
-		return ShadeHit(w, comps, remaining)
+		return ShadeHit(w, comps, remaining1, remaining2)
 	} else {
 		return black
 	}
 }
 
-func ShadeHit(w World, comps Computation, remaining int) Tuple4 {
+func ShadeHit(w World, comps Computation, remaining1, remaining2 int) Tuple4 {
 	inShadow := PointInShadow(w, comps.OverPoint)
-	color := Lighting(comps.Object.GetMaterial(), comps.Object, w.Light, comps.Point, comps.EyeVec, comps.NormalVec, inShadow)
-	reflectedColor := ReflectedColor(w, comps, remaining)
-	return Add(color, reflectedColor)
+	surfaceColor := Lighting(comps.Object.GetMaterial(), comps.Object, w.Light, comps.Point, comps.EyeVec, comps.NormalVec, inShadow)
+	reflectedColor := ReflectedColor(w, comps, remaining1, remaining2)
+	refractedColor := RefractedColor(w, comps, remaining2)
+
+	mat := comps.Object.GetMaterial()
+	if mat.Reflectivity > 0.0 && mat.Transparency > 0.0 {
+		reflectance := Schlick(comps)
+		return Add(Add(surfaceColor, MultiplyByScalar(reflectedColor, reflectance)), MultiplyByScalar(refractedColor, 1-reflectance))
+	} else {
+		return Add(surfaceColor, Add(reflectedColor, refractedColor))
+	}
+	//return Add(surfaceColor, reflectedColor)
 }
 
 func PointInShadow(w World, p Tuple4) bool {
@@ -90,4 +100,25 @@ func PointInShadow(w World, p Tuple4) bool {
 		}
 	}
 	return false
+}
+
+func Schlick(comps Computation) float64 {
+	// find the cosine of the angle between the eye and normal vectors using Dot
+	cos := Dot(comps.EyeVec, comps.NormalVec)
+	// total internal reflection can only occur if n1 > n2
+	if comps.N1 > comps.N2 {
+		n := comps.N1 / comps.N2
+		sin2Theta := n * n * (1.0 - cos*cos)
+		if sin2Theta > 1.0 {
+			return 1.0
+		}
+		// compute cosine of theta_t using trig identity
+		cosTheta := math.Sqrt(1.0 - sin2Theta)
+
+		// when n1 > n2, use cos(theta_t) instead
+		cos = cosTheta
+	}
+	temp := (comps.N1 - comps.N2) / (comps.N1 + comps.N2)
+	r0 := temp * temp
+	return r0 + (1-r0)*math.Pow(1-cos, 5)
 }

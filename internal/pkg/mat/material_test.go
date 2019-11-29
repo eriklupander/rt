@@ -25,3 +25,9 @@ func TestReflectivityForDefaultMaterial(t *testing.T) {
 	m := NewDefaultMaterial()
 	assert.Equal(t, 0.0, m.Reflectivity)
 }
+func TestTransparencyAndRefractiveIndex(t *testing.T) {
+	m := NewDefaultMaterial()
+	assert.Equal(t, 0.0, m.Transparency)
+	assert.Equal(t, 1.0, m.RefractiveIndex)
+
+}

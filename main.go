@@ -24,14 +24,10 @@ func worldWithPlane() {
 	w := mat.NewWorld()
 	w.Light = mat.NewLight(mat.NewPoint(-10, 5, -10), mat.NewColor(1, 1, 1))
 
-	camera := mat.NewCamera(1024, 768, math.Pi/3)
-	viewTransform := mat.ViewTransform(mat.NewPoint(-2.1, 2, -5), mat.NewPoint(0, 0, 0), mat.NewVector(0, 1, 0))
+	//camera := mat.NewCamera(2540, 1600, math.Pi/3)
+	camera := mat.NewCamera(320, 240, math.Pi/3)
+	viewTransform := mat.ViewTransform(mat.NewPoint(-2.1, 1, -4.5), mat.NewPoint(-1, 0.5, 0), mat.NewVector(0, 1, 0))
 	camera.Transform = viewTransform
-
-	ref := mat.NewSphere()
-	ref.SetTransform(mat.Multiply(mat.Translate(0, 2, -0.5), mat.Scale(0.1, 0.1, 0.1)))
-	ref.Material.Color = mat.NewColor(1, 1, 1)
-	w.Objects = append(w.Objects, ref)
 
 	floor := mat.NewPlane()
 	floor.SetMaterial(mat.NewMaterialWithReflectivity(mat.NewColor(1, 0.5, 0.5), 0.1, 0.9, 0.7, 200, 0.1))
@@ -41,6 +37,11 @@ func worldWithPlane() {
 	wall := mat.NewPlane()
 	wall.SetTransform(mat.Translate(0, 0, 10))
 	wall.SetTransform(mat.RotateX(math.Pi / 2))
+	material := mat.NewDefaultReflectiveMaterial(1.0)
+	material.Transparency = 0.0
+	material.Color = mat.NewColor(0.05, 0.05, 0.05)
+
+	wall.SetMaterial(material)
 	w.Objects = append(w.Objects, wall)
 
 	rightWall := mat.NewPlane()
@@ -50,22 +51,24 @@ func worldWithPlane() {
 	w.Objects = append(w.Objects, rightWall)
 
 	// middle sphere
-	pattern := mat.NewRingPattern(mat.NewColor(1, 0, 0), mat.NewColor(0, 0, 1))
-	pattern.SetPatternTransform(mat.Multiply(pattern.Transform, mat.RotateZ(math.Pi/2)))
+	//pattern := mat.NewRingPattern(mat.NewColor(1, 0, 0), mat.NewColor(0, 0, 1))
+	//pattern.SetPatternTransform(mat.Multiply(pattern.Transform, mat.RotateZ(math.Pi/2)))
 	middle := mat.NewSphere()
 	middle.Transform = mat.Translate(-0.5, 1, 0.5)
 	middle.Material = mat.NewDefaultReflectiveMaterial(0.3)
-	middle.Material.Color = mat.NewColor(0.1, 1, 0.5)
+	middle.Material.Color = mat.NewColor(0.1, 0.1, 0.1)
 	middle.Material.Diffuse = 0.7
-	middle.Material.Specular = 0.3
-	middle.Material.Pattern = pattern
+	middle.Material.Specular = 0.6
+	middle.Material.Transparency = 0.95
+	middle.Material.RefractiveIndex = 1.5
+	//middle.Material.Pattern = pattern
 	w.Objects = append(w.Objects, middle)
 
 	// right sphere
 	right := mat.NewSphere()
-	right.Transform = mat.Multiply(mat.Translate(1.5, 0.5, -0.5), mat.Scale(0.5, 0.5, 0.5))
+	right.Transform = mat.Multiply(mat.Translate(-0.75, 0.5, 2.5), mat.Scale(0.5, 0.5, 0.5))
 	right.Material = mat.NewDefaultMaterial()
-	right.Material.Color = mat.NewColor(0.5, 1, 0.1)
+	right.Material.Color = mat.NewColor(1, 0, 0)
 	right.Material.Diffuse = 0.7
 	right.Material.Specular = 0.3
 	right.Material.Reflectivity = 0.3
@@ -81,13 +84,13 @@ func worldWithPlane() {
 	right.Material.Reflectivity = 0.3
 	w.Objects = append(w.Objects, left)
 
-	canvas := mat.Render(camera, w)
+	canvas := mat.RenderThreaded(camera, w)
 
-	mat.RenderReferenceAxises(canvas, camera)
+	//mat.RenderReferenceAxises(canvas, camera)
 
 	// write
 	data := canvas.ToPPM()
-	err := ioutil.WriteFile("world2.ppm", []byte(data), os.FileMode(0755))
+	err := ioutil.WriteFile("world-transparency.ppm", []byte(data), os.FileMode(0755))
 	if err != nil {
 		fmt.Println(err.Error())
 	}

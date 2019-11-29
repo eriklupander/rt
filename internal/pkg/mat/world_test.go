@@ -2,6 +2,7 @@ package mat
 
 import (
 	"github.com/stretchr/testify/assert"
+	"math"
 	"testing"
 )
 
@@ -164,4 +165,140 @@ func TestHitOffsetToFixAcne(t *testing.T) {
 	comps := PrepareComputationForIntersection(i, r)
 	assert.True(t, comps.OverPoint.Get(2) < -Epsilon/2)
 	assert.True(t, comps.Point.Get(2) > comps.OverPoint.Get(2))
+}
+
+func TestOpaqueRefraction(t *testing.T) {
+	w := NewDefaultWorld()
+	s1 := w.Objects[0]
+	r := NewRay(NewPoint(0, 0, -5), NewVector(0, 0, 1))
+	xs := []Intersection{
+		NewIntersection(4, s1), NewIntersection(6, s1),
+	}
+	comps := PrepareComputationForIntersection(xs[0], r, xs...)
+	color := RefractedColor(w, comps, 5)
+	assert.Equal(t, black, color)
+}
+
+func TestRefractiveColorAndMaxRecursionDepth(t *testing.T) {
+	w := NewDefaultWorld()
+	s1 := w.Objects[0]
+	material := NewDefaultMaterial()
+	material.Transparency = 1.0
+	material.RefractiveIndex = 1.5
+	s1.SetMaterial(material)
+
+	r := NewRay(NewPoint(0, 0, -5), NewVector(0, 0, 1))
+	xs := []Intersection{
+		NewIntersection(4, s1), NewIntersection(6, s1),
+	}
+	comps := PrepareComputationForIntersection(xs[0], r, xs...)
+	color := RefractedColor(w, comps, 0)
+	assert.Equal(t, black, color)
+}
+
+func TestTotalInternalRefraction(t *testing.T) {
+	w := NewDefaultWorld()
+	s1 := w.Objects[0]
+	material := NewDefaultMaterial()
+	material.Transparency = 1.0
+	material.RefractiveIndex = 1.5
+	s1.SetMaterial(material)
+	r := NewRay(NewPoint(0, 0, math.Sqrt(2)/2), NewVector(0, 1, 0))
+
+	xs := []Intersection{
+		NewIntersection(-math.Sqrt(2)/2, s1), NewIntersection(math.Sqrt(2)/2, s1),
+	}
+
+	comps := PrepareComputationForIntersection(xs[1], r, xs...)
+	color := RefractedColor(w, comps, 5)
+	assert.Equal(t, black, color)
+}
+
+func TestRefractedColorWithRefractedRay(t *testing.T) {
+	w := NewDefaultWorld()
+	s1 := w.Objects[0]
+	material := NewDefaultMaterial()
+	material.Ambient = 1.0
+	material.Pattern = NewTestPattern()
+	s1.SetMaterial(material)
+
+	s2 := w.Objects[1]
+	material2 := NewDefaultMaterial()
+	material2.Transparency = 1.0
+	material2.RefractiveIndex = 1.5
+	s2.SetMaterial(material2)
+
+	r := NewRay(NewPoint(0, 0, 0.1), NewVector(0, 1, 0))
+
+	xs := []Intersection{
+		NewIntersection(-0.9899, s1),
+		NewIntersection(-0.4899, s2),
+		NewIntersection(0.4899, s2),
+		NewIntersection(0.4899, s1),
+	}
+
+	comps := PrepareComputationForIntersection(xs[2], r, xs...)
+	color := RefractedColor(w, comps, 5)
+	assert.Equal(t, 0.0, color.Get(0))
+	assert.InEpsilon(t, 0.99888, color.Get(1), Epsilon)
+	assert.InEpsilon(t, 0.04725, color.Get(2), Epsilon*10)
+}
+
+func TestShadeHitWithRefractedMaterial(t *testing.T) {
+	w := NewDefaultWorld()
+	floor := NewPlane()
+	floor.SetTransform(Translate(0, -1, 0))
+	mat1 := NewDefaultMaterial()
+	mat1.Transparency = 0.5
+	mat1.RefractiveIndex = 1.5
+	floor.SetMaterial(mat1)
+	w.Objects = append(w.Objects, floor)
+
+	ball := NewSphere()
+	mat2 := NewDefaultMaterial()
+	mat2.Color = NewColor(1, 0, 0)
+	mat2.Ambient = 0.5
+	ball.SetMaterial(mat2)
+	ball.SetTransform(Translate(0, -3.5, -0.5))
+	w.Objects = append(w.Objects, ball)
+
+	ray := NewRay(NewPoint(0, 0, -3), NewVector(0, -math.Sqrt(2)/2, math.Sqrt(2)/2))
+	xs := []Intersection{
+		NewIntersection(math.Sqrt(2), floor),
+	}
+	comps := PrepareComputationForIntersection(xs[0], ray, xs...)
+	color := ShadeHit(w, comps, 5)
+	assert.InEpsilon(t, 0.93642, color.Get(0), Epsilon)
+	assert.InEpsilon(t, 0.68642, color.Get(1), Epsilon)
+	assert.InEpsilon(t, 0.68642, color.Get(2), Epsilon)
+}
+
+func TestShadeHitWhenBothTransparentAndRefractive(t *testing.T) {
+	w := NewDefaultWorld()
+	r := NewRay(NewPoint(0, 0, -3), NewVector(0, -math.Sqrt(2)/2, math.Sqrt(2)/2))
+
+	floor := NewPlane()
+	floor.SetTransform(Translate(0, -1, 0))
+	mat1 := NewDefaultMaterial()
+	mat1.Reflectivity = 0.5
+	mat1.Transparency = 0.5
+	mat1.RefractiveIndex = 1.5
+	floor.SetMaterial(mat1)
+	w.Objects = append(w.Objects, floor)
+
+	ball := NewSphere()
+	ball.SetTransform(Translate(0, -3.5, -0.5))
+	mat2 := NewDefaultMaterial()
+	mat2.Color = NewColor(1, 0, 0)
+	mat2.Ambient = 0.5
+	ball.SetMaterial(mat2)
+	w.Objects = append(w.Objects, ball)
+
+	xs := []Intersection{
+		NewIntersection(math.Sqrt(2), floor),
+	}
+	color := ShadeHit(w, PrepareComputationForIntersection(xs[0], r, xs...), 5)
+	assert.InEpsilon(t, 0.93642, color.Get(0), Epsilon*3)
+	assert.InEpsilon(t, 0.69643, color.Get(1), Epsilon)
+	assert.InEpsilon(t, 0.69243, color.Get(2), Epsilon)
 }
