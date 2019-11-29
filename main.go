@@ -24,8 +24,8 @@ func worldWithPlane() {
 	w := mat.NewWorld()
 	w.Light = mat.NewLight(mat.NewPoint(-10, 5, -10), mat.NewColor(1, 1, 1))
 
-	//camera := mat.NewCamera(2540, 1600, math.Pi/3)
-	camera := mat.NewCamera(320, 240, math.Pi/3)
+	camera := mat.NewCamera(2540, 1600, math.Pi/3)
+	//camera := mat.NewCamera(320, 240, math.Pi/3)
 	viewTransform := mat.ViewTransform(mat.NewPoint(-2.1, 1, -4.5), mat.NewPoint(-1, 0.5, 0), mat.NewVector(0, 1, 0))
 	camera.Transform = viewTransform
 
@@ -74,6 +74,17 @@ func worldWithPlane() {
 	right.Material.Reflectivity = 0.3
 	w.Objects = append(w.Objects, right)
 
+	// cube
+	cube := mat.NewCube()
+	cube.Transform = mat.Multiply(mat.Translate(-2.6, 0.25, -1.5), mat.Scale(0.25, 0.25, 0.25))
+	cube.Material = mat.NewDefaultMaterial()
+	cube.Material.Color = mat.NewColor(1, 0.6, 0.2)
+	cube.Material.Transparency = 0.0
+	cube.Material.Diffuse = 0.7
+	cube.Material.Specular = 0.3
+	cube.Material.Reflectivity = 0.0
+	w.Objects = append(w.Objects, cube)
+
 	// left sphere
 	left := mat.NewSphere()
 	left.Transform = mat.Multiply(mat.Translate(-2, 0.33, -1.0), mat.Scale(0.33, 0.33, 0.33))
@@ -81,7 +92,7 @@ func worldWithPlane() {
 	left.Material.Color = mat.NewColor(1, 0.8, 0.1)
 	left.Material.Diffuse = 0.7
 	left.Material.Specular = 0.3
-	right.Material.Reflectivity = 0.3
+	left.Material.Reflectivity = 0.1
 	w.Objects = append(w.Objects, left)
 
 	canvas := mat.RenderThreaded(camera, w)

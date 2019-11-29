@@ -91,7 +91,7 @@ func TestReflectedColorForNonreflectiveMaterial(t *testing.T) {
 	shape.SetMaterial(material)
 	xs := NewIntersection(1, shape)
 	comps := PrepareComputationForIntersection(xs, r)
-	color := ReflectedColor(w, comps, 1)
+	color := ReflectedColor(w, comps, 1, 1)
 	assert.Equal(t, black, color)
 }
 
@@ -107,7 +107,7 @@ func TestReflectedColorForReflectiveMaterial(t *testing.T) {
 	r := NewRay(NewPoint(0, 0, -3), NewVector(0, -math.Sqrt(2)/2, math.Sqrt(2)/2))
 	xs := NewIntersection(math.Sqrt(2), plane)
 	comps := PrepareComputationForIntersection(xs, r)
-	color := ReflectedColor(w, comps, 1)
+	color := ReflectedColor(w, comps, 1, 1)
 	assert.InEpsilon(t, 0.19032, color.Get(0), Epsilon)
 	assert.InEpsilon(t, 0.2379, color.Get(1), Epsilon)
 	assert.InEpsilon(t, 0.14274, color.Get(2), Epsilon)
@@ -125,7 +125,7 @@ func TestShadeHitWithReflectiveMaterial(t *testing.T) {
 	r := NewRay(NewPoint(0, 0, -3), NewVector(0, -math.Sqrt(2)/2, math.Sqrt(2)/2))
 	xs := NewIntersection(math.Sqrt(2), plane)
 	comps := PrepareComputationForIntersection(xs, r)
-	color := ShadeHit(w, comps, 1)
+	color := ShadeHit(w, comps, 1, 1)
 
 	assert.InEpsilon(t, 0.87677, color.Get(0), Epsilon)
 	assert.InEpsilon(t, 0.92436, color.Get(1), Epsilon)
@@ -146,7 +146,7 @@ func TestColorAtWithMutuallyReflectiveSurfaces(t *testing.T) {
 	w.Objects = append(w.Objects, upperPlane)
 
 	r := NewRay(NewPoint(0, 0, 0), NewVector(0, 1, 0))
-	_ = ColorAt(w, r, 1)
+	_ = ColorAt(w, r, 1, 1)
 }
 
 func TestTheReflectedColorAtMaxRecursiveDepth(t *testing.T) {
@@ -158,6 +158,6 @@ func TestTheReflectedColorAtMaxRecursiveDepth(t *testing.T) {
 	r := NewRay(NewPoint(0, 0, -3), NewVector(0, -math.Sqrt(2)/2, math.Sqrt(2)/2))
 	xs := NewIntersection(math.Sqrt(2), pl)
 	comps := PrepareComputationForIntersection(xs, r)
-	color := ReflectedColor(w, comps, 0)
+	color := ReflectedColor(w, comps, 0, 0)
 	assert.Equal(t, black, color)
 }
