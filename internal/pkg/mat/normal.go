@@ -4,18 +4,16 @@ import "math"
 
 func NormalAt(s Shape, worldPoint Tuple4) Tuple4 {
 
-	// transform point on surface of sphere from world to object space.
-	localPoint := MultiplyByTuple(Inverse(s.GetTransform()), worldPoint)
+	// transform point from world to object space, including recursively traversing any parent object
+	// transforms.
+	localPoint := WorldToObject(s, worldPoint)
 
-	// vector from the point on the sphere surface to its origin
+	// normal in local space given the shape's implementation
 	objectNormal := s.NormalAtLocal(localPoint)
 
-	// convert normal from object space to world space
-	worldNormal := MultiplyByTuple(Transpose(Inverse(s.GetTransform())), objectNormal)
-
-	// fix for having a translation in the transform messing up the w part of the world space vector.
-	worldNormal.Elems[3] = 0.0
-	return Normalize(worldNormal)
+	// convert normal from object space back into world space, again recursively applying any
+	// parent transforms.
+	return NormalToWorld(s, objectNormal)
 }
 
 // in - normal * 2 * dot(in, normal)

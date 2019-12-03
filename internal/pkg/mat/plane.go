@@ -16,6 +16,7 @@ type Plane struct {
 	Transform Mat4x4
 	Material  Material
 	Label     string
+	Parent    Shape
 	savedRay  Ray
 }
 
@@ -56,4 +57,10 @@ func (p *Plane) NormalAtLocal(point Tuple4) Tuple4 {
 
 func (p *Plane) GetLocalRay() Ray {
 	panic("implement me")
+}
+func (p *Plane) GetParent() Shape {
+	return p.Parent
+}
+func (p *Plane) SetParent(shape Shape) {
+	p.Parent = shape
 }

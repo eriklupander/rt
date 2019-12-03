@@ -16,6 +16,7 @@ type Cube struct {
 	Transform Mat4x4
 	Material  Material
 	Label     string
+	Parent    Shape
 	savedRay  Ray
 }
 
@@ -67,6 +68,12 @@ func (c *Cube) NormalAtLocal(point Tuple4) Tuple4 {
 
 func (c *Cube) GetLocalRay() Ray {
 	return c.savedRay
+}
+func (c *Cube) GetParent() Shape {
+	return c.Parent
+}
+func (c *Cube) SetParent(shape Shape) {
+	c.Parent = shape
 }
 
 func checkAxis(origin float64, direction float64) (min float64, max float64) {

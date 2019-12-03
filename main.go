@@ -22,82 +22,108 @@ var black = mat.NewColor(0, 0, 0)
 
 func worldWithPlane() {
 	w := mat.NewWorld()
-	w.Light = mat.NewLight(mat.NewPoint(-10, 5, -10), mat.NewColor(1, 1, 1))
+	w.Light = mat.NewLight(mat.NewPoint(-1, 1.5, 1), mat.NewColor(1, 1, 1))
 
-	camera := mat.NewCamera(2540, 1600, math.Pi/3)
+	camera := mat.NewCamera(640, 480, math.Pi/3)
 	//camera := mat.NewCamera(320, 240, math.Pi/3)
-	viewTransform := mat.ViewTransform(mat.NewPoint(-2.1, 1, -4.5), mat.NewPoint(-1, 0.5, 0), mat.NewVector(0, 1, 0))
+	viewTransform := mat.ViewTransform(mat.NewPoint(-1.3, 2, -3), mat.NewPoint(0, 0.5, 0), mat.NewVector(0, 1, 0))
 	camera.Transform = viewTransform
 
-	floor := mat.NewPlane()
-	floor.SetMaterial(mat.NewMaterialWithReflectivity(mat.NewColor(1, 0.5, 0.5), 0.1, 0.9, 0.7, 200, 0.1))
-	floor.Material.Pattern = mat.NewCheckerPattern(white, black)
-	w.Objects = append(w.Objects, floor)
+	//floor := mat.NewPlane()
+	//floor.SetMaterial(mat.NewMaterialWithReflectivity(mat.NewColor(1, 0.5, 0.5), 0.1, 0.9, 0.7, 200, 0.1))
+	//floor.Material.Pattern = mat.NewCheckerPattern(white, black)
+	//w.Objects = append(w.Objects, floor)
 
-	wall := mat.NewPlane()
-	wall.SetTransform(mat.Translate(0, 0, 10))
-	wall.SetTransform(mat.RotateX(math.Pi / 2))
-	material := mat.NewDefaultReflectiveMaterial(1.0)
-	material.Transparency = 0.0
-	material.Color = mat.NewColor(0.05, 0.05, 0.05)
-
-	wall.SetMaterial(material)
-	w.Objects = append(w.Objects, wall)
-
-	rightWall := mat.NewPlane()
-	rightWall.SetTransform(mat.Translate(5, 0, 0))
-	rightWall.SetTransform(mat.RotateY(math.Pi / 2))
-	rightWall.SetTransform(mat.RotateX(math.Pi / 2))
-	w.Objects = append(w.Objects, rightWall)
-
-	// middle sphere
-	//pattern := mat.NewRingPattern(mat.NewColor(1, 0, 0), mat.NewColor(0, 0, 1))
-	//pattern.SetPatternTransform(mat.Multiply(pattern.Transform, mat.RotateZ(math.Pi/2)))
-	middle := mat.NewSphere()
-	middle.Transform = mat.Translate(-0.5, 1, 0.5)
-	middle.Material = mat.NewDefaultReflectiveMaterial(0.3)
-	middle.Material.Color = mat.NewColor(0.1, 0.1, 0.1)
-	middle.Material.Diffuse = 0.7
-	middle.Material.Specular = 0.6
-	middle.Material.Transparency = 0.95
-	middle.Material.RefractiveIndex = 1.5
-	//middle.Material.Pattern = pattern
-	w.Objects = append(w.Objects, middle)
-
-	// right sphere
-	right := mat.NewSphere()
-	right.Transform = mat.Multiply(mat.Translate(-0.75, 0.5, 2.5), mat.Scale(0.5, 0.5, 0.5))
-	right.Material = mat.NewDefaultMaterial()
-	right.Material.Color = mat.NewColor(1, 0, 0)
-	right.Material.Diffuse = 0.7
-	right.Material.Specular = 0.3
-	right.Material.Reflectivity = 0.3
-	w.Objects = append(w.Objects, right)
+	//
+	//rightWall := mat.NewPlane()
+	//rightWall.SetTransform(mat.Translate(5, 0, 0))
+	//rightWall.SetTransform(mat.RotateY(math.Pi / 2))
+	//rightWall.SetTransform(mat.RotateX(math.Pi / 2))
+	//w.Objects = append(w.Objects, rightWall)
+	//
+	//// middle sphere
+	////pattern := mat.NewRingPattern(mat.NewColor(1, 0, 0), mat.NewColor(0, 0, 1))
+	////pattern.SetPatternTransform(mat.Multiply(pattern.Transform, mat.RotateZ(math.Pi/2)))
+	//middle := mat.NewSphere()
+	//middle.Transform = mat.Translate(-0.5, 1, 0.5)
+	//middle.Material = mat.NewDefaultReflectiveMaterial(0.3)
+	//middle.Material.Color = mat.NewColor(0.1, 0.1, 0.1)
+	//middle.Material.Diffuse = 0.7
+	//middle.Material.Specular = 0.6
+	//middle.Material.Transparency = 0.95
+	//middle.Material.RefractiveIndex = 1.5
+	////middle.Material.Pattern = pattern
+	//w.Objects = append(w.Objects, middle)
+	//
+	//cyl := mat.NewCylinderMMC(0.5, 4.0, true)
+	//cyl.SetTransform(mat.Translate(-1.25, 0.5, -2.5))
+	//cyl.SetTransform(mat.Scale(0.2, 0.2, 0.2))
+	//cyl.SetTransform(mat.RotateX(math.Pi / 4))
+	//cyl.SetTransform(mat.RotateZ(-math.Pi / 4))
+	//m := mat.NewDefaultReflectiveMaterial(0.2)
+	//m.Color = mat.NewColor(0.1, 0.1, 1.0)
+	//cyl.SetMaterial(m)
+	//w.Objects = append(w.Objects, cyl)
+	//
+	//// right sphere
+	//right := mat.NewSphere()
+	//right.Transform = mat.Multiply(mat.Translate(-0.75, 0.5, 2.5), mat.Scale(0.5, 0.5, 0.5))
+	//right.Material = mat.NewDefaultMaterial()
+	//right.Material.Color = mat.NewColor(1, 0, 0)
+	//right.Material.Diffuse = 0.7
+	//right.Material.Specular = 0.3
+	//right.Material.Reflectivity = 0.3
+	//w.Objects = append(w.Objects, right)
 
 	// cube
-	cube := mat.NewCube()
-	cube.Transform = mat.Multiply(mat.Translate(-2.6, 0.25, -1.5), mat.Scale(0.25, 0.25, 0.25))
-	cube.Material = mat.NewDefaultMaterial()
-	cube.Material.Color = mat.NewColor(1, 0.6, 0.2)
-	cube.Material.Transparency = 0.0
-	cube.Material.Diffuse = 0.7
-	cube.Material.Specular = 0.3
-	cube.Material.Reflectivity = 0.0
-	w.Objects = append(w.Objects, cube)
+	//cube := mat.NewCube()
+	//cube.Transform = mat.Multiply(mat.Translate(-2.6, 0.25, -1.5), mat.Scale(0.25, 0.25, 0.25))
+	//cube.Material = mat.NewDefaultMaterial()
+	//cube.Material.Color = mat.NewColor(1, 0.6, 0.2)
+	//cube.Material.Transparency = 0.0
+	//cube.Material.Diffuse = 0.7
+	//cube.Material.Specular = 0.3
+	//cube.Material.Reflectivity = 0.0
+	//w.Objects = append(w.Objects, cube)
+
+	// cone
+	//cone := mat.NewConeMMC(0,1, true)
+	//m2 := mat.NewDefaultMaterial()
+	//m2.Color = mat.NewColor(1,0.1,0.1)
+	//ptrn := mat.NewCheckerPattern(mat.NewColor(0,1,0), mat.NewColor(1,0,0))
+	//ptrn.SetPatternTransform(mat.Multiply(ptrn.Transform, mat.Scale(0.5, 0.5, 0.5)))
+	//m2.Pattern = ptrn
+	//cone.SetMaterial(m2)
+	//cone.SetTransform(mat.Translate(-1, 0, 0))
+	//cone.SetTransform(mat.Scale(0.5, 0.5, 0.5))
+	//w.Objects = append(w.Objects, cone)
+	//
+	//cone2 := mat.NewConeMMC(0,1, false)
+	//m2 = mat.NewDefaultMaterial()
+	//m2.Color = mat.NewColor(1,0.1,0.1)
+	//ptrn2 := mat.NewCheckerPattern(mat.NewColor(0,1,0), mat.NewColor(1,0,0))
+	//ptrn2.SetPatternTransform(mat.Multiply(ptrn.Transform, mat.Scale(0.5, 0.5, 0.5)))
+	//m2.Pattern = ptrn2
+	//cone2.SetMaterial(m2)
+	//cone2.SetTransform(mat.Translate(1, 0, 0))
+	//cone2.SetTransform(mat.Scale(0.5, 0.5, 0.5))
+	//w.Objects = append(w.Objects, cone2)
 
 	// left sphere
-	left := mat.NewSphere()
-	left.Transform = mat.Multiply(mat.Translate(-2, 0.33, -1.0), mat.Scale(0.33, 0.33, 0.33))
-	left.Material = mat.NewDefaultMaterial()
-	left.Material.Color = mat.NewColor(1, 0.8, 0.1)
-	left.Material.Diffuse = 0.7
-	left.Material.Specular = 0.3
-	left.Material.Reflectivity = 0.1
-	w.Objects = append(w.Objects, left)
-
+	//left := mat.NewSphere()
+	//left.Transform = mat.Multiply(mat.Translate(-2, 0.33, -1.0), mat.Scale(0.33, 0.33, 0.33))
+	//left.Material = mat.NewDefaultMaterial()
+	//left.Material.Color = mat.NewColor(1, 0.8, 0.1)
+	//left.Material.Diffuse = 0.7
+	//left.Material.Specular = 0.3
+	//left.Material.Reflectivity = 0.1
+	//w.Objects = append(w.Objects, left)
+	s3 := mat.NewSphere()
+	s3.SetTransform(mat.Translate(5, 0, 0))
+	w.Objects = append(w.Objects, s3)
 	canvas := mat.RenderThreaded(camera, w)
 
-	//mat.RenderReferenceAxises(canvas, camera)
+	mat.RenderReferenceAxises(canvas, camera)
 
 	// write
 	data := canvas.ToPPM()

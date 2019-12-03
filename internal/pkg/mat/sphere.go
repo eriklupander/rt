@@ -28,7 +28,12 @@ type Sphere struct {
 	Transform Mat4x4
 	Material  Material
 	Label     string
+	Parent    Shape
 	savedRay  Ray
+}
+
+func (s *Sphere) GetParent() Shape {
+	return s.Parent
 }
 
 func (s *Sphere) NormalAtLocal(localPoint Tuple4) Tuple4 {
@@ -88,4 +93,8 @@ func (s *Sphere) SetTransform(translation Mat4x4) {
 // SetMaterial passes a pointer to the Sphere on which to set the material
 func (s *Sphere) SetMaterial(m Material) {
 	s.Material = m
+}
+
+func (s *Sphere) SetParent(shape Shape) {
+	s.Parent = shape
 }

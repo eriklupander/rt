@@ -9,4 +9,24 @@ type Shape interface {
 	IntersectLocal(ray Ray) []Intersection
 	NormalAtLocal(point Tuple4) Tuple4
 	GetLocalRay() Ray
+	GetParent() Shape
+	SetParent(shape Shape)
+}
+
+func WorldToObject(shape Shape, point Tuple4) Tuple4 {
+	if shape.GetParent() != nil {
+		point = WorldToObject(shape.GetParent(), point)
+	}
+	return MultiplyByTuple(Inverse(shape.GetTransform()), point)
+}
+
+func NormalToWorld(shape Shape, normal Tuple4) Tuple4 {
+	normal = MultiplyByTuple(Transpose(Inverse(shape.GetTransform())), normal)
+	normal.Elems[3] = 0.0 // set w to 0
+	normal = Normalize(normal)
+
+	if shape.GetParent() != nil {
+		normal = NormalToWorld(shape.GetParent(), normal)
+	}
+	return normal
 }
