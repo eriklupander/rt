@@ -121,3 +121,101 @@ func TestSchlickWhenAngleIsSmall(t *testing.T) {
 	reflectance := Schlick(comps)
 	assert.Equal(t, 0.4887308101221217, reflectance)
 }
+
+func TestIntersectionAllowedUnionCSG(t *testing.T) {
+	tc := []struct {
+		op     string
+		lhit   bool
+		inl    bool
+		inr    bool
+		result bool
+	}{
+		{"union", true, true, true, false},
+		{"union", true, true, false, true},
+		{"union", true, false, true, false},
+		{"union", true, false, false, true},
+		{"union", false, true, true, false},
+		{"union", false, true, false, false},
+		{"union", false, false, true, true},
+		{"union", false, false, false, true},
+	}
+
+	for _, test := range tc {
+		assert.True(t, IntersectionAllowed(test.op, test.lhit, test.inl, test.inr) == test.result)
+	}
+}
+
+func TestIntersectionAllowedIntersectionCSG(t *testing.T) {
+	tc := []struct {
+		op     string
+		lhit   bool
+		inl    bool
+		inr    bool
+		result bool
+	}{
+		{"intersection", true, true, true, true},
+		{"intersection", true, true, false, false},
+		{"intersection", true, false, true, true},
+		{"intersection", true, false, false, false},
+		{"intersection", false, true, true, true},
+		{"intersection", false, true, false, true},
+		{"intersection", false, false, true, false},
+		{"intersection", false, false, false, false},
+	}
+
+	for _, test := range tc {
+		assert.True(t, IntersectionAllowed(test.op, test.lhit, test.inl, test.inr) == test.result)
+	}
+}
+
+func TestIntersectionAllowedDifferenceCSG(t *testing.T) {
+	tc := []struct {
+		op     string
+		lhit   bool
+		inl    bool
+		inr    bool
+		result bool
+	}{
+		{"difference", true, true, true, false},
+		{"difference", true, true, false, true},
+		{"difference", true, false, true, false},
+		{"difference", true, false, false, true},
+		{"difference", false, true, true, true},
+		{"difference", false, true, false, true},
+		{"difference", false, false, true, false},
+		{"difference", false, false, false, false},
+	}
+
+	for _, test := range tc {
+		assert.True(t, IntersectionAllowed(test.op, test.lhit, test.inl, test.inr) == test.result)
+	}
+}
+
+func TestFilterCSGIntersections(t *testing.T) {
+	s1 := NewSphere()
+	s2 := NewCube()
+	xs := []Intersection{
+		NewIntersection(1, s1),
+		NewIntersection(2, s2),
+		NewIntersection(3, s1),
+		NewIntersection(4, s2),
+	}
+	c1 := NewCSG("union", s1, s2)
+	c2 := NewCSG("intersection", s1, s2)
+	c3 := NewCSG("difference", s1, s2)
+
+	r1 := FilterIntersections(c1, xs)
+	r2 := FilterIntersections(c2, xs)
+	r3 := FilterIntersections(c3, xs)
+
+	assert.Len(t, r1, 2)
+	assert.Len(t, r2, 2)
+	assert.Len(t, r3, 2)
+
+	assert.Equal(t, r1[0], xs[0])
+	assert.Equal(t, r1[1], xs[3])
+	assert.Equal(t, r2[0], xs[1])
+	assert.Equal(t, r2[1], xs[2])
+	assert.Equal(t, r3[0], xs[0])
+	assert.Equal(t, r3[1], xs[1])
+}

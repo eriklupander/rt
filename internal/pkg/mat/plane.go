@@ -51,7 +51,7 @@ func (p *Plane) IntersectLocal(ray Ray) []Intersection {
 	}
 }
 
-func (p *Plane) NormalAtLocal(point Tuple4) Tuple4 {
+func (p *Plane) NormalAtLocal(point Tuple4, intersection *Intersection) Tuple4 {
 	return NewVector(0, 1, 0)
 }
 

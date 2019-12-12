@@ -56,7 +56,7 @@ func TestNormalOnCone(t *testing.T) {
 		{p: NewPoint(-1, -1, 0), v: NewVector(-1, 1, 0)},
 	}
 	for _, test := range tc {
-		n := cone.NormalAtLocal(test.p)
+		n := cone.NormalAtLocal(test.p, nil)
 		assert.Equal(t, test.v, n)
 	}
 }

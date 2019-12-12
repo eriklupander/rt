@@ -1,6 +1,7 @@
 package mat
 
 import (
+	"fmt"
 	"math/rand"
 	"sort"
 )
@@ -13,6 +14,143 @@ type Group struct {
 	Parent    Shape
 	Children  []Shape
 	savedRay  Ray
+	bb        *BoundingBox
+	c         *Cube
+}
+
+func (g *Group) BB() {
+	// recalculate BB after each added child
+	var minX, minY, minZ, maxX, maxY, maxZ float64
+	for _, child := range g.Children {
+		switch tri := child.(type) {
+		case *Triangle:
+			// mins
+			if tri.P1.Get(0) < minX {
+				minX = tri.P1.Get(0)
+			}
+			if tri.P2.Get(0) < minX {
+				minX = tri.P2.Get(0)
+			}
+			if tri.P3.Get(0) < minX {
+				minX = tri.P3.Get(0)
+			}
+			if tri.P1.Get(1) < minY {
+				minY = tri.P1.Get(1)
+			}
+			if tri.P2.Get(1) < minY {
+				minY = tri.P2.Get(1)
+			}
+			if tri.P3.Get(1) < minY {
+				minY = tri.P3.Get(1)
+			}
+			if tri.P1.Get(2) < minZ {
+				minZ = tri.P1.Get(2)
+			}
+			if tri.P2.Get(2) < minZ {
+				minZ = tri.P2.Get(2)
+			}
+			if tri.P3.Get(2) < minZ {
+				minZ = tri.P3.Get(2)
+			}
+
+			// max
+			if tri.P1.Get(0) > maxX {
+				maxX = tri.P1.Get(0)
+			}
+			if tri.P2.Get(0) > maxX {
+				maxX = tri.P2.Get(0)
+			}
+			if tri.P3.Get(0) > maxX {
+				maxX = tri.P3.Get(0)
+			}
+			if tri.P1.Get(1) > maxY {
+				maxY = tri.P1.Get(1)
+			}
+			if tri.P2.Get(1) > maxY {
+				maxY = tri.P2.Get(1)
+			}
+			if tri.P3.Get(1) > maxY {
+				maxY = tri.P3.Get(1)
+			}
+			if tri.P1.Get(2) > maxZ {
+				maxZ = tri.P1.Get(2)
+			}
+			if tri.P2.Get(2) > maxZ {
+				maxZ = tri.P2.Get(2)
+			}
+			if tri.P3.Get(2) > maxZ {
+				maxZ = tri.P3.Get(2)
+			}
+		case *SmoothTriangle:
+
+			// mins
+			if tri.P1.Get(0) < minX {
+				minX = tri.P1.Get(0)
+			}
+			if tri.P2.Get(0) < minX {
+				minX = tri.P2.Get(0)
+			}
+			if tri.P3.Get(0) < minX {
+				minX = tri.P3.Get(0)
+			}
+			if tri.P1.Get(1) < minY {
+				minY = tri.P1.Get(1)
+			}
+			if tri.P2.Get(1) < minY {
+				minY = tri.P2.Get(1)
+			}
+			if tri.P3.Get(1) < minY {
+				minY = tri.P3.Get(1)
+			}
+			if tri.P1.Get(2) < minZ {
+				minZ = tri.P1.Get(2)
+			}
+			if tri.P2.Get(2) < minZ {
+				minZ = tri.P2.Get(2)
+			}
+			if tri.P3.Get(2) < minZ {
+				minZ = tri.P3.Get(2)
+			}
+
+			// max
+			if tri.P1.Get(0) > maxX {
+				maxX = tri.P1.Get(0)
+			}
+			if tri.P2.Get(0) > maxX {
+				maxX = tri.P2.Get(0)
+			}
+			if tri.P3.Get(0) > maxX {
+				maxX = tri.P3.Get(0)
+			}
+			if tri.P1.Get(1) > maxY {
+				maxY = tri.P1.Get(1)
+			}
+			if tri.P2.Get(1) > maxY {
+				maxY = tri.P2.Get(1)
+			}
+			if tri.P3.Get(1) > maxY {
+				maxY = tri.P3.Get(1)
+			}
+			if tri.P1.Get(2) > maxZ {
+				maxZ = tri.P1.Get(2)
+			}
+			if tri.P2.Get(2) > maxZ {
+				maxZ = tri.P2.Get(2)
+			}
+			if tri.P3.Get(2) > maxZ {
+				maxZ = tri.P3.Get(2)
+			}
+		}
+
+	}
+	fmt.Print(minX, minY, minZ, maxX, maxY, maxZ)
+	g.bb = &BoundingBox{
+		PointA: NewPoint(minX, minY, minZ),
+		PointB: NewPoint(maxX, maxY, maxZ),
+	}
+	g.c = NewCube()
+	//g.c.SetTransform(Scale(g.bb.PointB.Get(0) - g.bb.PointA.Get(0), g.bb.PointB.Get(1) - g.bb.PointA.Get(1), g.bb.PointB.Get(2) - g.bb.PointA.Get(2)))
+	g.c.SetTransform(Scale(3.0, 5.1, 3.6))
 }
 
 func (g *Group) GetParent() Shape {
@@ -45,11 +183,22 @@ func (g *Group) GetMaterial() Material {
 }
 
 func (g *Group) SetMaterial(material Material) {
-	panic("not applicable to a group")
+	for _, c := range g.Children {
+		c.SetMaterial(material)
+	}
 }
 
 func (g *Group) IntersectLocal(ray Ray) []Intersection {
 	ray = TransformRay(ray, Inverse(g.Transform))
+
+	// check the bounding box around the group. We should have precomputed this.
+	//if g.bb != nil {
+	//
+	//	lcray := TransformRay(ray, Inverse(g.c.GetTransform()))
+	//	if len(g.c.IntersectLocal(lcray)) == 0 {
+	//		return []Intersection{}
+	//	}
+	//}
 
 	xs := make([]Intersection, 0)
 	for idx := range g.Children {
@@ -65,7 +214,7 @@ func (g *Group) IntersectLocal(ray Ray) []Intersection {
 	return xs
 }
 
-func (g *Group) NormalAtLocal(point Tuple4) Tuple4 {
+func (g *Group) NormalAtLocal(point Tuple4, intersection *Intersection) Tuple4 {
 	panic("not applicable to a group")
 }
 

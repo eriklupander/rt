@@ -119,6 +119,7 @@ func RenderThreaded(c Camera, w World) *Canvas {
 	for row := 0; row < c.Height; row++ {
 		for col := 0; col < c.Width; col++ {
 			jobs <- &job{row: row, col: col}
+			fmt.Print(".")
 		}
 		fmt.Printf("%d/%d\n", row, c.Height)
 	}

@@ -7,9 +7,9 @@ import (
 
 func TestNewPlane(t *testing.T) {
 	pl := NewPlane()
-	n1 := pl.NormalAtLocal(NewPoint(0, 0, 0))
-	n2 := pl.NormalAtLocal(NewPoint(10, 0, -10))
-	n3 := pl.NormalAtLocal(NewPoint(-6, 0, 150))
+	n1 := pl.NormalAtLocal(NewPoint(0, 0, 0), nil)
+	n2 := pl.NormalAtLocal(NewPoint(10, 0, -10), nil)
+	n3 := pl.NormalAtLocal(NewPoint(-6, 0, 150), nil)
 	assert.True(t, TupleEquals(n1, NewVector(0, 1, 0)))
 	assert.True(t, TupleEquals(n2, NewVector(0, 1, 0)))
 	assert.True(t, TupleEquals(n3, NewVector(0, 1, 0)))

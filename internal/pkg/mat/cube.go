@@ -45,6 +45,8 @@ func (c *Cube) IntersectLocal(ray Ray) []Intersection {
 	xtmin, xtmax := checkAxis(ray.Origin.Get(0), ray.Direction.Get(0))
 	ytmin, ytmax := checkAxis(ray.Origin.Get(1), ray.Direction.Get(1))
 	ztmin, ztmax := checkAxis(ray.Origin.Get(2), ray.Direction.Get(2))
+
+	// Om det största av min-värdena är större än det minsta max-värdet.
 	tmin := max(xtmin, ytmin, ztmin)
 	tmax := min(xtmax, ytmax, ztmax)
 	if tmin > tmax {
@@ -56,7 +58,7 @@ func (c *Cube) IntersectLocal(ray Ray) []Intersection {
 // NormalAtLocal uses the fact that given a unit cube, the point of the surface axis X,Y or Z is always either
 // 1.0 for positive XYZ and -1.0 for negative XYZ. I.e - if the point is 0.4, 1, -0.5, we know that the
 // point is on the top Y surface and we can return a 0,1,0 normal
-func (c *Cube) NormalAtLocal(point Tuple4) Tuple4 {
+func (c *Cube) NormalAtLocal(point Tuple4, intersection *Intersection) Tuple4 {
 	maxc := max(math.Abs(point.Get(0)), math.Abs(point.Get(1)), math.Abs(point.Get(2)))
 	if maxc == math.Abs(point.Get(0)) {
 		return NewVector(point.Get(0), 0, 0)

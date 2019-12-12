@@ -3,7 +3,7 @@ package mat
 func PrepareComputationForIntersection(i Intersection, r Ray, xs ...Intersection) Computation {
 	pos := Position(r, i.T)
 	eyeVec := Negate(r.Direction)
-	normalVec := NormalAt(i.S, pos)
+	normalVec := NormalAt(i.S, pos, &i)
 	reflectVec := Reflect(r.Direction, normalVec)
 	inside := false
 	if Dot(eyeVec, normalVec) < 0 {

@@ -36,8 +36,8 @@ func (s *Sphere) GetParent() Shape {
 	return s.Parent
 }
 
-func (s *Sphere) NormalAtLocal(localPoint Tuple4) Tuple4 {
-	return Sub(localPoint, NewPoint(0, 0, 0))
+func (s *Sphere) NormalAtLocal(point Tuple4, intersection *Intersection) Tuple4 {
+	return Sub(point, NewPoint(0, 0, 0))
 }
 
 func (s *Sphere) GetLocalRay() Ray {

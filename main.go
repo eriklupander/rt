@@ -3,14 +3,16 @@ package main
 import (
 	"fmt"
 	"github.com/eriklupander/rt/internal/pkg/mat"
+	"github.com/eriklupander/rt/internal/pkg/obj"
 	"io/ioutil"
 	"math"
 	"os"
 )
 
 func main() {
-	worldWithPlane()
-	//renderworld()
+	//withModel()
+	//worldWithPlane()
+	renderworld()
 	//shadedSphereDemo()
 	//circleDemo()
 	//clockDemo()
@@ -20,6 +22,45 @@ func main() {
 var white = mat.NewColor(1, 1, 1)
 var black = mat.NewColor(0, 0, 0)
 
+func withModel() {
+
+	bytes, err := ioutil.ReadFile("Toilet.1.obj")
+	if err != nil {
+		panic(err.Error())
+	}
+
+	parseObj := obj.ParseObj(string(bytes))
+
+	w := mat.NewWorld()
+	w.Objects = append(w.Objects, parseObj.ToGroup())
+	//w.Objects[0].SetTransform(mat.Scale(0.6, 0.6, 0.6))
+	m := mat.NewDefaultMaterial()
+	m.Ambient = 0.3
+	m.Reflectivity = 0.5
+	w.Objects[0].SetMaterial(m)
+
+	floor := mat.NewPlane()
+	floor.SetMaterial(mat.NewMaterialWithReflectivity(mat.NewColor(1, 0.5, 0.5), 0.1, 0.9, 0.7, 200, 0.1))
+	floor.Material.Pattern = mat.NewCheckerPattern(white, black)
+	w.Objects = append(w.Objects, floor)
+	w.Light = mat.NewLight(mat.NewPoint(-1.5, 2.5, -3), mat.NewColor(1, 1, 1))
+
+	camera := mat.NewCamera(96, 72, math.Pi/3)
+	viewTransform := mat.ViewTransform(mat.NewPoint(-4.3, 5, -8), mat.NewPoint(0, 2.5, 0), mat.NewVector(0, 1, 0))
+	camera.Transform = viewTransform
+
+	canvas := mat.RenderThreaded(camera, w)
+
+	mat.RenderReferenceAxises(canvas, camera)
+
+	// writec
+	data := canvas.ToPPM()
+	err = ioutil.WriteFile("toilet.ppm", []byte(data), os.FileMode(0755))
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+}
+
 func worldWithPlane() {
 	w := mat.NewWorld()
 	w.Light = mat.NewLight(mat.NewPoint(-1, 1.5, 1), mat.NewColor(1, 1, 1))
@@ -28,6 +69,13 @@ func worldWithPlane() {
 	//camera := mat.NewCamera(320, 240, math.Pi/3)
 	viewTransform := mat.ViewTransform(mat.NewPoint(-1.3, 2, -3), mat.NewPoint(0, 0.5, 0), mat.NewVector(0, 1, 0))
 	camera.Transform = viewTransform
+
+	//tris := make([]*mat.Triangle, 0)
+	for i := -0.0; i < 1; i++ {
+		w.Objects = append(w.Objects, mat.NewTriangle(mat.NewPoint(i, 0, 0), mat.NewPoint(i+1, 0, 0), mat.NewPoint(i+0.5, 1, 0.5)))
+		w.Objects = append(w.Objects, mat.NewTriangle(mat.NewPoint(i, 0, 0), mat.NewPoint(i+0.5, 0, 1), mat.NewPoint(i+0.5, 1, 0.5)))
+		w.Objects = append(w.Objects, mat.NewTriangle(mat.NewPoint(i+1, 0, 0.5), mat.NewPoint(i+0.5, 0, 1), mat.NewPoint(i+0.5, 1, 0.5)))
+	}
 
 	//floor := mat.NewPlane()
 	//floor.SetMaterial(mat.NewMaterialWithReflectivity(mat.NewColor(1, 0.5, 0.5), 0.1, 0.9, 0.7, 200, 0.1))
@@ -137,7 +185,7 @@ func renderworld() {
 	w := mat.NewWorld()
 	w.Light = mat.NewLight(mat.NewPoint(-10, 1, -10), mat.NewColor(1, 1, 1))
 
-	camera := mat.NewCamera(1376, 768, math.Pi/3)
+	camera := mat.NewCamera(480, 320, math.Pi/3)
 	viewTransform := mat.ViewTransform(mat.NewPoint(0, 1.5, -5), mat.NewPoint(0, 1, 0), mat.NewVector(0, 1, 0))
 	camera.Transform = viewTransform
 
@@ -206,6 +254,17 @@ func renderworld() {
 	left.Material.Specular = 0.3
 	w.Objects = append(w.Objects, left)
 
+	// cube
+	cube := mat.NewCube()
+	cube.Transform = mat.Multiply(mat.Translate(-.6, 0.25, -1.5), mat.Scale(0.25, 0.25, 0.25))
+	cube.Material = mat.NewDefaultMaterial()
+	cube.Material.Color = mat.NewColor(1, 0.6, 0.2)
+	cube.Material.Transparency = 0.0
+	cube.Material.Diffuse = 0.7
+	cube.Material.Specular = 0.3
+	cube.Material.Reflectivity = 0.0
+	w.Objects = append(w.Objects, cube)
+
 	canvas := mat.Render(camera, w)
 	// write
 	data := canvas.ToPPM()
@@ -254,7 +313,7 @@ func shadedSphereDemo() {
 
 			if found {
 				pointOfHit := mat.Position(rayFromOriginToPosOnWall, intersection.T)
-				normalAtHit := mat.NormalAt(sphere, pointOfHit)
+				normalAtHit := mat.NormalAt(sphere, pointOfHit, nil)
 				minusEyeRayVector := mat.Negate(rayFromOriginToPosOnWall.Direction)
 				color := mat.Lighting(sphere.Material, sphere, light, pointOfHit, minusEyeRayVector, normalAtHit, false)
 

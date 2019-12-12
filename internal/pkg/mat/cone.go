@@ -120,7 +120,7 @@ func (c *Cone) IntersectLocal(ray Ray) []Intersection {
 	return c.intercectCaps(ray, xs)
 }
 
-func (c *Cone) NormalAtLocal(point Tuple4) Tuple4 {
+func (c *Cone) NormalAtLocal(point Tuple4, intersection *Intersection) Tuple4 {
 
 	// compute the square of the distance from the y axis
 	dist := math.Pow(point.Get(0), 2) + math.Pow(point.Get(2), 2)

@@ -56,7 +56,7 @@ func TestCubeNormal(t *testing.T) {
 		{p: NewPoint(-1, -1, -1), v: NewVector(-1, 0, 0)},
 	}
 	for _, test := range tc {
-		n := c.NormalAtLocal(test.p)
+		n := c.NormalAtLocal(test.p, nil)
 		assert.Equal(t, test.v, n)
 	}
 }

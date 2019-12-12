@@ -7,7 +7,7 @@ type Shape interface {
 	GetMaterial() Material
 	SetMaterial(material Material)
 	IntersectLocal(ray Ray) []Intersection
-	NormalAtLocal(point Tuple4) Tuple4
+	NormalAtLocal(point Tuple4, intersection *Intersection) Tuple4
 	GetLocalRay() Ray
 	GetParent() Shape
 	SetParent(shape Shape)

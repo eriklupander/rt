@@ -64,7 +64,7 @@ func TestNormalOnChildObject(t *testing.T) {
 	sphere.SetTransform(Translate(5, 0, 0))
 	gr2.AddChild(sphere)
 
-	n := NormalAt(sphere, NewPoint(1.7321, 1.1547, -5.5774))
+	n := NormalAt(sphere, NewPoint(1.7321, 1.1547, -5.5774), nil)
 	assert.InEpsilon(t, 0.2857, n.Get(0), Epsilon)
 	assert.InEpsilon(t, 0.4286, n.Get(1), Epsilon)
 	assert.InEpsilon(t, -0.8571, n.Get(2), Epsilon)

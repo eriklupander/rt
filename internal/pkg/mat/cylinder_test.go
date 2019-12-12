@@ -46,7 +46,7 @@ func TestCylinderLocalNormal(t *testing.T) {
 		{p: NewPoint(-1, 1, 0), v: Normalize(NewVector(-1, 0, 0))},
 	}
 	for _, test := range tc {
-		n := c.NormalAtLocal(test.p)
+		n := c.NormalAtLocal(test.p, nil)
 		assert.Equal(t, test.v, n)
 	}
 }
@@ -97,7 +97,7 @@ func TestCylinderNormalAtCap(t *testing.T) {
 	}
 
 	for _, test := range tc {
-		n := cyl.NormalAtLocal(test.p)
+		n := cyl.NormalAtLocal(test.p, nil)
 		assert.Equal(t, test.v, n)
 	}
 }

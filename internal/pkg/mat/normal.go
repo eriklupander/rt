@@ -2,14 +2,14 @@ package mat
 
 import "math"
 
-func NormalAt(s Shape, worldPoint Tuple4) Tuple4 {
+func NormalAt(s Shape, worldPoint Tuple4, intersection *Intersection) Tuple4 {
 
 	// transform point from world to object space, including recursively traversing any parent object
 	// transforms.
 	localPoint := WorldToObject(s, worldPoint)
 
 	// normal in local space given the shape's implementation
-	objectNormal := s.NormalAtLocal(localPoint)
+	objectNormal := s.NormalAtLocal(localPoint, intersection)
 
 	// convert normal from object space back into world space, again recursively applying any
 	// parent transforms.

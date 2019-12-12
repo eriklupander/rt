@@ -117,10 +117,16 @@ func (r *RingPattern) GetTransform() Mat4x4 {
 
 func PatternAtShape(pattern Pattern, s Shape, worldPoint Tuple4) Tuple4 {
 	// Convert from world space to object space by inversing the shape transform and then multiply it by the point
-	objectPoint := MultiplyByTuple(Inverse(s.GetTransform()), worldPoint)
+	//objectPoint := MultiplyByTuple(Inverse(s.GetTransform()), worldPoint)
+	objectPoint := WorldToObject(s, worldPoint)
 	patternPoint := MultiplyByTuple(Inverse(pattern.GetTransform()), objectPoint)
 	return pattern.PatternAt(patternPoint)
 }
+
+// use this new
+//world_to_object() function when converting points from world space to object
+//space.
+
 func NewCheckerPattern(colorA Tuple4, colorB Tuple4) *CheckerPattern {
 	m1 := NewMat4x4(make([]float64, 16))
 	copy(m1.Elems, IdentityMatrix.Elems)

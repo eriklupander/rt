@@ -99,7 +99,7 @@ func (c *Cylinder) IntersectLocal(ray Ray) []Intersection {
 	return c.intercectCaps(ray, xs)
 }
 
-func (c *Cylinder) NormalAtLocal(point Tuple4) Tuple4 {
+func (c *Cylinder) NormalAtLocal(point Tuple4, intersection *Intersection) Tuple4 {
 	//return NewVector(point.Get(0), 0.0, point.Get(2))
 	// compute the square of the distance from the y axis
 	dist := math.Pow(point.Get(0), 2) + math.Pow(point.Get(2), 2)
