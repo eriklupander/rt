@@ -1,6 +1,9 @@
 package mat
 
-import "math/rand"
+import (
+	"math/rand"
+	"sort"
+)
 
 func NewCSG(operation string, left, right Shape) *CSG {
 	m1 := NewMat4x4(make([]float64, 16))
@@ -30,7 +33,7 @@ func (c *CSG) GetTransform() Mat4x4 {
 }
 
 func (c *CSG) SetTransform(transform Mat4x4) {
-
+	c.Transform = Multiply(c.Transform, transform)
 }
 
 func (c *CSG) GetMaterial() Material {
@@ -42,7 +45,13 @@ func (c *CSG) SetMaterial(material Material) {
 }
 
 func (c *CSG) IntersectLocal(ray Ray) []Intersection {
-	return nil
+	leftXs := IntersectRayWithShape(c.Left, ray)
+	rightXs := IntersectRayWithShape(c.Right, ray)
+	xs := append(leftXs, rightXs...)
+	sort.Slice(xs, func(i, j int) bool {
+		return xs[i].T < xs[j].T
+	})
+	return FilterIntersections(c, xs)
 }
 
 func (c *CSG) NormalAtLocal(point Tuple4, intersection *Intersection) Tuple4 {

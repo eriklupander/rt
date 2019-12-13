@@ -84,11 +84,11 @@ func TestSchlickUnderTotalInternalReflection(t *testing.T) {
 func TestSchlickWhenPerpendicular(t *testing.T) {
 	/*
 		The Schlick approximation with a perpendicular viewing angle
-		Given shape ← glass_sphere()
-		And r ← ray(point(0, 0, 0), vector(0, 1, 0))
-		And xs ← intersections(-1:shape, 1:shape)
-		When comps ← prepare_computations(xs[1], r, xs)
-		And reflectance ← schlick(comps)
+		Given shape := glass_sphere()
+		 r := ray(point(0, 0, 0), vector(0, 1, 0))
+		 xs := intersections(-1:shape, 1:shape)
+		When comps := prepare_computations(xs[1], r, xs)
+		 reflectance := schlick(comps)
 		Then reflectance = 0.04
 	*/
 	shape := NewGlassSphere()
@@ -105,11 +105,11 @@ func TestSchlickWhenPerpendicular(t *testing.T) {
 func TestSchlickWhenAngleIsSmall(t *testing.T) {
 	/*
 		Scenario: The Schlick approximation with small angle and n2 > n1
-		Given shape ← glass_sphere()
-		And r ← ray(point(0, 0.99, -2), vector(0, 0, 1))
-		And xs ← intersections(1.8589:shape)
-		When comps ← prepare_computations(xs[0], r, xs)
-		And reflectance ← schlick(comps)
+		Given shape := glass_sphere()
+		 r := ray(point(0, 0.99, -2), vector(0, 0, 1))
+		 xs := intersections(1.8589:shape)
+		When comps := prepare_computations(xs[0], r, xs)
+		 reflectance := schlick(comps)
 		Then reflectance = 0.48873
 	*/
 	shape := NewGlassSphere()
@@ -218,4 +218,25 @@ func TestFilterCSGIntersections(t *testing.T) {
 	assert.Equal(t, r2[1], xs[2])
 	assert.Equal(t, r3[0], xs[0])
 	assert.Equal(t, r3[1], xs[1])
+}
+
+func TestRayMissesCSG(t *testing.T) {
+	c := NewCSG("union", NewSphere(), NewCube())
+	r := NewRay(NewPoint(0, 2, -5), NewVector(0, 0, 1))
+	xs := c.IntersectLocal(r)
+	assert.Len(t, xs, 0)
+}
+
+func TestRayHitsCSG(t *testing.T) {
+	s1 := NewSphere()
+	s2 := NewSphere()
+	s2.SetTransform(Translate(0, 0, 0.5))
+	c := NewCSG("union", s1, s2)
+	r := NewRay(NewPoint(0, 0, -5), NewVector(0, 0, 1))
+	xs := c.IntersectLocal(r)
+	assert.Len(t, xs, 2)
+	assert.Equal(t, 4.0, xs[0].T)
+	assert.Equal(t, s1.ID(), xs[0].S.ID())
+	assert.Equal(t, 6.5, xs[1].T)
+	assert.Equal(t, s2.ID(), xs[1].S.ID())
 }

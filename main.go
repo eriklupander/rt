@@ -10,9 +10,10 @@ import (
 )
 
 func main() {
+	csg()
 	//withModel()
 	//worldWithPlane()
-	renderworld()
+	//renderworld()
 	//shadedSphereDemo()
 	//circleDemo()
 	//clockDemo()
@@ -21,6 +22,43 @@ func main() {
 
 var white = mat.NewColor(1, 1, 1)
 var black = mat.NewColor(0, 0, 0)
+
+func csg() {
+	w := mat.NewWorld()
+	w.Light = mat.NewLight(mat.NewPoint(0, 2, -2), mat.NewColor(1, 1, 1))
+
+	camera := mat.NewCamera(640, 480, math.Pi/3)
+	viewTransform := mat.ViewTransform(mat.NewPoint(-4, 2, -5), mat.NewPoint(0, 0, 0), mat.NewVector(0, 1, 0))
+	camera.Transform = viewTransform
+
+	s1 := mat.NewSphere()
+	m1 := mat.NewDefaultReflectiveMaterial(0.5)
+	m1.Color = mat.NewColor(1, 0.1, 0.1)
+	s1.SetMaterial(m1)
+	c1 := mat.NewCube()
+	m2 := mat.NewDefaultReflectiveMaterial(0.5)
+	m2.Color = mat.NewColor(0.1, 0.1, 1.0)
+	c1.SetMaterial(m1)
+	c1.SetTransform(mat.Translate(-0.5, 0, 0))
+	c1.SetTransform(mat.Scale(0.75, 0.5, 0.5))
+	csg := mat.NewCSG("difference", s1, c1)
+	csg.SetTransform(mat.Translate(0, 1, 0))
+	csg.SetTransform(mat.RotateY(-math.Pi / 2))
+	w.Objects = append(w.Objects, csg)
+
+	floor := mat.NewPlane()
+	floor.SetMaterial(mat.NewMaterialWithReflectivity(mat.NewColor(0.2, 0.2, 1.0), 0.1, 0.9, 0.7, 200, 0.0))
+	//floor.Material.Pattern = mat.NewCheckerPattern(white, black)
+	w.Objects = append(w.Objects, floor)
+
+	canvas := mat.RenderThreaded(camera, w)
+	// writec
+	data := canvas.ToPPM()
+	err := ioutil.WriteFile("csg.ppm", []byte(data), os.FileMode(0755))
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+}
 
 func withModel() {
 
