@@ -70,8 +70,12 @@ func ColorAt(w World, r Ray, remaining1, remaining2 int) Tuple4 {
 }
 
 func ShadeHit(w World, comps Computation, remaining1, remaining2 int) Tuple4 {
-	inShadow := PointInShadow(w, comps.OverPoint)
-	surfaceColor := Lighting(comps.Object.GetMaterial(), comps.Object, w.Light, comps.Point, comps.EyeVec, comps.NormalVec, inShadow)
+	var surfaceColor = NewColor(0, 0, 0)
+	for _, light := range w.Light {
+		inShadow := PointInShadow(w, light, comps.OverPoint)
+		color := Lighting(comps.Object.GetMaterial(), comps.Object, light, comps.Point, comps.EyeVec, comps.NormalVec, inShadow)
+		surfaceColor = Add(surfaceColor, color)
+	}
 	reflectedColor := ReflectedColor(w, comps, remaining1, remaining2)
 	refractedColor := RefractedColor(w, comps, remaining2)
 
@@ -82,11 +86,11 @@ func ShadeHit(w World, comps Computation, remaining1, remaining2 int) Tuple4 {
 	} else {
 		return Add(surfaceColor, Add(reflectedColor, refractedColor))
 	}
-	//return Add(surfaceColor, reflectedColor)
 }
 
-func PointInShadow(w World, p Tuple4) bool {
-	vecToLight := Sub(w.Light.Position, p)
+func PointInShadow(w World, light Light, p Tuple4) bool {
+
+	vecToLight := Sub(light.Position, p)
 	distance := Magnitude(vecToLight)
 
 	//movedPos := Add(p, MultiplyByScalar(comps.NormalVec, 0.1))
@@ -99,6 +103,7 @@ func PointInShadow(w World, p Tuple4) bool {
 			}
 		}
 	}
+
 	return false
 }
 

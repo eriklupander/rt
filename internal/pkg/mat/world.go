@@ -1,7 +1,7 @@
 package mat
 
 type World struct {
-	Light   Light
+	Light   []Light
 	Objects []Shape
 }
 
@@ -16,11 +16,11 @@ func NewDefaultWorld() World {
 	s2.Label = "INNER SPHERE"
 	s2.SetTransform(Scale(0.5, 0.5, 0.5))
 	return World{
-		Light:   light,
+		Light:   []Light{light},
 		Objects: []Shape{s1, s2},
 	}
 }
 
 func NewWorld() World {
-	return World{}
+	return World{Light:   []Light{}}
 }

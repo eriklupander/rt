@@ -4,16 +4,18 @@ import (
 	"fmt"
 	"github.com/eriklupander/rt/internal/pkg/mat"
 	"github.com/eriklupander/rt/internal/pkg/obj"
+	"github.com/eriklupander/rt/internal/pkg/parser"
 	"io/ioutil"
 	"math"
 	"os"
 )
 
 func main() {
-	csg()
+	//parse()
+	//csg()
 	//withModel()
 	//worldWithPlane()
-	//renderworld()
+	renderworld()
 	//shadedSphereDemo()
 	//circleDemo()
 	//clockDemo()
@@ -23,9 +25,26 @@ func main() {
 var white = mat.NewColor(1, 1, 1)
 var black = mat.NewColor(0, 0, 0)
 
+func parse() {
+	scene := parser.ParseYAML("scenes/simple.yaml")
+	fmt.Printf("%v", scene)
+
+	w := scene.World
+	w.Light = scene.Lights
+	camera := scene.Camera
+	canvas := mat.RenderThreaded(*camera, *w)
+	// writec
+	data := canvas.ToPPM()
+	err := ioutil.WriteFile("fromyaml.ppm", []byte(data), os.FileMode(0755))
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+}
+
 func csg() {
 	w := mat.NewWorld()
-	w.Light = mat.NewLight(mat.NewPoint(0, 2, -2), mat.NewColor(1, 1, 1))
+	w.Light = append(w.Light, mat.NewLight(mat.NewPoint(0, 2, -2), mat.NewColor(1, 1, 1)))
+	w.Light = append(w.Light, mat.NewLight(mat.NewPoint(0, 3, 0), mat.NewColor(1, 1, 1)))
 
 	camera := mat.NewCamera(640, 480, math.Pi/3)
 	viewTransform := mat.ViewTransform(mat.NewPoint(-4, 2, -5), mat.NewPoint(0, 0, 0), mat.NewVector(0, 1, 0))
@@ -54,7 +73,7 @@ func csg() {
 	canvas := mat.RenderThreaded(camera, w)
 	// writec
 	data := canvas.ToPPM()
-	err := ioutil.WriteFile("csg.ppm", []byte(data), os.FileMode(0755))
+	err := ioutil.WriteFile("csg1.ppm", []byte(data), os.FileMode(0755))
 	if err != nil {
 		fmt.Println(err.Error())
 	}
@@ -81,7 +100,7 @@ func withModel() {
 	floor.SetMaterial(mat.NewMaterialWithReflectivity(mat.NewColor(1, 0.5, 0.5), 0.1, 0.9, 0.7, 200, 0.1))
 	floor.Material.Pattern = mat.NewCheckerPattern(white, black)
 	w.Objects = append(w.Objects, floor)
-	w.Light = mat.NewLight(mat.NewPoint(-1.5, 2.5, -3), mat.NewColor(1, 1, 1))
+	w.Light = append(w.Light, mat.NewLight(mat.NewPoint(-1.5, 2.5, -3), mat.NewColor(1, 1, 1)))
 
 	camera := mat.NewCamera(96, 72, math.Pi/3)
 	viewTransform := mat.ViewTransform(mat.NewPoint(-4.3, 5, -8), mat.NewPoint(0, 2.5, 0), mat.NewVector(0, 1, 0))
@@ -101,7 +120,7 @@ func withModel() {
 
 func worldWithPlane() {
 	w := mat.NewWorld()
-	w.Light = mat.NewLight(mat.NewPoint(-1, 1.5, 1), mat.NewColor(1, 1, 1))
+	w.Light = append(w.Light, mat.NewLight(mat.NewPoint(-1, 1.5, 1), mat.NewColor(1, 1, 1)))
 
 	camera := mat.NewCamera(640, 480, math.Pi/3)
 	//camera := mat.NewCamera(320, 240, math.Pi/3)
@@ -221,7 +240,8 @@ func worldWithPlane() {
 
 func renderworld() {
 	w := mat.NewWorld()
-	w.Light = mat.NewLight(mat.NewPoint(-10, 1, -10), mat.NewColor(1, 1, 1))
+	w.Light = append(w.Light, mat.NewLight(mat.NewPoint(-10, 1, -10), mat.NewColor(1, 1, 1)))
+	w.Light = append(w.Light, mat.NewLight(mat.NewPoint(1, 13, 1), mat.NewColor(0.5, 0.5, 0.5)))
 
 	camera := mat.NewCamera(480, 320, math.Pi/3)
 	viewTransform := mat.ViewTransform(mat.NewPoint(0, 1.5, -5), mat.NewPoint(0, 1, 0), mat.NewVector(0, 1, 0))
@@ -233,6 +253,7 @@ func renderworld() {
 	floor.Material = mat.NewDefaultMaterial()
 	floor.Material.Color = mat.NewColor(1, 0.9, 0.9)
 	floor.Material.Specular = 0.0
+	floor.Material.Reflectivity = 0.2
 	w.Objects = append(w.Objects, floor)
 
 	// create left wall
@@ -303,7 +324,7 @@ func renderworld() {
 	cube.Material.Reflectivity = 0.0
 	w.Objects = append(w.Objects, cube)
 
-	canvas := mat.Render(camera, w)
+	canvas := mat.RenderThreaded(camera, w)
 	// write
 	data := canvas.ToPPM()
 	err := ioutil.WriteFile("world1.ppm", []byte(data), os.FileMode(0755))
