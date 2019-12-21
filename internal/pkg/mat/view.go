@@ -12,6 +12,7 @@ type Camera struct {
 	Height     int
 	Fov        float64
 	Transform  Mat4x4
+	Inverse    Mat4x4
 	PixelSize  float64
 	HalfWidth  float64
 	HalfHeight float64
@@ -33,11 +34,15 @@ func NewCamera(width int, height int, fov float64) Camera {
 
 	transform := make([]float64, 16)
 	copy(transform, IdentityMatrix.Elems)
+
+	inverse := make([]float64, 16)
+	copy(inverse, IdentityMatrix.Elems)
 	return Camera{
 		Width:      width,
 		Height:     height,
 		Fov:        fov,
 		Transform:  Mat4x4{Elems: transform},
+		Inverse:    Mat4x4{Elems: inverse},
 		PixelSize:  pixelSize,
 		HalfWidth:  halfWidth,
 		HalfHeight: halfHeight,
@@ -87,8 +92,10 @@ func RayForPixel(cam Camera, x, y int) Ray {
 	worldX := cam.HalfWidth - xOffset
 	worldY := cam.HalfHeight - yOffset
 
-	pixel := MultiplyByTuple(Inverse(cam.Transform), NewPoint(worldX, worldY, -1.0))
-	origin := MultiplyByTuple(Inverse(cam.Transform), NewPoint(0, 0, 0))
+	//pixel := MultiplyByTuple(Inverse(cam.Transform), NewPoint(worldX, worldY, -1.0))
+	//origin := MultiplyByTuple(Inverse(cam.Transform), NewPoint(0, 0, 0))
+	pixel := MultiplyByTuple(cam.Inverse, NewPoint(worldX, worldY, -1.0))
+	origin := MultiplyByTuple(cam.Inverse, NewPoint(0, 0, 0))
 	direction := Normalize(Sub(pixel, origin))
 	return NewRay(origin, direction)
 }
@@ -119,7 +126,7 @@ func RenderThreaded(c Camera, w World) *Canvas {
 	for row := 0; row < c.Height; row++ {
 		for col := 0; col < c.Width; col++ {
 			jobs <- &job{row: row, col: col}
-			fmt.Print(".")
+			//fmt.Print(".")
 		}
 		fmt.Printf("%d/%d\n", row, c.Height)
 	}

@@ -14,8 +14,8 @@ func TestNewWorld(t *testing.T) {
 func TestDefaultWorld(t *testing.T) {
 	w := NewDefaultWorld()
 	assert.Len(t, w.Objects, 2)
-	assert.True(t, TupleEquals(w.Light.Position, NewPoint(-10, 10, -10)))
-	assert.True(t, TupleEquals(w.Light.Intensity, NewPoint(1, 1, 1)))
+	assert.True(t, TupleEquals(w.Light[0].Position, NewPoint(-10, 10, -10)))
+	assert.True(t, TupleEquals(w.Light[0].Intensity, NewPoint(1, 1, 1)))
 }
 
 func TestIntersectWorldWithRay(t *testing.T) {
@@ -76,7 +76,7 @@ func TestShadeIntersection(t *testing.T) {
 
 func TestShadeIntersectionFromInside(t *testing.T) {
 	w := NewDefaultWorld()
-	w.Light = NewLight(NewPoint(0, 0.25, 0), NewColor(1, 1, 1))
+	w.Light = []Light{NewLight(NewPoint(0, 0.25, 0), NewColor(1, 1, 1))}
 
 	r := NewRay(NewPoint(0, 0, 0), NewVector(0, 0, 1))
 
@@ -121,28 +121,28 @@ func TestColorWhenCastWithinSphereAtInsideSphere(t *testing.T) {
 func TestPointNotInShadow(t *testing.T) {
 	w := NewDefaultWorld()
 	p := NewPoint(0, 10, 10)
-	assert.False(t, PointInShadow(w, p))
+	assert.False(t, PointInShadow(w, w.Light[0], p))
 }
 func TestPointInShadow(t *testing.T) {
 	w := NewDefaultWorld()
 	p := NewPoint(10, -10, 10)
-	assert.True(t, PointInShadow(w, p))
+	assert.True(t, PointInShadow(w, w.Light[0], p))
 }
 func TestPointNotInShadowWhenBehindLight(t *testing.T) {
 	w := NewDefaultWorld()
 	p := NewPoint(-20, 20, -20)
-	assert.False(t, PointInShadow(w, p))
+	assert.False(t, PointInShadow(w, w.Light[0], p))
 }
 func TestPointNotInShadowWhenBehindPoint(t *testing.T) {
 	w := NewDefaultWorld()
 	p := NewPoint(-2, 2, -2)
-	assert.False(t, PointInShadow(w, p))
+	assert.False(t, PointInShadow(w, w.Light[0], p))
 }
 
 // Big one on page 114
 func TestWorldWithShadowTest(t *testing.T) {
 	w := NewDefaultWorld()
-	w.Light = NewLight(NewPoint(0, 0, -10), NewColor(1, 1, 1))
+	w.Light = []Light{NewLight(NewPoint(0, 0, -10), NewColor(1, 1, 1))}
 	s := NewSphere()
 	w.Objects = append(w.Objects, s)
 	s2 := NewSphere()

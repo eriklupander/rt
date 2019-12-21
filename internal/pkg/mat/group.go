@@ -9,6 +9,7 @@ import (
 type Group struct {
 	Id        int64
 	Transform Mat4x4
+	Inverse   Mat4x4
 	Material  Material
 	Label     string
 	Parent    Shape
@@ -174,8 +175,13 @@ func (g *Group) GetTransform() Mat4x4 {
 	return g.Transform
 }
 
+func (g *Group) GetInverse() Mat4x4 {
+	return g.Inverse
+}
+
 func (g *Group) SetTransform(transform Mat4x4) {
 	g.Transform = Multiply(g.Transform, transform)
+	g.Inverse = Inverse(g.Transform)
 }
 
 func (g *Group) GetMaterial() Material {

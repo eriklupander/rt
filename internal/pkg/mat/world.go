@@ -22,5 +22,5 @@ func NewDefaultWorld() World {
 }
 
 func NewWorld() World {
-	return World{Light:   []Light{}}
+	return World{Light: []Light{}}
 }

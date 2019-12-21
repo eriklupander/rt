@@ -14,6 +14,7 @@ func NewCube() *Cube {
 type Cube struct {
 	Id        int64
 	Transform Mat4x4
+	Inverse   Mat4x4
 	Material  Material
 	Label     string
 	Parent    Shape
@@ -27,9 +28,13 @@ func (c *Cube) ID() int64 {
 func (c *Cube) GetTransform() Mat4x4 {
 	return c.Transform
 }
+func (c *Cube) GetInverse() Mat4x4 {
+	return c.Inverse
+}
 
 func (c *Cube) SetTransform(transform Mat4x4) {
 	c.Transform = Multiply(c.Transform, transform)
+	c.Inverse = Inverse(c.Transform)
 }
 
 func (c *Cube) GetMaterial() Material {

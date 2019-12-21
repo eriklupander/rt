@@ -29,6 +29,7 @@ func NewCylinderMMC(min, max float64, closed bool) *Cylinder {
 type Cylinder struct {
 	Id        int64
 	Transform Mat4x4
+	Inverse   Mat4x4
 	Material  Material
 	Label     string
 	Parent    Shape
@@ -46,8 +47,13 @@ func (c *Cylinder) GetTransform() Mat4x4 {
 	return c.Transform
 }
 
+func (c *Cylinder) GetInverse() Mat4x4 {
+	return c.Inverse
+}
+
 func (c *Cylinder) SetTransform(transform Mat4x4) {
 	c.Transform = Multiply(c.Transform, transform)
+	c.Inverse = Inverse(c.Transform)
 }
 
 func (c *Cylinder) GetMaterial() Material {

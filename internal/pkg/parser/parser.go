@@ -151,7 +151,7 @@ func AddTransform(scene *Scene, v map[string]interface{}) {
 }
 
 type DefinedTransform struct {
-	name string
+	name      string
 	transform mat.Mat4x4
 }
 

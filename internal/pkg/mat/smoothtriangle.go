@@ -41,6 +41,10 @@ func (s *SmoothTriangle) GetTransform() Mat4x4 {
 	return IdentityMatrix
 }
 
+func (s *SmoothTriangle) GetInverse() Mat4x4 {
+	panic("implement me")
+}
+
 func (s *SmoothTriangle) SetTransform(transform Mat4x4) {
 	panic("implement me")
 }

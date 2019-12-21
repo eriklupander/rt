@@ -52,6 +52,7 @@ func TestCalculatePortraitCanvasPixelSize(t *testing.T) {
 
 func TestRayForPixelThroughCenterOfCanvas(t *testing.T) {
 	cam := NewCamera(201, 101, math.Pi/2.0)
+	copy(cam.Inverse.Elems, IdentityMatrix.Elems)
 	r := RayForPixel(cam, 100, 50)
 	assert.Equal(t, NewPoint(0, 0, 0), r.Origin)
 	assert.Equal(t, NewVector(0, 0, -1), r.Direction)
@@ -70,6 +71,7 @@ func TestRayForPixelThroughCornerOfCanvas(t *testing.T) {
 func TestRayForPixelWhenCamIsTransformed(t *testing.T) {
 	cam := NewCamera(201, 101, math.Pi/2.0)
 	cam.Transform = Multiply(RotateY(math.Pi/4), Translate(0, -2, 5))
+	cam.Inverse = Inverse(cam.Transform)
 	r := RayForPixel(cam, 100, 50)
 	assert.Equal(t, NewPoint(0, 2, -5), r.Origin)
 	assert.True(t, TupleEquals(NewVector(math.Sqrt(2.0)/2.0, 0.0, -math.Sqrt(2.0)/2.0), r.Direction))
@@ -83,6 +85,7 @@ func TestRender(t *testing.T) {
 	to := NewPoint(0, 0, 0)
 	upVec := NewVector(0, 1, 0)
 	c.Transform = ViewTransform(from, to, upVec)
+	c.Inverse = Inverse(c.Transform)
 	canvas := Render(c, w)
 
 	assert.InEpsilon(t, 0.38066, canvas.ColorAt(5, 5).Get(0), Epsilon)

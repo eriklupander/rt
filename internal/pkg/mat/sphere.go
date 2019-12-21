@@ -12,20 +12,23 @@ func init() {
 
 func NewSphere() *Sphere {
 	m1 := NewMat4x4(make([]float64, 16))
+	inv := NewMat4x4(make([]float64, 16))
 	copy(m1.Elems, IdentityMatrix.Elems)
-	return &Sphere{Id: rand.Int63(), Transform: m1, Material: NewDefaultMaterial()}
+	copy(inv.Elems, IdentityMatrix.Elems)
+	return &Sphere{Id: rand.Int63(), Transform: m1, Inverse: inv, Material: NewDefaultMaterial()}
 }
 
 func NewGlassSphere() *Sphere {
-	m1 := NewMat4x4(make([]float64, 16))
-	copy(m1.Elems, IdentityMatrix.Elems)
+	s := NewSphere()
 	material := NewGlassMaterial(1.5)
-	return &Sphere{Id: rand.Int63(), Transform: m1, Material: material}
+	s.SetMaterial(material)
+	return s
 }
 
 type Sphere struct {
 	Id        int64
 	Transform Mat4x4
+	Inverse   Mat4x4
 	Material  Material
 	Label     string
 	Parent    Shape
@@ -80,6 +83,9 @@ func (s *Sphere) ID() int64 {
 func (s *Sphere) GetTransform() Mat4x4 {
 	return s.Transform
 }
+func (s *Sphere) GetInverse() Mat4x4 {
+	return s.Inverse
+}
 
 func (s *Sphere) GetMaterial() Material {
 	return s.Material
@@ -88,6 +94,7 @@ func (s *Sphere) GetMaterial() Material {
 // SetTransform passes a pointer to the Sphere on which to apply the translation matrix
 func (s *Sphere) SetTransform(translation Mat4x4) {
 	s.Transform = Multiply(s.Transform, translation)
+	s.Inverse = Inverse(s.Transform)
 }
 
 // SetMaterial passes a pointer to the Sphere on which to set the material

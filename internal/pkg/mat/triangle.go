@@ -20,6 +20,10 @@ func (t *Triangle) GetTransform() Mat4x4 {
 	return IdentityMatrix
 }
 
+func (t *Triangle) GetInverse() Mat4x4 {
+	panic("implement me")
+}
+
 func (t *Triangle) SetTransform(transform Mat4x4) {
 	panic("implement me")
 }

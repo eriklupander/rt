@@ -14,6 +14,7 @@ func NewPlane() *Plane {
 type Plane struct {
 	Id        int64
 	Transform Mat4x4
+	Inverse   Mat4x4
 	Material  Material
 	Label     string
 	Parent    Shape
@@ -26,6 +27,9 @@ func (p *Plane) ID() int64 {
 func (p *Plane) GetTransform() Mat4x4 {
 	return p.Transform
 }
+func (p *Plane) GetInverse() Mat4x4 {
+	return p.Inverse
+}
 
 func (p *Plane) GetMaterial() Material {
 	return p.Material
@@ -34,6 +38,7 @@ func (p *Plane) GetMaterial() Material {
 // SetTransform passes a pointer to the Plane on which to apply the translation matrix
 func (p *Plane) SetTransform(translation Mat4x4) {
 	p.Transform = Multiply(p.Transform, translation)
+	p.Inverse = Inverse(p.Transform)
 }
 
 // SetMaterial passes a pointer to the Plane on which to set the material

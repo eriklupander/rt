@@ -8,7 +8,9 @@ import (
 func NewCSG(operation string, left, right Shape) *CSG {
 	m1 := NewMat4x4(make([]float64, 16))
 	copy(m1.Elems, IdentityMatrix.Elems)
-	c := &CSG{Id: rand.Int63(), Transform: m1, Left: left, Right: right, Operation: operation}
+	inv := NewMat4x4(make([]float64, 16))
+	copy(inv.Elems, IdentityMatrix.Elems)
+	c := &CSG{Id: rand.Int63(), Transform: m1, Inverse: inv, Left: left, Right: right, Operation: operation}
 	left.SetParent(c)
 	right.SetParent(c)
 	return c
@@ -17,6 +19,7 @@ func NewCSG(operation string, left, right Shape) *CSG {
 type CSG struct {
 	Id        int64
 	Transform Mat4x4
+	Inverse   Mat4x4
 	Left      Shape
 	Right     Shape
 	Operation string
@@ -32,8 +35,13 @@ func (c *CSG) GetTransform() Mat4x4 {
 	return c.Transform
 }
 
+func (c *CSG) GetInverse() Mat4x4 {
+	return c.Inverse
+}
+
 func (c *CSG) SetTransform(transform Mat4x4) {
 	c.Transform = Multiply(c.Transform, transform)
+	c.Inverse = Inverse(c.Transform)
 }
 
 func (c *CSG) GetMaterial() Material {

@@ -29,6 +29,7 @@ func NewConeMMC(min, max float64, closed bool) *Cone {
 type Cone struct {
 	Id        int64
 	Transform Mat4x4
+	Inverse   Mat4x4
 	Material  Material
 	Label     string
 	Parent    Shape
@@ -45,9 +46,13 @@ func (c *Cone) ID() int64 {
 func (c *Cone) GetTransform() Mat4x4 {
 	return c.Transform
 }
+func (c *Cone) GetInverse() Mat4x4 {
+	return c.Inverse
+}
 
 func (c *Cone) SetTransform(transform Mat4x4) {
 	c.Transform = Multiply(c.Transform, transform)
+	c.Inverse = Inverse(c.Transform)
 }
 
 func (c *Cone) GetMaterial() Material {

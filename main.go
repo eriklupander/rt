@@ -14,8 +14,8 @@ func main() {
 	//parse()
 	//csg()
 	//withModel()
-	//worldWithPlane()
-	renderworld()
+	worldWithPlane()
+	//renderworld()
 	//shadedSphereDemo()
 	//circleDemo()
 	//clockDemo()
@@ -120,24 +120,25 @@ func withModel() {
 
 func worldWithPlane() {
 	w := mat.NewWorld()
-	w.Light = append(w.Light, mat.NewLight(mat.NewPoint(-1, 1.5, 1), mat.NewColor(1, 1, 1)))
+	w.Light = append(w.Light, mat.NewLight(mat.NewPoint(-3, 2.5, -2), mat.NewColor(1, 1, 1)))
 
 	camera := mat.NewCamera(640, 480, math.Pi/3)
 	//camera := mat.NewCamera(320, 240, math.Pi/3)
-	viewTransform := mat.ViewTransform(mat.NewPoint(-1.3, 2, -3), mat.NewPoint(0, 0.5, 0), mat.NewVector(0, 1, 0))
+	viewTransform := mat.ViewTransform(mat.NewPoint(-1.3, 2, -5), mat.NewPoint(0, 0.5, 0), mat.NewVector(0, 1, 0))
 	camera.Transform = viewTransform
+	camera.Inverse = mat.Inverse(viewTransform)
 
 	//tris := make([]*mat.Triangle, 0)
-	for i := -0.0; i < 1; i++ {
-		w.Objects = append(w.Objects, mat.NewTriangle(mat.NewPoint(i, 0, 0), mat.NewPoint(i+1, 0, 0), mat.NewPoint(i+0.5, 1, 0.5)))
-		w.Objects = append(w.Objects, mat.NewTriangle(mat.NewPoint(i, 0, 0), mat.NewPoint(i+0.5, 0, 1), mat.NewPoint(i+0.5, 1, 0.5)))
-		w.Objects = append(w.Objects, mat.NewTriangle(mat.NewPoint(i+1, 0, 0.5), mat.NewPoint(i+0.5, 0, 1), mat.NewPoint(i+0.5, 1, 0.5)))
-	}
+	//for i := -0.0; i < 1; i++ {
+	//	w.Objects = append(w.Objects, mat.NewTriangle(mat.NewPoint(i, 0, 0), mat.NewPoint(i+1, 0, 0), mat.NewPoint(i+0.5, 1, 0.5)))
+	//	w.Objects = append(w.Objects, mat.NewTriangle(mat.NewPoint(i, 0, 0), mat.NewPoint(i+0.5, 0, 1), mat.NewPoint(i+0.5, 1, 0.5)))
+	//	w.Objects = append(w.Objects, mat.NewTriangle(mat.NewPoint(i+1, 0, 0.5), mat.NewPoint(i+0.5, 0, 1), mat.NewPoint(i+0.5, 1, 0.5)))
+	//}
 
-	//floor := mat.NewPlane()
-	//floor.SetMaterial(mat.NewMaterialWithReflectivity(mat.NewColor(1, 0.5, 0.5), 0.1, 0.9, 0.7, 200, 0.1))
-	//floor.Material.Pattern = mat.NewCheckerPattern(white, black)
-	//w.Objects = append(w.Objects, floor)
+	floor := mat.NewPlane()
+	floor.SetMaterial(mat.NewMaterialWithReflectivity(mat.NewColor(1, 0.5, 0.5), 0.1, 0.9, 0.7, 200, 0.1))
+	floor.Material.Pattern = mat.NewCheckerPattern(white, black)
+	w.Objects = append(w.Objects, floor)
 
 	//
 	//rightWall := mat.NewPlane()
@@ -149,16 +150,16 @@ func worldWithPlane() {
 	//// middle sphere
 	////pattern := mat.NewRingPattern(mat.NewColor(1, 0, 0), mat.NewColor(0, 0, 1))
 	////pattern.SetPatternTransform(mat.Multiply(pattern.Transform, mat.RotateZ(math.Pi/2)))
-	//middle := mat.NewSphere()
-	//middle.Transform = mat.Translate(-0.5, 1, 0.5)
-	//middle.Material = mat.NewDefaultReflectiveMaterial(0.3)
-	//middle.Material.Color = mat.NewColor(0.1, 0.1, 0.1)
-	//middle.Material.Diffuse = 0.7
-	//middle.Material.Specular = 0.6
-	//middle.Material.Transparency = 0.95
-	//middle.Material.RefractiveIndex = 1.5
-	////middle.Material.Pattern = pattern
-	//w.Objects = append(w.Objects, middle)
+	middle := mat.NewSphere()
+	middle.Transform = mat.Translate(-0.5, 1, 0.5)
+	middle.Material = mat.NewDefaultReflectiveMaterial(0.3)
+	middle.Material.Color = mat.NewColor(0.1, 0.1, 0.1)
+	middle.Material.Diffuse = 0.7
+	middle.Material.Specular = 0.6
+	middle.Material.Transparency = 0.95
+	middle.Material.RefractiveIndex = 1.5
+	//middle.Material.Pattern = pattern
+	w.Objects = append(w.Objects, middle)
 	//
 	//cyl := mat.NewCylinderMMC(0.5, 4.0, true)
 	//cyl.SetTransform(mat.Translate(-1.25, 0.5, -2.5))
@@ -171,25 +172,25 @@ func worldWithPlane() {
 	//w.Objects = append(w.Objects, cyl)
 	//
 	//// right sphere
-	//right := mat.NewSphere()
-	//right.Transform = mat.Multiply(mat.Translate(-0.75, 0.5, 2.5), mat.Scale(0.5, 0.5, 0.5))
-	//right.Material = mat.NewDefaultMaterial()
-	//right.Material.Color = mat.NewColor(1, 0, 0)
-	//right.Material.Diffuse = 0.7
-	//right.Material.Specular = 0.3
-	//right.Material.Reflectivity = 0.3
-	//w.Objects = append(w.Objects, right)
+	right := mat.NewSphere()
+	right.Transform = mat.Multiply(mat.Translate(-0.75, 0.5, 2.5), mat.Scale(0.5, 0.5, 0.5))
+	right.Material = mat.NewDefaultMaterial()
+	right.Material.Color = mat.NewColor(1, 0, 0)
+	right.Material.Diffuse = 0.7
+	right.Material.Specular = 0.3
+	right.Material.Reflectivity = 0.3
+	w.Objects = append(w.Objects, right)
 
 	// cube
-	//cube := mat.NewCube()
-	//cube.Transform = mat.Multiply(mat.Translate(-2.6, 0.25, -1.5), mat.Scale(0.25, 0.25, 0.25))
-	//cube.Material = mat.NewDefaultMaterial()
-	//cube.Material.Color = mat.NewColor(1, 0.6, 0.2)
-	//cube.Material.Transparency = 0.0
-	//cube.Material.Diffuse = 0.7
-	//cube.Material.Specular = 0.3
-	//cube.Material.Reflectivity = 0.0
-	//w.Objects = append(w.Objects, cube)
+	cube := mat.NewCube()
+	cube.Transform = mat.Multiply(mat.Translate(-.6, 0.25, -1.5), mat.Scale(0.25, 0.25, 0.25))
+	cube.Material = mat.NewDefaultMaterial()
+	cube.Material.Color = mat.NewColor(1, 0.6, 0.2)
+	cube.Material.Transparency = 0.0
+	cube.Material.Diffuse = 0.7
+	cube.Material.Specular = 0.3
+	cube.Material.Reflectivity = 0.0
+	w.Objects = append(w.Objects, cube)
 
 	// cone
 	//cone := mat.NewConeMMC(0,1, true)
@@ -215,14 +216,14 @@ func worldWithPlane() {
 	//w.Objects = append(w.Objects, cone2)
 
 	// left sphere
-	//left := mat.NewSphere()
-	//left.Transform = mat.Multiply(mat.Translate(-2, 0.33, -1.0), mat.Scale(0.33, 0.33, 0.33))
-	//left.Material = mat.NewDefaultMaterial()
-	//left.Material.Color = mat.NewColor(1, 0.8, 0.1)
-	//left.Material.Diffuse = 0.7
-	//left.Material.Specular = 0.3
-	//left.Material.Reflectivity = 0.1
-	//w.Objects = append(w.Objects, left)
+	left := mat.NewSphere()
+	left.Transform = mat.Multiply(mat.Translate(-2, 0.33, 1.0), mat.Scale(0.33, 0.33, 0.33))
+	left.Material = mat.NewDefaultMaterial()
+	left.Material.Color = mat.NewColor(1, 0.8, 0.1)
+	left.Material.Diffuse = 0.7
+	left.Material.Specular = 0.3
+	left.Material.Reflectivity = 0.1
+	w.Objects = append(w.Objects, left)
 	s3 := mat.NewSphere()
 	s3.SetTransform(mat.Translate(5, 0, 0))
 	w.Objects = append(w.Objects, s3)
