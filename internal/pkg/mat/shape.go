@@ -18,11 +18,11 @@ func WorldToObject(shape Shape, point Tuple4) Tuple4 {
 	if shape.GetParent() != nil {
 		point = WorldToObject(shape.GetParent(), point)
 	}
-	return MultiplyByTuple(Inverse(shape.GetTransform()), point)
+	return MultiplyByTuple(shape.GetInverse(), point)
 }
 
 func NormalToWorld(shape Shape, normal Tuple4) Tuple4 {
-	normal = MultiplyByTuple(Transpose(Inverse(shape.GetTransform())), normal)
+	normal = MultiplyByTuple(Transpose(shape.GetInverse()), normal)
 	normal.Elems[3] = 0.0 // set w to 0
 	normal = Normalize(normal)
 

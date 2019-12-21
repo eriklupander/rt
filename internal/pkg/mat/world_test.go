@@ -160,7 +160,7 @@ func TestWorldWithShadowTest(t *testing.T) {
 func TestHitOffsetToFixAcne(t *testing.T) {
 	r := NewRay(NewPoint(0, 0, -5), NewVector(0, 0, 1))
 	s := NewSphere()
-	s.Transform = Multiply(s.Transform, Translate(0, 0, 1))
+	s.SetTransform(Multiply(s.Transform, Translate(0, 0, 1)))
 	i := NewIntersection(5, s)
 	comps := PrepareComputationForIntersection(i, r)
 	assert.True(t, comps.OverPoint.Get(2) < -Epsilon/2)

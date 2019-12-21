@@ -8,7 +8,9 @@ import (
 func NewCube() *Cube {
 	m1 := NewMat4x4(make([]float64, 16))
 	copy(m1.Elems, IdentityMatrix.Elems)
-	return &Cube{Id: rand.Int63(), Transform: m1, Material: NewDefaultMaterial()}
+	inv := NewMat4x4(make([]float64, 16))
+	copy(inv.Elems, IdentityMatrix.Elems)
+	return &Cube{Id: rand.Int63(), Transform: m1, Inverse: inv, Material: NewDefaultMaterial()}
 }
 
 type Cube struct {

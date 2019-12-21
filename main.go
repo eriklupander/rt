@@ -151,7 +151,7 @@ func worldWithPlane() {
 	////pattern := mat.NewRingPattern(mat.NewColor(1, 0, 0), mat.NewColor(0, 0, 1))
 	////pattern.SetPatternTransform(mat.Multiply(pattern.Transform, mat.RotateZ(math.Pi/2)))
 	middle := mat.NewSphere()
-	middle.Transform = mat.Translate(-0.5, 1, 0.5)
+	middle.SetTransform(mat.Translate(-0.5, 1, 0.5))
 	middle.Material = mat.NewDefaultReflectiveMaterial(0.3)
 	middle.Material.Color = mat.NewColor(0.1, 0.1, 0.1)
 	middle.Material.Diffuse = 0.7
@@ -173,7 +173,7 @@ func worldWithPlane() {
 	//
 	//// right sphere
 	right := mat.NewSphere()
-	right.Transform = mat.Multiply(mat.Translate(-0.75, 0.5, 2.5), mat.Scale(0.5, 0.5, 0.5))
+	right.SetTransform(mat.Multiply(mat.Translate(-0.75, 0.5, 2.5), mat.Scale(0.5, 0.5, 0.5)))
 	right.Material = mat.NewDefaultMaterial()
 	right.Material.Color = mat.NewColor(1, 0, 0)
 	right.Material.Diffuse = 0.7
@@ -183,7 +183,7 @@ func worldWithPlane() {
 
 	// cube
 	cube := mat.NewCube()
-	cube.Transform = mat.Multiply(mat.Translate(-.6, 0.25, -1.5), mat.Scale(0.25, 0.25, 0.25))
+	cube.SetTransform(mat.Multiply(mat.Translate(-.6, 0.25, -1.5), mat.Scale(0.25, 0.25, 0.25)))
 	cube.Material = mat.NewDefaultMaterial()
 	cube.Material.Color = mat.NewColor(1, 0.6, 0.2)
 	cube.Material.Transparency = 0.0
@@ -223,12 +223,16 @@ func worldWithPlane() {
 	left.Material.Diffuse = 0.7
 	left.Material.Specular = 0.3
 	left.Material.Reflectivity = 0.1
-	w.Objects = append(w.Objects, left)
+	//w.Objects = append(w.Objects, left)
 	s3 := mat.NewSphere()
 	s3.SetTransform(mat.Translate(5, 0, 0))
 	w.Objects = append(w.Objects, s3)
-	canvas := mat.RenderThreaded(camera, w)
+	//
+	//s4 := mat.NewSphere()
+	//s4.SetTransform(mat.Translate(-1, 1, 0))
+	//w.Objects = append(w.Objects, s4)
 
+	canvas := mat.Render(camera, w)
 	mat.RenderReferenceAxises(canvas, camera)
 
 	// write

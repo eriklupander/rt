@@ -8,7 +8,9 @@ import (
 func NewCone() *Cone {
 	m1 := NewMat4x4(make([]float64, 16))
 	copy(m1.Elems, IdentityMatrix.Elems)
-	return &Cone{Id: rand.Int63(), Transform: m1, Material: NewDefaultMaterial(), minY: math.Inf(-1), maxY: math.Inf(1)}
+	inv := NewMat4x4(make([]float64, 16))
+	copy(inv.Elems, IdentityMatrix.Elems)
+	return &Cone{Id: rand.Int63(), Transform: m1, Inverse: inv, Material: NewDefaultMaterial(), minY: math.Inf(-1), maxY: math.Inf(1)}
 }
 
 func NewConeMM(min, max float64) *Cone {

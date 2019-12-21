@@ -101,6 +101,7 @@ func RayForPixel(cam Camera, x, y int) Ray {
 }
 
 func Render(c Camera, w World) *Canvas {
+	st := time.Now()
 	canvas := NewCanvas(c.Width, c.Height)
 	for row := 0; row < c.Height; row++ {
 		for col := 0; col < c.Width; col++ {
@@ -110,6 +111,7 @@ func Render(c Camera, w World) *Canvas {
 		}
 		fmt.Printf("%d / %d\n", row+1, c.Height)
 	}
+	fmt.Printf("%v", time.Now().Sub(st))
 	return canvas
 }
 
