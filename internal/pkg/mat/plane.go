@@ -50,7 +50,7 @@ func (p *Plane) SetMaterial(m Material) {
 
 func (p *Plane) IntersectLocal(ray Ray) []Intersection {
 	if math.Abs(ray.Direction.Get(1)) < Epsilon {
-		return []Intersection{}
+		return nil
 	}
 	t := -ray.Origin.Get(1) / ray.Direction.Get(1)
 	return []Intersection{

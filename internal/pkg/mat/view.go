@@ -2,7 +2,9 @@ package mat
 
 import (
 	"fmt"
+	"github.com/inhies/go-bytesize"
 	"math"
+	"runtime"
 	"sync"
 	"time"
 )
@@ -92,8 +94,6 @@ func RayForPixel(cam Camera, x, y int) Ray {
 	worldX := cam.HalfWidth - xOffset
 	worldY := cam.HalfHeight - yOffset
 
-	//pixel := MultiplyByTuple(Inverse(cam.Transform), NewPoint(worldX, worldY, -1.0))
-	//origin := MultiplyByTuple(Inverse(cam.Transform), NewPoint(0, 0, 0))
 	pixel := MultiplyByTuple(cam.Inverse, NewPoint(worldX, worldY, -1.0))
 	origin := MultiplyByTuple(cam.Inverse, NewPoint(0, 0, 0))
 	direction := Normalize(Sub(pixel, origin))
@@ -101,6 +101,7 @@ func RayForPixel(cam Camera, x, y int) Ray {
 }
 
 func Render(c Camera, w World) *Canvas {
+	stats := runtime.MemStats{}
 	st := time.Now()
 	canvas := NewCanvas(c.Width, c.Height)
 	for row := 0; row < c.Height; row++ {
@@ -109,8 +110,13 @@ func Render(c Camera, w World) *Canvas {
 			color := ColorAt(w, ray, 5, 5)
 			canvas.WritePixel(col, row, color)
 		}
-		fmt.Printf("%d / %d\n", row+1, c.Height)
+		fmt.Printf("%d / %d ", row+1, c.Height)
+		runtime.ReadMemStats(&stats)
+		fmt.Printf("Memory: %v ", bytesize.New(float64(stats.Alloc)).String())
+		fmt.Printf("Mallocs: %v ", stats.Mallocs)
+		fmt.Printf("Total alloc: %v\n", bytesize.New(float64(stats.TotalAlloc)).String())
 	}
+
 	fmt.Printf("%v", time.Now().Sub(st))
 	return canvas
 }

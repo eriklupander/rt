@@ -93,7 +93,6 @@ func PointInShadow(w World, light Light, p Tuple4) bool {
 	vecToLight := Sub(light.Position, p)
 	distance := Magnitude(vecToLight)
 
-	//movedPos := Add(p, MultiplyByScalar(comps.NormalVec, 0.1))
 	ray := NewRay(p, Normalize(vecToLight))
 	xs := IntersectWithWorld(w, ray)
 	if len(xs) > 0 {

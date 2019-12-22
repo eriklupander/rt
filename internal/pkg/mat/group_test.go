@@ -33,7 +33,7 @@ func TestIntersect(t *testing.T) {
 	s3.SetTransform(Translate(5, 0, 0))
 
 	ray := NewRay(NewPoint(0, 0, -5), NewVector(0, 0, 1))
-	ray = TransformRay(ray, Inverse(s3.GetTransform()))
+	ray = TransformRay(ray, s3.GetInverse())
 	x := s3.IntersectLocal(ray)
 	assert.Len(t, x, 0)
 }

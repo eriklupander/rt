@@ -1,7 +1,6 @@
 package mat
 
 import (
-	"fmt"
 	"math/rand"
 	"sort"
 )
@@ -19,140 +18,141 @@ type Group struct {
 	c         *Cube
 }
 
-func (g *Group) BB() {
-	// recalculate BB after each added child
-	var minX, minY, minZ, maxX, maxY, maxZ float64
-	for _, child := range g.Children {
-		switch tri := child.(type) {
-		case *Triangle:
-			// mins
-			if tri.P1.Get(0) < minX {
-				minX = tri.P1.Get(0)
-			}
-			if tri.P2.Get(0) < minX {
-				minX = tri.P2.Get(0)
-			}
-			if tri.P3.Get(0) < minX {
-				minX = tri.P3.Get(0)
-			}
-			if tri.P1.Get(1) < minY {
-				minY = tri.P1.Get(1)
-			}
-			if tri.P2.Get(1) < minY {
-				minY = tri.P2.Get(1)
-			}
-			if tri.P3.Get(1) < minY {
-				minY = tri.P3.Get(1)
-			}
-			if tri.P1.Get(2) < minZ {
-				minZ = tri.P1.Get(2)
-			}
-			if tri.P2.Get(2) < minZ {
-				minZ = tri.P2.Get(2)
-			}
-			if tri.P3.Get(2) < minZ {
-				minZ = tri.P3.Get(2)
-			}
-
-			// max
-			if tri.P1.Get(0) > maxX {
-				maxX = tri.P1.Get(0)
-			}
-			if tri.P2.Get(0) > maxX {
-				maxX = tri.P2.Get(0)
-			}
-			if tri.P3.Get(0) > maxX {
-				maxX = tri.P3.Get(0)
-			}
-			if tri.P1.Get(1) > maxY {
-				maxY = tri.P1.Get(1)
-			}
-			if tri.P2.Get(1) > maxY {
-				maxY = tri.P2.Get(1)
-			}
-			if tri.P3.Get(1) > maxY {
-				maxY = tri.P3.Get(1)
-			}
-			if tri.P1.Get(2) > maxZ {
-				maxZ = tri.P1.Get(2)
-			}
-			if tri.P2.Get(2) > maxZ {
-				maxZ = tri.P2.Get(2)
-			}
-			if tri.P3.Get(2) > maxZ {
-				maxZ = tri.P3.Get(2)
-			}
-		case *SmoothTriangle:
-
-			// mins
-			if tri.P1.Get(0) < minX {
-				minX = tri.P1.Get(0)
-			}
-			if tri.P2.Get(0) < minX {
-				minX = tri.P2.Get(0)
-			}
-			if tri.P3.Get(0) < minX {
-				minX = tri.P3.Get(0)
-			}
-			if tri.P1.Get(1) < minY {
-				minY = tri.P1.Get(1)
-			}
-			if tri.P2.Get(1) < minY {
-				minY = tri.P2.Get(1)
-			}
-			if tri.P3.Get(1) < minY {
-				minY = tri.P3.Get(1)
-			}
-			if tri.P1.Get(2) < minZ {
-				minZ = tri.P1.Get(2)
-			}
-			if tri.P2.Get(2) < minZ {
-				minZ = tri.P2.Get(2)
-			}
-			if tri.P3.Get(2) < minZ {
-				minZ = tri.P3.Get(2)
-			}
-
-			// max
-			if tri.P1.Get(0) > maxX {
-				maxX = tri.P1.Get(0)
-			}
-			if tri.P2.Get(0) > maxX {
-				maxX = tri.P2.Get(0)
-			}
-			if tri.P3.Get(0) > maxX {
-				maxX = tri.P3.Get(0)
-			}
-			if tri.P1.Get(1) > maxY {
-				maxY = tri.P1.Get(1)
-			}
-			if tri.P2.Get(1) > maxY {
-				maxY = tri.P2.Get(1)
-			}
-			if tri.P3.Get(1) > maxY {
-				maxY = tri.P3.Get(1)
-			}
-			if tri.P1.Get(2) > maxZ {
-				maxZ = tri.P1.Get(2)
-			}
-			if tri.P2.Get(2) > maxZ {
-				maxZ = tri.P2.Get(2)
-			}
-			if tri.P3.Get(2) > maxZ {
-				maxZ = tri.P3.Get(2)
-			}
-		}
-
-	}
-	fmt.Print(minX, minY, minZ, maxX, maxY, maxZ)
-	g.bb = &BoundingBox{
-		PointA: NewPoint(minX, minY, minZ),
-		PointB: NewPoint(maxX, maxY, maxZ),
-	}
-	g.c = NewCube()
-	//g.c.SetTransform(Scale(g.bb.PointB.Get(0) - g.bb.PointA.Get(0), g.bb.PointB.Get(1) - g.bb.PointA.Get(1), g.bb.PointB.Get(2) - g.bb.PointA.Get(2)))
-	g.c.SetTransform(Scale(3.0, 5.1, 3.6))
-}
+//
+//func (g *Group) BB() {
+//	// recalculate BB after each added child
+//	var minX, minY, minZ, maxX, maxY, maxZ float64
+//	for _, child := range g.Children {
+//		switch tri := child.(type) {
+//		case *Triangle:
+//			// mins
+//			if tri.P1.Get(0) < minX {
+//				minX = tri.P1.Get(0)
+//			}
+//			if tri.P2.Get(0) < minX {
+//				minX = tri.P2.Get(0)
+//			}
+//			if tri.P3.Get(0) < minX {
+//				minX = tri.P3.Get(0)
+//			}
+//			if tri.P1.Get(1) < minY {
+//				minY = tri.P1.Get(1)
+//			}
+//			if tri.P2.Get(1) < minY {
+//				minY = tri.P2.Get(1)
+//			}
+//			if tri.P3.Get(1) < minY {
+//				minY = tri.P3.Get(1)
+//			}
+//			if tri.P1.Get(2) < minZ {
+//				minZ = tri.P1.Get(2)
+//			}
+//			if tri.P2.Get(2) < minZ {
+//				minZ = tri.P2.Get(2)
+//			}
+//			if tri.P3.Get(2) < minZ {
+//				minZ = tri.P3.Get(2)
+//			}
+//
+//			// max
+//			if tri.P1.Get(0) > maxX {
+//				maxX = tri.P1.Get(0)
+//			}
+//			if tri.P2.Get(0) > maxX {
+//				maxX = tri.P2.Get(0)
+//			}
+//			if tri.P3.Get(0) > maxX {
+//				maxX = tri.P3.Get(0)
+//			}
+//			if tri.P1.Get(1) > maxY {
+//				maxY = tri.P1.Get(1)
+//			}
+//			if tri.P2.Get(1) > maxY {
+//				maxY = tri.P2.Get(1)
+//			}
+//			if tri.P3.Get(1) > maxY {
+//				maxY = tri.P3.Get(1)
+//			}
+//			if tri.P1.Get(2) > maxZ {
+//				maxZ = tri.P1.Get(2)
+//			}
+//			if tri.P2.Get(2) > maxZ {
+//				maxZ = tri.P2.Get(2)
+//			}
+//			if tri.P3.Get(2) > maxZ {
+//				maxZ = tri.P3.Get(2)
+//			}
+//		case *SmoothTriangle:
+//
+//			// mins
+//			if tri.P1.Get(0) < minX {
+//				minX = tri.P1.Get(0)
+//			}
+//			if tri.P2.Get(0) < minX {
+//				minX = tri.P2.Get(0)
+//			}
+//			if tri.P3.Get(0) < minX {
+//				minX = tri.P3.Get(0)
+//			}
+//			if tri.P1.Get(1) < minY {
+//				minY = tri.P1.Get(1)
+//			}
+//			if tri.P2.Get(1) < minY {
+//				minY = tri.P2.Get(1)
+//			}
+//			if tri.P3.Get(1) < minY {
+//				minY = tri.P3.Get(1)
+//			}
+//			if tri.P1.Get(2) < minZ {
+//				minZ = tri.P1.Get(2)
+//			}
+//			if tri.P2.Get(2) < minZ {
+//				minZ = tri.P2.Get(2)
+//			}
+//			if tri.P3.Get(2) < minZ {
+//				minZ = tri.P3.Get(2)
+//			}
+//
+//			// max
+//			if tri.P1.Get(0) > maxX {
+//				maxX = tri.P1.Get(0)
+//			}
+//			if tri.P2.Get(0) > maxX {
+//				maxX = tri.P2.Get(0)
+//			}
+//			if tri.P3.Get(0) > maxX {
+//				maxX = tri.P3.Get(0)
+//			}
+//			if tri.P1.Get(1) > maxY {
+//				maxY = tri.P1.Get(1)
+//			}
+//			if tri.P2.Get(1) > maxY {
+//				maxY = tri.P2.Get(1)
+//			}
+//			if tri.P3.Get(1) > maxY {
+//				maxY = tri.P3.Get(1)
+//			}
+//			if tri.P1.Get(2) > maxZ {
+//				maxZ = tri.P1.Get(2)
+//			}
+//			if tri.P2.Get(2) > maxZ {
+//				maxZ = tri.P2.Get(2)
+//			}
+//			if tri.P3.Get(2) > maxZ {
+//				maxZ = tri.P3.Get(2)
+//			}
+//		}
+//
+//	}
+//	fmt.Print(minX, minY, minZ, maxX, maxY, maxZ)
+//	g.bb = &BoundingBox{
+//		PointA: NewPoint(minX, minY, minZ),
+//		PointB: NewPoint(maxX, maxY, maxZ),
+//	}
+//	g.c = NewCube()
+//	//g.c.SetTransform(Scale(g.bb.PointB.Get(0) - g.bb.PointA.Get(0), g.bb.PointB.Get(1) - g.bb.PointA.Get(1), g.bb.PointB.Get(2) - g.bb.PointA.Get(2)))
+//	g.c.SetTransform(Scale(3.0, 5.1, 3.6))
+//}
 
 func (g *Group) GetParent() Shape {
 	return g.Parent
@@ -164,7 +164,9 @@ func (g *Group) SetParent(shape Shape) {
 func NewGroup() *Group {
 	m1 := NewMat4x4(make([]float64, 16))
 	copy(m1.Elems, IdentityMatrix.Elems)
-	return &Group{Id: rand.Int63(), Transform: m1, Children: make([]Shape, 0)}
+	inv := NewMat4x4(make([]float64, 16))
+	copy(inv.Elems, IdentityMatrix.Elems)
+	return &Group{Id: rand.Int63(), Transform: m1, Inverse: inv, Children: make([]Shape, 0)}
 }
 
 func (g *Group) ID() int64 {
@@ -176,7 +178,7 @@ func (g *Group) GetTransform() Mat4x4 {
 }
 
 func (g *Group) GetInverse() Mat4x4 {
-	return g.Inverse
+	return g.Inverse //Inverse(g.Transform)
 }
 
 func (g *Group) SetTransform(transform Mat4x4) {
@@ -195,7 +197,8 @@ func (g *Group) SetMaterial(material Material) {
 }
 
 func (g *Group) IntersectLocal(ray Ray) []Intersection {
-	ray = TransformRay(ray, Inverse(g.Transform))
+	ray = TransformRay(ray, g.Inverse)
+	//ray = TransformRay(ray, g.GetInverse())
 
 	// check the bounding box around the group. We should have precomputed this.
 	//if g.bb != nil {
@@ -208,8 +211,9 @@ func (g *Group) IntersectLocal(ray Ray) []Intersection {
 
 	xs := make([]Intersection, 0)
 	for idx := range g.Children {
-		ray = TransformRay(ray, Inverse(g.Children[idx].GetTransform()))
-		lxs := g.Children[idx].IntersectLocal(ray)
+		//innerRay := TransformRay(ray, Inverse(g.Children[idx].GetTransform()))
+		innerRay := TransformRay(ray, g.Children[idx].GetInverse())
+		lxs := g.Children[idx].IntersectLocal(innerRay)
 		if len(lxs) > 0 {
 			xs = append(xs, lxs...)
 		}

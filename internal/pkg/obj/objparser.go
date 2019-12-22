@@ -106,7 +106,7 @@ type Obj struct {
 func (o *Obj) ToGroup() *mat.Group {
 	g := mat.NewGroup()
 	for _, v := range o.Groups {
-		v.BB()
+		//v.BB()
 		g.AddChild(v)
 	}
 	return g
