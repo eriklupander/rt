@@ -25,7 +25,7 @@ func Position(r Ray, distance float64) Tuple4 {
 func IntersectRayWithShape(s Shape, r2 Ray) []Intersection {
 
 	// transform ray with inverse of shape transformation matrix to be able to intersect a translated/rotated/skewed shape
-	r := TransformRay(r2, s.GetInverse())
+	r := TransformRay(r2, Inverse(s.GetTransform())) //s.GetInverse())
 
 	// Call the intersect function provided by the shape implementation (e.g. Sphere, Plane osv)
 	return s.IntersectLocal(r)

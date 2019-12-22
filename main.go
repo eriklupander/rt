@@ -6,16 +6,20 @@ import (
 	"github.com/eriklupander/rt/internal/pkg/obj"
 	"github.com/eriklupander/rt/internal/pkg/parser"
 	"io/ioutil"
+	"log"
 	"math"
+	"net/http"
 	_ "net/http/pprof"
 	"os"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
 	// we need a webserver to get the pprof webserver
-	//go func() {
-	//	log.Println(http.ListenAndServe("localhost:6060", nil))
-	//}()
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 	//parse()
 	//csg()
 	//withModel()
@@ -27,10 +31,10 @@ func main() {
 	//clockDemo()
 	//projectileDemo()
 
-	//termChan := make(chan os.Signal)
-	//signal.Notify(termChan, syscall.SIGINT, syscall.SIGTERM)
-	//<-termChan // Blocks here!!
-	//fmt.Println("shutting down!")
+	termChan := make(chan os.Signal)
+	signal.Notify(termChan, syscall.SIGINT, syscall.SIGTERM)
+	<-termChan // Blocks here!!
+	fmt.Println("shutting down!")
 }
 
 var white = mat.NewColor(1, 1, 1)

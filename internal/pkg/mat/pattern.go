@@ -148,10 +148,10 @@ func (r *RingPattern) GetInverse() Mat4x4 {
 
 func PatternAtShape(pattern Pattern, s Shape, worldPoint Tuple4) Tuple4 {
 	// Convert from world space to object space by inversing the shape transform and then multiply it by the point
-	//objectPoint := MultiplyByTuple(Inverse(s.GetTransform()), worldPoint)
-	objectPoint := WorldToObject(s, worldPoint)
-	//patternPoint := MultiplyByTuple(Inverse(pattern.GetTransform()), objectPoint)
-	patternPoint := MultiplyByTuple(pattern.GetInverse(), objectPoint)
+	objectPoint := MultiplyByTuple(Inverse(s.GetTransform()), worldPoint)
+	//objectPoint := WorldToObject(s, worldPoint)
+	patternPoint := MultiplyByTuple(Inverse(pattern.GetTransform()), objectPoint)
+	//patternPoint := MultiplyByTuple(pattern.GetInverse(), objectPoint)
 	return pattern.PatternAt(patternPoint)
 }
 

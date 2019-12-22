@@ -197,7 +197,7 @@ func (g *Group) SetMaterial(material Material) {
 }
 
 func (g *Group) IntersectLocal(ray Ray) []Intersection {
-	ray = TransformRay(ray, g.Inverse)
+	ray = TransformRay(ray, Inverse(g.Transform))
 	//ray = TransformRay(ray, g.GetInverse())
 
 	// check the bounding box around the group. We should have precomputed this.
@@ -211,8 +211,8 @@ func (g *Group) IntersectLocal(ray Ray) []Intersection {
 
 	xs := make([]Intersection, 0)
 	for idx := range g.Children {
-		//innerRay := TransformRay(ray, Inverse(g.Children[idx].GetTransform()))
-		innerRay := TransformRay(ray, g.Children[idx].GetInverse())
+		innerRay := TransformRay(ray, Inverse(g.Children[idx].GetTransform()))
+		//innerRay := TransformRay(ray, g.Children[idx].GetInverse())
 		lxs := g.Children[idx].IntersectLocal(innerRay)
 		if len(lxs) > 0 {
 			xs = append(xs, lxs...)
