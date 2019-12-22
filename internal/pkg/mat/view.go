@@ -101,7 +101,7 @@ func RayForPixel(cam Camera, x, y int) Ray {
 }
 
 func Render(c Camera, w World) *Canvas {
-	stats := runtime.MemStats{}
+
 	st := time.Now()
 	canvas := NewCanvas(c.Width, c.Height)
 	for row := 0; row < c.Height; row++ {
@@ -110,13 +110,13 @@ func Render(c Camera, w World) *Canvas {
 			color := ColorAt(w, ray, 5, 5)
 			canvas.WritePixel(col, row, color)
 		}
-		fmt.Printf("%d / %d ", row+1, c.Height)
-		runtime.ReadMemStats(&stats)
-		fmt.Printf("Memory: %v ", bytesize.New(float64(stats.Alloc)).String())
-		fmt.Printf("Mallocs: %v ", stats.Mallocs)
-		fmt.Printf("Total alloc: %v\n", bytesize.New(float64(stats.TotalAlloc)).String())
+		fmt.Printf("%d / %d\n", row+1, c.Height)
 	}
-
+	stats := runtime.MemStats{}
+	runtime.ReadMemStats(&stats)
+	fmt.Printf("Memory: %v ", bytesize.New(float64(stats.Alloc)).String())
+	fmt.Printf("Mallocs: %v ", stats.Mallocs)
+	fmt.Printf("Total alloc: %v\n", bytesize.New(float64(stats.TotalAlloc)).String())
 	fmt.Printf("%v", time.Now().Sub(st))
 	return canvas
 }
@@ -126,7 +126,7 @@ func RenderThreaded(c Camera, w World) *Canvas {
 	canvas := NewCanvas(c.Width, c.Height)
 	jobs := make(chan *job)
 	wg := sync.WaitGroup{}
-
+	stats := runtime.MemStats{}
 	wg.Add(canvas.W * canvas.H)
 	for i := 0; i < 8; i++ {
 		go workerFuncPerPixel(canvas, c, w, jobs, &wg)
@@ -134,12 +134,15 @@ func RenderThreaded(c Camera, w World) *Canvas {
 	for row := 0; row < c.Height; row++ {
 		for col := 0; col < c.Width; col++ {
 			jobs <- &job{row: row, col: col}
-			//fmt.Print(".")
 		}
 		fmt.Printf("%d/%d\n", row, c.Height)
 	}
 	wg.Wait()
 	fmt.Println("All done")
+	runtime.ReadMemStats(&stats)
+	fmt.Printf("Memory: %v ", bytesize.New(float64(stats.Alloc)).String())
+	fmt.Printf("Mallocs: %v ", stats.Mallocs)
+	fmt.Printf("Total alloc: %v\n", bytesize.New(float64(stats.TotalAlloc)).String())
 	fmt.Printf("%v", time.Now().Sub(st))
 	return canvas
 }
