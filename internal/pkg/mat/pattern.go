@@ -190,5 +190,5 @@ func (c *CheckerPattern) GetTransform() Mat4x4 {
 	return c.Transform
 }
 func (c *CheckerPattern) GetInverse() Mat4x4 {
-	return c.Inverse
+	return Inverse(c.Transform)//c.Inverse
 }

@@ -20,12 +20,12 @@ func IntersectionEqual(i1, i2 Intersection) bool {
 	return i1.T == i2.T && i1.S.ID() == i2.S.ID()
 }
 
-var xs = make([]Intersection, 0)
+// var xs = make([]Intersection, 0)
 
 func IntersectWithWorld(w World, r Ray) []Intersection {
-	xs = xs[:0]
+	//xs = xs[:0]
 	//xs = nil
-	//xs := make([]Intersection, 0)
+	xs := make([]Intersection, 0)
 	for idx, _ := range w.Objects {
 		intersections := IntersectRayWithShape(w.Objects[idx], r)
 		if len(intersections) > 0 {
