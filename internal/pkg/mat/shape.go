@@ -14,12 +14,18 @@ type Shape interface {
 	SetParent(shape Shape)
 }
 
+var currentPoint = NewPoint(0, 0, 0)
+
 func WorldToObject(shape Shape, point Tuple4) Tuple4 {
 	if shape.GetParent() != nil {
 		point = WorldToObject(shape.GetParent(), point)
 	}
-	return MultiplyByTuple(shape.GetInverse(), point)
+	copy(currentPoint.Elems, point.Elems)
+	MultiplyByTuplePtr(shape.GetInverse(), &currentPoint)
+	return currentPoint
 }
+
+//var normalVec = NewVector(0,0,0)
 
 func NormalToWorld(shape Shape, normal Tuple4) Tuple4 {
 	normal = MultiplyByTuple(Transpose(shape.GetInverse()), normal)

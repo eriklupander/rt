@@ -15,7 +15,13 @@ func NewSphere() *Sphere {
 	inv := NewMat4x4(make([]float64, 16))
 	copy(m1.Elems, IdentityMatrix.Elems)
 	copy(inv.Elems, IdentityMatrix.Elems)
-	return &Sphere{Id: rand.Int63(), Transform: m1, Inverse: inv, Material: NewDefaultMaterial()}
+	return &Sphere{
+		Id:        rand.Int63(),
+		Transform: m1,
+		Inverse:   inv,
+		Material:  NewDefaultMaterial(),
+		savedVec:  NewVector(0, 0, 0),
+	}
 }
 
 func NewGlassSphere() *Sphere {
@@ -33,6 +39,7 @@ type Sphere struct {
 	Label     string
 	Parent    Shape
 	savedRay  Ray
+	savedVec  Tuple4
 }
 
 func (s *Sphere) GetParent() Shape {
@@ -51,16 +58,16 @@ func (s *Sphere) GetLocalRay() Ray {
 func (s *Sphere) IntersectLocal(r Ray) []Intersection {
 	s.savedRay = r
 	// this is a vector from the origin of the ray to the center of the sphere at 0,0,0
-	sphereToRay := Sub(r.Origin, NewPoint(0, 0, 0))
+	SubPtr(r.Origin, NewPoint(0, 0, 0), &s.savedVec)
 
 	// This dot product is
 	a := Dot(r.Direction, r.Direction)
 
 	// Take the dot of the direction and the vector from ray origin to sphere center times 2
-	b := 2.0 * Dot(r.Direction, sphereToRay)
+	b := 2.0 * Dot(r.Direction, s.savedVec)
 
 	// Take the dot of the two sphereToRay vectors and decrease by 1 (is that because the sphere is unit length 1?
-	c := Dot(sphereToRay, sphereToRay) - 1.0
+	c := Dot(s.savedVec, s.savedVec) - 1.0
 
 	// calculate the discriminant
 	discriminant := (b * b) - 4*a*c

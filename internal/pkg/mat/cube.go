@@ -10,7 +10,18 @@ func NewCube() *Cube {
 	copy(m1.Elems, IdentityMatrix.Elems)
 	inv := NewMat4x4(make([]float64, 16))
 	copy(inv.Elems, IdentityMatrix.Elems)
-	return &Cube{Id: rand.Int63(), Transform: m1, Inverse: inv, Material: NewDefaultMaterial()}
+
+	savedXs := make([]Intersection, 2)
+	for i := 0; i < 2; i++ {
+		savedXs[i] = NewIntersection(0.0, nil)
+	}
+
+	return &Cube{
+		Id:        rand.Int63(),
+		Transform: m1,
+		Inverse:   inv,
+		Material:  NewDefaultMaterial(),
+		savedXs:   savedXs}
 }
 
 type Cube struct {
@@ -21,6 +32,7 @@ type Cube struct {
 	Label     string
 	Parent    Shape
 	savedRay  Ray
+	savedXs   []Intersection
 }
 
 func (c *Cube) ID() int64 {
@@ -57,9 +69,16 @@ func (c *Cube) IntersectLocal(ray Ray) []Intersection {
 	tmin := max(xtmin, ytmin, ztmin)
 	tmax := min(xtmax, ytmax, ztmax)
 	if tmin > tmax {
-		return []Intersection{}
+		return nil
 	}
-	return []Intersection{NewIntersection(tmin, c), NewIntersection(tmax, c)}
+
+	// use allocated slice and structs
+	c.savedXs[0].T = tmin
+	c.savedXs[0].S = c
+	c.savedXs[1].T = tmax
+	c.savedXs[1].S = c
+
+	return c.savedXs
 }
 
 // NormalAtLocal uses the fact that given a unit cube, the point of the surface axis X,Y or Z is always either

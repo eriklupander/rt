@@ -34,6 +34,34 @@ func NewMat4x4(elems []float64) Mat4x4 {
 	return Mat4x4{Elems: elems}
 }
 
+func MultiplyByTuplePtr(m Mat4x4, t *Tuple4) {
+	var x, y, z, w float64
+	x = (m.Get(0, 0) * t.Get(0)) +
+		(m.Get(0, 1) * t.Get(1)) +
+		(m.Get(0, 2) * t.Get(2)) +
+		(m.Get(0, 3) * t.Get(3))
+
+	y = (m.Get(1, 0) * t.Get(0)) +
+		(m.Get(1, 1) * t.Get(1)) +
+		(m.Get(1, 2) * t.Get(2)) +
+		(m.Get(1, 3) * t.Get(3))
+
+	z = (m.Get(2, 0) * t.Get(0)) +
+		(m.Get(2, 1) * t.Get(1)) +
+		(m.Get(2, 2) * t.Get(2)) +
+		(m.Get(2, 3) * t.Get(3))
+
+	w = (m.Get(3, 0) * t.Get(0)) +
+		(m.Get(3, 1) * t.Get(1)) +
+		(m.Get(3, 2) * t.Get(2)) +
+		(m.Get(3, 3) * t.Get(3))
+
+	t.Elems[0] = x
+	t.Elems[1] = y
+	t.Elems[2] = z
+	t.Elems[3] = w
+}
+
 func (m Mat2x2) Get(row int, col int) float64 {
 	return m.Elems[(row*2)+col]
 }
@@ -94,6 +122,14 @@ func MultiplyByTuple(m1 Mat4x4, t Tuple4) Tuple4 {
 			(m1.Get(row, 3) * t.Get(3))
 	}
 	return t1
+}
+func MultiplyByTuplePtr2(m1 Mat4x4, t Tuple4, t1 *Tuple4) {
+	for row := 0; row < 4; row++ {
+		t1.Elems[row] = (m1.Get(row, 0) * t.Get(0)) +
+			(m1.Get(row, 1) * t.Get(1)) +
+			(m1.Get(row, 2) * t.Get(2)) +
+			(m1.Get(row, 3) * t.Get(3))
+	}
 }
 
 // Transpose flips rows and cols in the matrix.

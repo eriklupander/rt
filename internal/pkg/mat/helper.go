@@ -4,14 +4,14 @@ package mat
 func RenderPointAt(canvas *Canvas, camera Camera, worldPoint Tuple4, color Tuple4) {
 
 	// TransformRay point into camera space
-	pixel := MultiplyByTuple(camera.Transform, worldPoint)
+	MultiplyByTuplePtr(camera.Transform, &worldPoint)
 
 	// View is always 1 unit away, divide by translated pixel z to get 3D -> 2D translation factor.
-	dDividedByZ := 1 / pixel.Get(2)
+	dDividedByZ := 1 / worldPoint.Get(2)
 
 	// Multiply x and y by translation factor to get 2D coords on the projection surface
-	x := pixel.Get(0) * dDividedByZ
-	y := pixel.Get(1) * dDividedByZ
+	x := worldPoint.Get(0) * dDividedByZ
+	y := worldPoint.Get(1) * dDividedByZ
 
 	// transform from projection surface space into actual X/Y pixels based on pixelsize.
 	// note that this translation isn't quite correct since I think I've gotten the offset

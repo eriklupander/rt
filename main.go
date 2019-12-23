@@ -6,16 +6,21 @@ import (
 	"github.com/eriklupander/rt/internal/pkg/obj"
 	"github.com/eriklupander/rt/internal/pkg/parser"
 	"io/ioutil"
+	"log"
 	"math"
-	_ "net/http/pprof"
+	"net/http"
+
+	//_ "net/http/pprof"
 	"os"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
 	// we need a webserver to get the pprof webserver
-	//go func() {
-	//	log.Println(http.ListenAndServe("localhost:6060", nil))
-	//}()
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 	//parse()
 	//csg()
 	//withModel()
@@ -27,10 +32,10 @@ func main() {
 	//clockDemo()
 	//projectileDemo()
 
-	//termChan := make(chan os.Signal)
-	//signal.Notify(termChan, syscall.SIGINT, syscall.SIGTERM)
-	//<-termChan // Blocks here!!
-	//fmt.Println("shutting down!")
+	termChan := make(chan os.Signal)
+	signal.Notify(termChan, syscall.SIGINT, syscall.SIGTERM)
+	<-termChan // Blocks here!!
+	fmt.Println("shutting down!")
 }
 
 var white = mat.NewColor(1, 1, 1)
@@ -134,7 +139,6 @@ func worldWithPlane() {
 	w.Light = append(w.Light, mat.NewLight(mat.NewPoint(-3, 2.5, -3), mat.NewColor(1, 1, 1)))
 
 	camera := mat.NewCamera(640, 480, math.Pi/3)
-	//camera := mat.NewCamera(320, 240, math.Pi/3)
 	viewTransform := mat.ViewTransform(mat.NewPoint(-2, 1.0, -4), mat.NewPoint(0, 0.5, 0), mat.NewVector(0, 1, 0))
 	camera.Transform = viewTransform
 	camera.Inverse = mat.Inverse(viewTransform)
@@ -406,7 +410,7 @@ func shadedSphereDemo() {
 				pointOfHit := mat.Position(rayFromOriginToPosOnWall, intersection.T)
 				normalAtHit := mat.NormalAt(sphere, pointOfHit, nil)
 				minusEyeRayVector := mat.Negate(rayFromOriginToPosOnWall.Direction)
-				color := mat.Lighting(sphere.Material, sphere, light, pointOfHit, minusEyeRayVector, normalAtHit, false)
+				color := light.Lighting(sphere.Material, sphere, light, pointOfHit, minusEyeRayVector, normalAtHit, false)
 
 				c.WritePixel(col, c.H-row, color)
 			}

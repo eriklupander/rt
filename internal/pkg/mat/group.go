@@ -14,8 +14,11 @@ type Group struct {
 	Parent    Shape
 	Children  []Shape
 	savedRay  Ray
-	bb        *BoundingBox
-	c         *Cube
+
+	innerRays []Ray
+
+	bb *BoundingBox
+	c  *Cube
 }
 
 //
@@ -166,7 +169,21 @@ func NewGroup() *Group {
 	copy(m1.Elems, IdentityMatrix.Elems)
 	inv := NewMat4x4(make([]float64, 16))
 	copy(inv.Elems, IdentityMatrix.Elems)
-	return &Group{Id: rand.Int63(), Transform: m1, Inverse: inv, Children: make([]Shape, 0)}
+
+	// allocate space for up to 1024 sub-objects (probably not enough for meshes?)
+	innerRays := make([]Ray, 8)
+	for i := 0; i < 8; i++ {
+		innerRays[i] = NewRay(NewPoint(0, 0, 0), NewVector(0, 0, 0))
+	}
+
+	return &Group{
+		Id:        rand.Int63(),
+		Transform: m1,
+		Inverse:   inv,
+		Children:  make([]Shape, 0),
+		savedRay:  NewRay(NewPoint(0, 0, 0), NewVector(0, 0, 0)),
+		innerRays: make([]Ray, 0),
+	}
 }
 
 func (g *Group) ID() int64 {
@@ -197,7 +214,12 @@ func (g *Group) SetMaterial(material Material) {
 }
 
 func (g *Group) IntersectLocal(ray Ray) []Intersection {
-	ray = TransformRay(ray, g.Inverse)
+	//ray = TransformRay(ray, g.Inverse)
+	copy(g.savedRay.Origin.Elems, ray.Origin.Elems)
+	MultiplyByTuplePtr(g.GetInverse(), &g.savedRay.Origin)
+	copy(g.savedRay.Direction.Elems, ray.Direction.Elems)
+	MultiplyByTuplePtr(g.GetInverse(), &g.savedRay.Direction)
+
 	//ray = TransformRay(ray, g.GetInverse())
 
 	// check the bounding box around the group. We should have precomputed this.
@@ -212,8 +234,14 @@ func (g *Group) IntersectLocal(ray Ray) []Intersection {
 	xs := make([]Intersection, 0)
 	for idx := range g.Children {
 		//innerRay := TransformRay(ray, Inverse(g.Children[idx].GetTransform()))
-		innerRay := TransformRay(ray, g.Children[idx].GetInverse())
-		lxs := g.Children[idx].IntersectLocal(innerRay)
+		//innerRay := TransformRay(g.savedRay, g.Children[idx].GetInverse())
+
+		copy(g.innerRays[idx].Origin.Elems, g.savedRay.Origin.Elems)
+		MultiplyByTuplePtr(g.Children[idx].GetInverse(), &g.innerRays[idx].Origin)
+		copy(g.innerRays[idx].Direction.Elems, g.savedRay.Direction.Elems)
+		MultiplyByTuplePtr(g.Children[idx].GetInverse(), &g.innerRays[idx].Direction)
+
+		lxs := g.Children[idx].IntersectLocal(g.innerRays[idx])
 		if len(lxs) > 0 {
 			xs = append(xs, lxs...)
 		}
@@ -235,4 +263,7 @@ func (g *Group) GetLocalRay() Ray {
 func (g *Group) AddChild(s Shape) {
 	g.Children = append(g.Children, s)
 	s.SetParent(g)
+
+	// Each time a child is added, also allocate memory for computing the ray transform
+	g.innerRays = append(g.innerRays, NewRay(NewPoint(0, 0, 0), NewVector(0, 0, 0)))
 }

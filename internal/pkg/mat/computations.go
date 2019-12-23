@@ -1,5 +1,14 @@
 package mat
 
+//var currentComp = Computation{
+//	Point:      NewPoint(0, 0, 0),
+//	EyeVec:     NewVector(0, 0, 0),
+//	NormalVec:  NewVector(0, 0, 0),
+//	OverPoint:  NewPoint(0, 0, 0),
+//	UnderPoint: NewPoint(0, 0, 0),
+//	ReflectVec: NewVector(0, 0, 0),
+//}
+
 func PrepareComputationForIntersection(i Intersection, r Ray, xs ...Intersection) Computation {
 	pos := Position(r, i.T)
 	eyeVec := Negate(r.Direction)
@@ -44,6 +53,7 @@ func PrepareComputationForIntersection(i Intersection, r Ray, xs ...Intersection
 			break
 		}
 	}
+	//return currentComp
 
 	return Computation{
 		T:          i.T,

@@ -23,6 +23,12 @@ func Reflect(vec Tuple4, normal Tuple4) Tuple4 {
 	return Sub(vec, norm)
 }
 
+func ReflectPtr(vec Tuple4, normal Tuple4, reflectVec *Tuple4) {
+	dotScalar := Dot(vec, normal)
+	norm := MultiplyByScalar(MultiplyByScalar(normal, 2.0), dotScalar)
+	SubPtr(vec, norm, reflectVec)
+}
+
 func ReflectedColor(w World, comps Computation, remaining1, remaining2 int) Tuple4 {
 	if remaining1 == 0 || comps.Object.GetMaterial().Reflectivity == 0.0 {
 		return black
