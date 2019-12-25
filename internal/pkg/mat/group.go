@@ -166,7 +166,13 @@ func NewGroup() *Group {
 	copy(m1.Elems, IdentityMatrix.Elems)
 	inv := NewMat4x4(make([]float64, 16))
 	copy(inv.Elems, IdentityMatrix.Elems)
-	return &Group{Id: rand.Int63(), Transform: m1, Inverse: inv, Children: make([]Shape, 0)}
+	return &Group{
+		Id:        rand.Int63(),
+		Transform: m1,
+		Inverse:   inv,
+		Children:  make([]Shape, 0),
+		savedRay:  NewRay(NewPoint(0, 0, 0), NewVector(0, 0, 0)),
+	}
 }
 
 func (g *Group) ID() int64 {
@@ -197,7 +203,8 @@ func (g *Group) SetMaterial(material Material) {
 }
 
 func (g *Group) IntersectLocal(ray Ray) []Intersection {
-	ray = TransformRay(ray, g.Inverse)
+	TransformRayPtr(ray, g.Inverse, &g.savedRay)
+	//ray = TransformRay(ray, g.Inverse)
 	//ray = TransformRay(ray, g.GetInverse())
 
 	// check the bounding box around the group. We should have precomputed this.
@@ -212,7 +219,7 @@ func (g *Group) IntersectLocal(ray Ray) []Intersection {
 	xs := make([]Intersection, 0)
 	for idx := range g.Children {
 		//innerRay := TransformRay(ray, Inverse(g.Children[idx].GetTransform()))
-		innerRay := TransformRay(ray, g.Children[idx].GetInverse())
+		innerRay := TransformRay(g.savedRay, g.Children[idx].GetInverse())
 		lxs := g.Children[idx].IntersectLocal(innerRay)
 		if len(lxs) > 0 {
 			xs = append(xs, lxs...)

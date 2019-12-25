@@ -10,7 +10,17 @@ func NewPlane() *Plane {
 	copy(m1.Elems, IdentityMatrix.Elems)
 	inv := NewMat4x4(make([]float64, 16))
 	copy(inv.Elems, IdentityMatrix.Elems)
-	return &Plane{Id: rand.Int63(), Transform: m1, Inverse: inv, Material: NewDefaultMaterial(), Label: "Plane"}
+
+	savedXs := make([]Intersection, 1)
+
+	return &Plane{
+		Id:        rand.Int63(),
+		Transform: m1,
+		Inverse:   inv,
+		Material:  NewDefaultMaterial(),
+		Label:     "Plane",
+		savedXs:   savedXs,
+	}
 }
 
 type Plane struct {
@@ -21,6 +31,8 @@ type Plane struct {
 	Label     string
 	Parent    Shape
 	savedRay  Ray
+
+	savedXs []Intersection
 }
 
 func (p *Plane) ID() int64 {
@@ -53,9 +65,13 @@ func (p *Plane) IntersectLocal(ray Ray) []Intersection {
 		return nil
 	}
 	t := -ray.Origin.Get(1) / ray.Direction.Get(1)
-	return []Intersection{
-		{T: t, S: p},
-	}
+	p.savedXs[0].T = t
+	p.savedXs[0].S = p //
+	// Intersection{T: t, S: p}
+	return p.savedXs
+	//return []Intersection{
+	//	{T: t, S: p},
+	//}
 }
 
 func (p *Plane) NormalAtLocal(point Tuple4, intersection *Intersection) Tuple4 {

@@ -39,6 +39,12 @@ func Add(t1, t2 Tuple4) Tuple4 {
 	return t3
 }
 
+func AddPtr(t1, t2 Tuple4, out *Tuple4) {
+	for i := 0; i < 4; i++ {
+		out.Elems[i] = t1.Get(i) + t2.Get(i)
+	}
+}
+
 func Sub(t1, t2 Tuple4) Tuple4 {
 	t3 := NewTuple4(make([]float64, 4))
 	for i := 0; i < 4; i++ {
@@ -47,12 +53,24 @@ func Sub(t1, t2 Tuple4) Tuple4 {
 	return t3
 }
 
+func SubPtr(t1, t2 Tuple4, out *Tuple4) {
+	for i := 0; i < 4; i++ {
+		out.Elems[i] = t1.Get(i) - t2.Get(i)
+	}
+}
+
 func Negate(t1 Tuple4) Tuple4 {
 	t3 := NewTuple4(make([]float64, 4))
 	for i := 0; i < 4; i++ {
 		t3.Elems[i] = 0 - t1.Get(i)
 	}
 	return t3
+}
+
+func NegatePtr(t1 Tuple4, out *Tuple4) {
+	for i := 0; i < 4; i++ {
+		out.Elems[i] = 0 - t1.Get(i)
+	}
 }
 
 func MultiplyByScalar(t1 Tuple4, scalar float64) Tuple4 {
@@ -88,6 +106,13 @@ func Normalize(t1 Tuple4) Tuple4 {
 		t3.Elems[i] = t1.Get(i) / magnitude
 	}
 	return t3
+}
+
+func NormalizePtr(t1 Tuple4, out *Tuple4) {
+	magnitude := Magnitude(t1)
+	for i := 0; i < 4; i++ {
+		out.Elems[i] = t1.Get(i) / magnitude
+	}
 }
 
 // Dot product is the sum of the products of the corresponding entries of the two sequences of numbers

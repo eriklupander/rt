@@ -96,6 +96,15 @@ func MultiplyByTuple(m1 Mat4x4, t Tuple4) Tuple4 {
 	return t1
 }
 
+func MultiplyByTuplePtr(m1 Mat4x4, t Tuple4, out *Tuple4) {
+	for row := 0; row < 4; row++ {
+		out.Elems[row] = (m1.Get(row, 0) * t.Get(0)) +
+			(m1.Get(row, 1) * t.Get(1)) +
+			(m1.Get(row, 2) * t.Get(2)) +
+			(m1.Get(row, 3) * t.Get(3))
+	}
+}
+
 // Transpose flips rows and cols in the matrix.
 func Transpose(m1 Mat4x4) Mat4x4 {
 	m3 := NewMat4x4(make([]float64, 16))

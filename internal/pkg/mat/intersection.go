@@ -20,14 +20,34 @@ func IntersectionEqual(i1, i2 Intersection) bool {
 	return i1.T == i2.T && i1.S.ID() == i2.S.ID()
 }
 
-var xs = make([]Intersection, 0)
+// var xs = make([]Intersection, 0)
 
 func IntersectWithWorld(w World, r Ray) []Intersection {
-	xs = xs[:0]
+	//xs = xs[:0]
 	//xs = nil
-	//xs := make([]Intersection, 0)
+	xs := make([]Intersection, 0)
 	for idx, _ := range w.Objects {
 		intersections := IntersectRayWithShape(w.Objects[idx], r)
+		if len(intersections) > 0 {
+			for innerIdx := range intersections {
+				if intersections[innerIdx].T >= 0.0 {
+					xs = append(xs, intersections[innerIdx])
+				}
+			}
+		}
+	}
+	// Remember that we must sort away negative ones?
+	sort.Slice(xs, func(i, j int) bool {
+		return xs[i].T < xs[j].T
+	})
+	return xs
+}
+
+func IntersectWithWorldPtr(w World, r Ray, xs []Intersection, inRay *Ray) []Intersection {
+	//xs = xs[:0]
+	//xs = nil
+	for idx, _ := range w.Objects {
+		intersections := IntersectRayWithShapePtr(w.Objects[idx], r, inRay)
 		if len(intersections) > 0 {
 			for innerIdx := range intersections {
 				if intersections[innerIdx].T >= 0.0 {

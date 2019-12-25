@@ -3,8 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/eriklupander/rt/internal/pkg/mat"
-	"github.com/eriklupander/rt/internal/pkg/obj"
-	"github.com/eriklupander/rt/internal/pkg/parser"
+	"github.com/eriklupander/rt/internal/pkg/render"
 	"io/ioutil"
 	"math"
 	_ "net/http/pprof"
@@ -20,7 +19,8 @@ func main() {
 	//csg()
 	//withModel()
 	//groups()
-	worldWithPlane()
+	refraction()
+	//worldWithPlane()
 	//renderworld()
 	//shadedSphereDemo()
 	//circleDemo()
@@ -36,334 +36,462 @@ func main() {
 var white = mat.NewColor(1, 1, 1)
 var black = mat.NewColor(0, 0, 0)
 
-func parse() {
-	scene := parser.ParseYAML("scenes/simple.yaml")
-	fmt.Printf("%v", scene)
+//
+//func parse() {
+//	scene := parser.ParseYAML("scenes/simple.yaml")
+//	fmt.Printf("%v", scene)
+//
+//	w := scene.World
+//	w.Light = scene.Lights
+//	camera := scene.Camera
+//	canvas := mat.RenderThreaded(*camera, *w)
+//	// writec
+//	data := canvas.ToPPM()
+//	err := ioutil.WriteFile("fromyaml.ppm", []byte(data), os.FileMode(0755))
+//	if err != nil {
+//		fmt.Println(err.Error())
+//	}
+//}
+//
+//func csg() {
+//	w := mat.NewWorld()
+//	w.Light = append(w.Light, mat.NewLight(mat.NewPoint(0, 2, -2), mat.NewColor(1, 1, 1)))
+//	w.Light = append(w.Light, mat.NewLight(mat.NewPoint(0, 3, 0), mat.NewColor(1, 1, 1)))
+//
+//	camera := mat.NewCamera(640, 480, math.Pi/3)
+//	viewTransform := mat.ViewTransform(mat.NewPoint(-4, 2, -5), mat.NewPoint(0, 0, 0), mat.NewVector(0, 1, 0))
+//	camera.Transform = viewTransform
+//
+//	s1 := mat.NewSphere()
+//	m1 := mat.NewDefaultReflectiveMaterial(0.5)
+//	m1.Color = mat.NewColor(1, 0.1, 0.1)
+//	s1.SetMaterial(m1)
+//	c1 := mat.NewCube()
+//	m2 := mat.NewDefaultReflectiveMaterial(0.5)
+//	m2.Color = mat.NewColor(0.1, 0.1, 1.0)
+//	c1.SetMaterial(m1)
+//	c1.SetTransform(mat.Translate(-0.5, 0, 0))
+//	c1.SetTransform(mat.Scale(0.75, 0.5, 0.5))
+//	csg := mat.NewCSG("difference", s1, c1)
+//	csg.SetTransform(mat.Translate(0, 1, 0))
+//	csg.SetTransform(mat.RotateY(-math.Pi / 2))
+//	w.Objects = append(w.Objects, csg)
+//
+//	floor := mat.NewPlane()
+//	floor.SetMaterial(mat.NewMaterialWithReflectivity(mat.NewColor(0.2, 0.2, 1.0), 0.1, 0.9, 0.7, 200, 0.0))
+//	//floor.Material.Pattern = mat.NewCheckerPattern(white, black)
+//	w.Objects = append(w.Objects, floor)
+//
+//	canvas := mat.RenderThreaded(camera, w)
+//	// writec
+//	data := canvas.ToPPM()
+//	err := ioutil.WriteFile("csg1.ppm", []byte(data), os.FileMode(0755))
+//	if err != nil {
+//		fmt.Println(err.Error())
+//	}
+//}
+//
+//func withModel() {
+//
+//	bytes, err := ioutil.ReadFile("Toilet.1.obj")
+//	if err != nil {
+//		panic(err.Error())
+//	}
+//
+//	parseObj := obj.ParseObj(string(bytes))
+//
+//	w := mat.NewWorld()
+//	w.Objects = append(w.Objects, parseObj.ToGroup())
+//	//w.Objects[0].SetTransform(mat.Scale(0.6, 0.6, 0.6))
+//	m := mat.NewDefaultMaterial()
+//	m.Ambient = 0.3
+//	m.Reflectivity = 0.5
+//	w.Objects[0].SetMaterial(m)
+//
+//	floor := mat.NewPlane()
+//	floor.SetMaterial(mat.NewMaterialWithReflectivity(mat.NewColor(1, 0.5, 0.5), 0.1, 0.9, 0.7, 200, 0.1))
+//	floor.Material.Pattern = mat.NewCheckerPattern(white, black)
+//	w.Objects = append(w.Objects, floor)
+//	w.Light = append(w.Light, mat.NewLight(mat.NewPoint(-1.5, 2.5, -3), mat.NewColor(1, 1, 1)))
+//
+//	camera := mat.NewCamera(96, 72, math.Pi/3)
+//	viewTransform := mat.ViewTransform(mat.NewPoint(-4.3, 5, -8), mat.NewPoint(0, 2.5, 0), mat.NewVector(0, 1, 0))
+//	camera.Transform = viewTransform
+//
+//	canvas := mat.RenderThreaded(camera, w)
+//
+//	mat.RenderReferenceAxises(canvas, camera)
+//
+//	// writec
+//	data := canvas.ToPPM()
+//	err = ioutil.WriteFile("toilet.ppm", []byte(data), os.FileMode(0755))
+//	if err != nil {
+//		fmt.Println(err.Error())
+//	}
+//}
 
-	w := scene.World
-	w.Light = scene.Lights
-	camera := scene.Camera
-	canvas := mat.RenderThreaded(*camera, *w)
-	// writec
-	data := canvas.ToPPM()
-	err := ioutil.WriteFile("fromyaml.ppm", []byte(data), os.FileMode(0755))
-	if err != nil {
-		fmt.Println(err.Error())
+func refraction() {
+	camera := mat.NewCamera(200, 200, 0.5)
+	camera.Transform = mat.ViewTransform(mat.NewPoint(-4.5, 0.85, -4), mat.NewPoint(0, 0.85, 0), mat.NewVector(0, 1, 0))
+	camera.Inverse = mat.Inverse(camera.Transform)
+
+	worlds := make([]mat.World, 0)
+
+	for i := 0; i < 8; i++ {
+		wallMat := mat.NewDefaultMaterial()
+		ptrn := mat.NewCheckerPattern(black, mat.NewColor(0.75, 0.75, 0.74))
+		ptrn.Transform = mat.Scale(0.5, 0.5, 0.5)
+		wallMat.Pattern = ptrn
+		wallMat.Specular = 0.0
+
+		floor := mat.NewPlane()
+		floor.SetTransform(mat.RotateY(0.31415))
+		floorMat := mat.NewDefaultMaterial()
+		floorMat.Pattern = ptrn
+		floorMat.Ambient = 0.5
+		floorMat.Diffuse = 0.4
+		floorMat.Specular = 0.8
+		floorMat.Reflectivity = 0.1
+		floor.SetMaterial(floorMat)
+
+		ceil := mat.NewPlane()
+		ceil.SetTransform(mat.Translate(0, 5, 0))
+		ceilMat := mat.NewDefaultMaterial()
+		ceilPtrn := mat.NewCheckerPattern(mat.NewColor(0.85, 0.85, 0.85), mat.NewColor(1, 1, 1))
+		ceilPtrn.Transform = mat.Scale(0.2, 0.2, 0.2)
+		ceilMat.Pattern = ceilPtrn
+		ceilMat.Ambient = 0.5
+		ceilMat.Specular = 0
+		ceil.SetMaterial(ceilMat)
+
+		westWall := mat.NewPlane()
+		westWall.SetTransform(mat.Translate(-5, 0, 0))
+		westWall.SetTransform(mat.RotateZ(1.5708))
+		westWall.SetTransform(mat.RotateY(1.5708))
+		westWall.SetMaterial(wallMat)
+
+		eastWall := mat.NewPlane()
+		eastWall.SetTransform(mat.Translate(5, 0, 0))
+		eastWall.SetTransform(mat.RotateZ(1.5708))
+		eastWall.SetTransform(mat.RotateY(1.5708))
+		eastWall.SetMaterial(wallMat)
+
+		northWall := mat.NewPlane()
+		northWall.SetTransform(mat.Translate(0, 0, 5))
+		northWall.SetTransform(mat.RotateX(1.5708))
+		northWall.SetMaterial(wallMat)
+
+		southWall := mat.NewPlane()
+		southWall.SetTransform(mat.Translate(0, 0, -5))
+		southWall.SetTransform(mat.RotateX(1.5708))
+		southWall.SetMaterial(wallMat)
+
+		backBall1 := mat.NewSphere()
+		backBall1.SetTransform(mat.Translate(4, 1, 4))
+		mat1 := mat.NewDefaultMaterial()
+		mat1.Color = mat.NewColor(0.8, 0.1, 0.3)
+		mat1.Specular = 0
+		backBall1.SetMaterial(mat1)
+
+		backBall2 := mat.NewSphere()
+		backBall2.SetTransform(mat.Translate(4.6, 0.4, 2.9))
+		backBall2.SetTransform(mat.Scale(0.4, 0.4, 0.4))
+		mat2 := mat.NewDefaultMaterial()
+		mat2.Color = mat.NewColor(0.1, 0.8, 0.2)
+		mat2.Shininess = 200
+		backBall2.SetMaterial(mat2)
+
+		backBall3 := mat.NewSphere()
+		backBall3.SetTransform(mat.Translate(2.6, 0.6, 4.4))
+		backBall3.SetTransform(mat.Scale(0.6, 0.6, 0.6))
+		mat3 := mat.NewDefaultMaterial()
+		mat3.Color = mat.NewColor(0.2, 0.1, 0.8)
+		mat3.Shininess = 10
+		mat3.Specular = 0.4
+		backBall3.SetMaterial(mat3)
+
+		glassBall := mat.NewSphere()
+		glassBall.SetTransform(mat.Translate(0.25, 1, 0))
+		glassBall.SetTransform(mat.Scale(1, 1, 1))
+
+		glassMtrl := mat.NewMaterial(mat.NewColor(0.8, 0.8, 0.9), 0, 0.2, 0.9, 300)
+		glassMtrl.Transparency = 0.8
+		glassMtrl.RefractiveIndex = 1.15
+		glassBall.SetMaterial(glassMtrl)
+
+		w := mat.NewWorld()
+		w.Objects = append(w.Objects, ceil)
+		w.Objects = append(w.Objects, floor)
+		w.Objects = append(w.Objects, northWall)
+		w.Objects = append(w.Objects, eastWall)
+		w.Objects = append(w.Objects, southWall)
+		w.Objects = append(w.Objects, westWall)
+
+		w.Objects = append(w.Objects, backBall1)
+		w.Objects = append(w.Objects, backBall2)
+		w.Objects = append(w.Objects, backBall3)
+		w.Objects = append(w.Objects, glassBall)
+
+		light := mat.NewLight(mat.NewPoint(-4.9, 4.9, 1), mat.NewColor(1, 1, 1))
+
+		w.Light = append(w.Light, light)
+
+		worlds = append(worlds, w)
 	}
-}
 
-func csg() {
-	w := mat.NewWorld()
-	w.Light = append(w.Light, mat.NewLight(mat.NewPoint(0, 2, -2), mat.NewColor(1, 1, 1)))
-	w.Light = append(w.Light, mat.NewLight(mat.NewPoint(0, 3, 0), mat.NewColor(1, 1, 1)))
+	canvas := render.Threaded(camera, worlds)
 
-	camera := mat.NewCamera(640, 480, math.Pi/3)
-	viewTransform := mat.ViewTransform(mat.NewPoint(-4, 2, -5), mat.NewPoint(0, 0, 0), mat.NewVector(0, 1, 0))
-	camera.Transform = viewTransform
-
-	s1 := mat.NewSphere()
-	m1 := mat.NewDefaultReflectiveMaterial(0.5)
-	m1.Color = mat.NewColor(1, 0.1, 0.1)
-	s1.SetMaterial(m1)
-	c1 := mat.NewCube()
-	m2 := mat.NewDefaultReflectiveMaterial(0.5)
-	m2.Color = mat.NewColor(0.1, 0.1, 1.0)
-	c1.SetMaterial(m1)
-	c1.SetTransform(mat.Translate(-0.5, 0, 0))
-	c1.SetTransform(mat.Scale(0.75, 0.5, 0.5))
-	csg := mat.NewCSG("difference", s1, c1)
-	csg.SetTransform(mat.Translate(0, 1, 0))
-	csg.SetTransform(mat.RotateY(-math.Pi / 2))
-	w.Objects = append(w.Objects, csg)
-
-	floor := mat.NewPlane()
-	floor.SetMaterial(mat.NewMaterialWithReflectivity(mat.NewColor(0.2, 0.2, 1.0), 0.1, 0.9, 0.7, 200, 0.0))
-	//floor.Material.Pattern = mat.NewCheckerPattern(white, black)
-	w.Objects = append(w.Objects, floor)
-
-	canvas := mat.RenderThreaded(camera, w)
-	// writec
+	// write
 	data := canvas.ToPPM()
-	err := ioutil.WriteFile("csg1.ppm", []byte(data), os.FileMode(0755))
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-}
-
-func withModel() {
-
-	bytes, err := ioutil.ReadFile("Toilet.1.obj")
-	if err != nil {
-		panic(err.Error())
-	}
-
-	parseObj := obj.ParseObj(string(bytes))
-
-	w := mat.NewWorld()
-	w.Objects = append(w.Objects, parseObj.ToGroup())
-	//w.Objects[0].SetTransform(mat.Scale(0.6, 0.6, 0.6))
-	m := mat.NewDefaultMaterial()
-	m.Ambient = 0.3
-	m.Reflectivity = 0.5
-	w.Objects[0].SetMaterial(m)
-
-	floor := mat.NewPlane()
-	floor.SetMaterial(mat.NewMaterialWithReflectivity(mat.NewColor(1, 0.5, 0.5), 0.1, 0.9, 0.7, 200, 0.1))
-	floor.Material.Pattern = mat.NewCheckerPattern(white, black)
-	w.Objects = append(w.Objects, floor)
-	w.Light = append(w.Light, mat.NewLight(mat.NewPoint(-1.5, 2.5, -3), mat.NewColor(1, 1, 1)))
-
-	camera := mat.NewCamera(96, 72, math.Pi/3)
-	viewTransform := mat.ViewTransform(mat.NewPoint(-4.3, 5, -8), mat.NewPoint(0, 2.5, 0), mat.NewVector(0, 1, 0))
-	camera.Transform = viewTransform
-
-	canvas := mat.RenderThreaded(camera, w)
-
-	mat.RenderReferenceAxises(canvas, camera)
-
-	// writec
-	data := canvas.ToPPM()
-	err = ioutil.WriteFile("toilet.ppm", []byte(data), os.FileMode(0755))
+	err := ioutil.WriteFile("refractions.ppm", []byte(data), os.FileMode(0755))
 	if err != nil {
 		fmt.Println(err.Error())
 	}
 }
 
 func worldWithPlane() {
-	w := mat.NewWorld()
-	w.Light = append(w.Light, mat.NewLight(mat.NewPoint(-3, 2.5, -3), mat.NewColor(1, 1, 1)))
-
 	camera := mat.NewCamera(640, 480, math.Pi/3)
 	//camera := mat.NewCamera(320, 240, math.Pi/3)
 	viewTransform := mat.ViewTransform(mat.NewPoint(-2, 1.0, -4), mat.NewPoint(0, 0.5, 0), mat.NewVector(0, 1, 0))
 	camera.Transform = viewTransform
 	camera.Inverse = mat.Inverse(viewTransform)
 
-	floor := mat.NewPlane()
-	floor.SetMaterial(mat.NewMaterialWithReflectivity(mat.NewColor(1, 0.5, 0.5), 0.1, 0.9, 0.7, 240, 0.1))
-	floor.Material.Pattern = mat.NewCheckerPattern(white, black)
-	floor.Material.Pattern.SetPatternTransform(mat.Scale(0.5, 0.5, 0.5))
-	w.Objects = append(w.Objects, floor)
+	worlds := make([]mat.World, 8)
+	for i := 0; i < 8; i++ {
+		w := mat.NewWorld()
+		w.Light = append(w.Light, mat.NewLight(mat.NewPoint(-3, 2.5, -3), mat.NewColor(1, 1, 1)))
 
-	wall := mat.NewPlane()
-	wall.SetMaterial(mat.NewMaterial(mat.NewColor(0.9, 0.9, 0.9), 0.1, 0.9, 0.7, 200))
-	wall.SetTransform(mat.Translate(0, 0, 8))
-	wall.SetTransform(mat.RotateX(math.Pi / 2))
-	w.Objects = append(w.Objects, wall)
+		floor := mat.NewPlane()
+		floor.SetMaterial(mat.NewMaterialWithReflectivity(mat.NewColor(1, 0.5, 0.5), 0.1, 0.9, 0.7, 240, 0.1))
+		floor.Material.Pattern = mat.NewCheckerPattern(white, black)
+		floor.Material.Pattern.SetPatternTransform(mat.Scale(0.5, 0.5, 0.5))
+		w.Objects = append(w.Objects, floor)
 
-	// transparent sphere
-	middle := mat.NewSphere()
-	middle.SetTransform(mat.Translate(-0.5, 1, 0.5))
-	middle.Material = mat.NewDefaultReflectiveMaterial(0.3)
-	middle.Material.Color = mat.NewColor(0.1, 0.1, 0.1)
-	middle.Material.Diffuse = 0.7
-	middle.Material.Specular = 0.6
-	middle.Material.Transparency = 0.95
-	middle.Material.RefractiveIndex = 1.5
-	w.Objects = append(w.Objects, middle)
+		wall := mat.NewPlane()
+		wall.SetMaterial(mat.NewMaterial(mat.NewColor(0.9, 0.9, 0.9), 0.1, 0.9, 0.7, 200))
+		wall.SetTransform(mat.Translate(0, 0, 8))
+		wall.SetTransform(mat.RotateX(math.Pi / 2))
+		w.Objects = append(w.Objects, wall)
 
-	// back sphere
-	right := mat.NewSphere()
-	right.SetTransform(mat.Multiply(mat.Translate(-0.75, 0.5, 2.5), mat.Scale(0.5, 0.5, 0.5)))
-	right.Material = mat.NewDefaultMaterial()
-	right.Material.Color = mat.NewColor(1, 0, 0)
-	right.Material.Diffuse = 0.7
-	right.Material.Specular = 0.3
-	right.Material.Reflectivity = 0.3
-	w.Objects = append(w.Objects, right)
+		// transparent sphere
+		middle := mat.NewSphere()
+		middle.SetTransform(mat.Translate(-0.5, 1, 0.5))
+		middle.Material = mat.NewDefaultReflectiveMaterial(0.3)
+		middle.Material.Color = mat.NewColor(0.1, 0.1, 0.1)
+		middle.Material.Diffuse = 0.7
+		middle.Material.Specular = 0.6
+		middle.Material.Transparency = 0.95
+		middle.Material.RefractiveIndex = 1.2
+		w.Objects = append(w.Objects, middle)
 
-	// cube
-	cube := mat.NewCube()
-	cube.SetTransform(mat.Multiply(mat.Translate(-1.6, 0.25, 1.5), mat.Scale(0.25, 0.25, 0.25)))
-	cube.Material = mat.NewDefaultMaterial()
-	cube.Material.Color = mat.NewColor(1, 0.6, 0.2)
-	cube.Material.Transparency = 0.0
-	cube.Material.Diffuse = 0.7
-	cube.Material.Specular = 0.3
-	cube.Material.Reflectivity = 0.0
-	w.Objects = append(w.Objects, cube)
+		// back sphere
+		right := mat.NewSphere()
+		right.SetTransform(mat.Multiply(mat.Translate(-0.75, 0.5, 2.5), mat.Scale(0.5, 0.5, 0.5)))
+		right.Material = mat.NewDefaultMaterial()
+		right.Material.Color = mat.NewColor(1, 0, 0)
+		right.Material.Diffuse = 0.7
+		right.Material.Specular = 0.3
+		right.Material.Reflectivity = 0.3
+		w.Objects = append(w.Objects, right)
 
-	//  Cylinder
-	cyl := mat.NewCylinderMMC(0.0, 3.0, true)
-	cyl.SetTransform(mat.Translate(-1.6, 0.5, 1.5))
-	cyl.SetTransform(mat.Scale(0.2, 0.2, 0.2))
-	m := mat.NewDefaultReflectiveMaterial(0.6)
-	m.Color = mat.NewColor(0.7, 0.5, 1.0)
-	cyl.SetMaterial(m)
-	w.Objects = append(w.Objects, cyl)
+		// cube
+		cube := mat.NewCube()
+		cube.SetTransform(mat.Multiply(mat.Translate(-1.6, 0.25, 1.5), mat.Scale(0.25, 0.25, 0.25)))
+		cube.Material = mat.NewDefaultMaterial()
+		cube.Material.Color = mat.NewColor(1, 0.6, 0.2)
+		cube.Material.Transparency = 0.0
+		cube.Material.Diffuse = 0.7
+		cube.Material.Specular = 0.3
+		cube.Material.Reflectivity = 0.0
+		w.Objects = append(w.Objects, cube)
 
-	gr := mat.NewGroup()
+		//  Cylinder
+		cyl := mat.NewCylinderMMC(0.0, 3.0, true)
+		cyl.SetTransform(mat.Translate(-1.6, 0.5, 1.5))
+		cyl.SetTransform(mat.Scale(0.2, 0.2, 0.2))
+		m := mat.NewDefaultReflectiveMaterial(0.6)
+		m.Color = mat.NewColor(0.7, 0.5, 1.0)
+		cyl.SetMaterial(m)
+		w.Objects = append(w.Objects, cyl)
 
-	s1 := mat.NewSphere()
-	s1.SetTransform(mat.Multiply(mat.Translate(-2, 0.25, -1), mat.Scale(0.25, 0.25, 0.25)))
-	mat1 := mat.NewMaterialWithReflectivity(mat.NewColor(1, 0.1, 0.1), 0.1, 0.5, 0.8, 220.0, 0.4)
-	s1.SetMaterial(mat1)
-	gr.AddChild(s1)
+		gr := mat.NewGroup()
 
-	s2 := mat.NewSphere()
-	s2.SetTransform(mat.Multiply(mat.Translate(-1, 0.25, -1), mat.Scale(0.25, 0.25, 0.25)))
-	mat2 := mat.NewMaterialWithReflectivity(mat.NewColor(0.1, 1.0, 0.1), 0.1, 0.5, 0.8, 220.0, 0.4)
-	s2.SetMaterial(mat2)
-	gr.AddChild(s2)
+		s1 := mat.NewSphere()
+		s1.SetTransform(mat.Multiply(mat.Translate(-2, 0.25, -1), mat.Scale(0.25, 0.25, 0.25)))
+		mat1 := mat.NewMaterialWithReflectivity(mat.NewColor(1, 0.1, 0.1), 0.1, 0.5, 0.8, 220.0, 0.4)
+		s1.SetMaterial(mat1)
+		gr.AddChild(s1)
 
-	s3 := mat.NewSphere()
-	s3.SetTransform(mat.Multiply(mat.Translate(0, 0.25, -1), mat.Scale(0.25, 0.25, 0.25)))
-	mat3 := mat.NewMaterialWithReflectivity(mat.NewColor(0.1, 0.1, 1), 0.1, 0.5, 0.8, 220.0, 0.4)
-	s3.SetMaterial(mat3)
-	gr.AddChild(s3)
+		s2 := mat.NewSphere()
+		s2.SetTransform(mat.Multiply(mat.Translate(-1, 0.25, -1), mat.Scale(0.25, 0.25, 0.25)))
+		mat2 := mat.NewMaterialWithReflectivity(mat.NewColor(0.1, 1.0, 0.1), 0.1, 0.5, 0.8, 220.0, 0.4)
+		s2.SetMaterial(mat2)
+		gr.AddChild(s2)
 
-	s4 := mat.NewSphere()
-	s4.SetTransform(mat.Multiply(mat.Translate(1, 0.25, -1), mat.Scale(0.25, 0.25, 0.25)))
-	mat4 := mat.NewMaterialWithReflectivity(mat.NewColor(0.6, 0.6, 0.6), 0.1, 0.5, 0.8, 220.0, 0.4)
-	s4.SetMaterial(mat4)
-	gr.AddChild(s4)
+		s3 := mat.NewSphere()
+		s3.SetTransform(mat.Multiply(mat.Translate(0, 0.25, -1), mat.Scale(0.25, 0.25, 0.25)))
+		mat3 := mat.NewMaterialWithReflectivity(mat.NewColor(0.1, 0.1, 1), 0.1, 0.5, 0.8, 220.0, 0.4)
+		s3.SetMaterial(mat3)
+		gr.AddChild(s3)
 
-	w.Objects = append(w.Objects, gr)
+		s4 := mat.NewSphere()
+		s4.SetTransform(mat.Multiply(mat.Translate(1, 0.25, -1), mat.Scale(0.25, 0.25, 0.25)))
+		mat4 := mat.NewMaterialWithReflectivity(mat.NewColor(0.6, 0.6, 0.6), 0.1, 0.5, 0.8, 220.0, 0.4)
+		s4.SetMaterial(mat4)
+		gr.AddChild(s4)
 
-	canvas := mat.Render(camera, w)
+		w.Objects = append(w.Objects, gr)
+
+		worlds[i] = w
+	}
+
+	canvas := render.Threaded(camera, worlds)
+
+	//canvas := mat.RenderThreaded(camera, w)
 	mat.RenderReferenceAxises(canvas, camera)
 
 	// write
 	data := canvas.ToPPM()
-	err := ioutil.WriteFile("world-transparency.ppm", []byte(data), os.FileMode(0755))
+	err := ioutil.WriteFile("world-transparency-new-threaded.ppm", []byte(data), os.FileMode(0755))
 	if err != nil {
 		fmt.Println(err.Error())
 	}
 }
 
-func groups() {
-	w := mat.NewWorld()
-	w.Light = append(w.Light, mat.NewLight(mat.NewPoint(-3, 2.5, -3), mat.NewColor(1, 1, 1)))
-
-	camera := mat.NewCamera(640, 480, math.Pi/3)
-	//camera := mat.NewCamera(320, 240, math.Pi/3)
-	viewTransform := mat.ViewTransform(mat.NewPoint(-1.3, 2, -5), mat.NewPoint(0, 0.5, 0), mat.NewVector(0, 1, 0))
-	camera.Transform = viewTransform
-	camera.Inverse = mat.Inverse(viewTransform)
-
-	gr := mat.NewGroup()
-
-	s1 := mat.NewSphere()
-	//s1.SetTransform(mat.Multiply(mat.Translate(-2, 0.25, -1), mat.Scale(1.25, 0.25, 0.25)))
-	s1.SetTransform(mat.Translate(-2, -1, 0))
-	mat1 := mat.NewMaterialWithReflectivity(mat.NewColor(1, 0.1, 0.1), 0.1, 0.5, 0.8, 220.0, 0.4)
-	s1.SetMaterial(mat1)
-	gr.AddChild(s1)
-
-	s4 := mat.NewSphere()
-	//s4.SetTransform(mat.Multiply(mat.Translate(1, 0.25, -1), mat.Scale(0.25, 0.25, 0.25)))
-	s4.SetTransform(mat.Translate(0, 0, 0))
-	mat4 := mat.NewMaterialWithReflectivity(mat.NewColor(0.1, 0.1, 1.0), 0.1, 0.5, 0.8, 220.0, 0.4)
-	s4.SetMaterial(mat4)
-	gr.AddChild(s4)
-
-	w.Objects = append(w.Objects, gr)
-
-	canvas := mat.Render(camera, w)
-	mat.RenderReferenceAxises(canvas, camera)
-
-	// write
-	data := canvas.ToPPM()
-	err := ioutil.WriteFile("world-group.ppm", []byte(data), os.FileMode(0755))
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-}
-
-func renderworld() {
-	w := mat.NewWorld()
-	w.Light = append(w.Light, mat.NewLight(mat.NewPoint(-10, 1, -10), mat.NewColor(1, 1, 1)))
-	w.Light = append(w.Light, mat.NewLight(mat.NewPoint(1, 13, 1), mat.NewColor(0.5, 0.5, 0.5)))
-
-	camera := mat.NewCamera(480, 320, math.Pi/3)
-	viewTransform := mat.ViewTransform(mat.NewPoint(0, 1.5, -5), mat.NewPoint(0, 1, 0), mat.NewVector(0, 1, 0))
-	camera.Transform = viewTransform
-
-	// Create floor
-	floor := mat.NewSphere()
-	floor.Transform = mat.Scale(10, 0.01, 10)
-	floor.Material = mat.NewDefaultMaterial()
-	floor.Material.Color = mat.NewColor(1, 0.9, 0.9)
-	floor.Material.Specular = 0.0
-	floor.Material.Reflectivity = 0.2
-	w.Objects = append(w.Objects, floor)
-
-	// create left wall
-	leftWall := mat.NewSphere()
-
-	scaleM := mat.Scale(10, 0.01, 10)
-	rotXM := mat.RotateX(math.Pi / 2)
-	rotYM := mat.RotateY(-math.Pi / 4)
-	transM := mat.Translate(0, 0, 5)
-
-	m1 := mat.Multiply(transM, rotYM)
-	m2 := mat.Multiply(m1, rotXM)
-	m3 := mat.Multiply(m2, scaleM)
-	leftWall.Transform = m3
-	leftWall.Material = floor.Material
-	w.Objects = append(w.Objects, leftWall)
-
-	// create right wall
-	rightWall := mat.NewSphere()
-
-	scaleM = mat.Scale(10, 0.01, 10)
-	rotXM = mat.RotateX(math.Pi / 2)
-	rotYM = mat.RotateY(math.Pi / 4)
-	transM = mat.Translate(0, 0, 5)
-
-	m1 = mat.Multiply(transM, rotYM)
-	m2 = mat.Multiply(m1, rotXM)
-	m3 = mat.Multiply(m2, scaleM)
-	rightWall.Transform = m3
-	rightWall.Material = floor.Material
-	w.Objects = append(w.Objects, rightWall)
-
-	// middle sphere
-	middle := mat.NewSphere()
-	middle.Transform = mat.Translate(-0.5, 1, 0.5)
-	middle.Material = mat.NewDefaultMaterial()
-	middle.Material.Color = mat.NewColor(0.1, 1, 0.5)
-	middle.Material.Diffuse = 0.7
-	middle.Material.Specular = 0.3
-	w.Objects = append(w.Objects, middle)
-
-	// right sphere
-	right := mat.NewSphere()
-	right.Transform = mat.Multiply(mat.Translate(1.5, 0.5, -0.5), mat.Scale(0.5, 0.5, 0.5))
-	right.Material = mat.NewDefaultMaterial()
-	right.Material.Color = mat.NewColor(0.5, 1, 0.1)
-	right.Material.Diffuse = 0.7
-	right.Material.Specular = 0.3
-	w.Objects = append(w.Objects, right)
-
-	// left sphere
-	left := mat.NewSphere()
-	left.Transform = mat.Multiply(mat.Translate(-1.5, 0.33, -0.75), mat.Scale(0.33, 0.33, 0.33))
-	left.Material = mat.NewDefaultMaterial()
-	left.Material.Color = mat.NewColor(1, 0.8, 0.1)
-	left.Material.Diffuse = 0.7
-	left.Material.Specular = 0.3
-	w.Objects = append(w.Objects, left)
-
-	// cube
-	cube := mat.NewCube()
-	cube.Transform = mat.Multiply(mat.Translate(-.6, 0.25, -1.5), mat.Scale(0.25, 0.25, 0.25))
-	cube.Material = mat.NewDefaultMaterial()
-	cube.Material.Color = mat.NewColor(1, 0.6, 0.2)
-	cube.Material.Transparency = 0.0
-	cube.Material.Diffuse = 0.7
-	cube.Material.Specular = 0.3
-	cube.Material.Reflectivity = 0.0
-	w.Objects = append(w.Objects, cube)
-
-	canvas := mat.RenderThreaded(camera, w)
-	// write
-	data := canvas.ToPPM()
-	err := ioutil.WriteFile("world1.ppm", []byte(data), os.FileMode(0755))
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-}
+//
+//func groups() {
+//	w := mat.NewWorld()
+//	w.Light = append(w.Light, mat.NewLight(mat.NewPoint(-3, 2.5, -3), mat.NewColor(1, 1, 1)))
+//
+//	camera := mat.NewCamera(640, 480, math.Pi/3)
+//	//camera := mat.NewCamera(320, 240, math.Pi/3)
+//	viewTransform := mat.ViewTransform(mat.NewPoint(-1.3, 2, -5), mat.NewPoint(0, 0.5, 0), mat.NewVector(0, 1, 0))
+//	camera.Transform = viewTransform
+//	camera.Inverse = mat.Inverse(viewTransform)
+//
+//	gr := mat.NewGroup()
+//
+//	s1 := mat.NewSphere()
+//	//s1.SetTransform(mat.Multiply(mat.Translate(-2, 0.25, -1), mat.Scale(1.25, 0.25, 0.25)))
+//	s1.SetTransform(mat.Translate(-2, -1, 0))
+//	mat1 := mat.NewMaterialWithReflectivity(mat.NewColor(1, 0.1, 0.1), 0.1, 0.5, 0.8, 220.0, 0.4)
+//	s1.SetMaterial(mat1)
+//	gr.AddChild(s1)
+//
+//	s4 := mat.NewSphere()
+//	//s4.SetTransform(mat.Multiply(mat.Translate(1, 0.25, -1), mat.Scale(0.25, 0.25, 0.25)))
+//	s4.SetTransform(mat.Translate(0, 0, 0))
+//	mat4 := mat.NewMaterialWithReflectivity(mat.NewColor(0.1, 0.1, 1.0), 0.1, 0.5, 0.8, 220.0, 0.4)
+//	s4.SetMaterial(mat4)
+//	gr.AddChild(s4)
+//
+//	w.Objects = append(w.Objects, gr)
+//
+//	canvas := mat.Render(camera, w)
+//	mat.RenderReferenceAxises(canvas, camera)
+//
+//	// write
+//	data := canvas.ToPPM()
+//	err := ioutil.WriteFile("world-group.ppm", []byte(data), os.FileMode(0755))
+//	if err != nil {
+//		fmt.Println(err.Error())
+//	}
+//}
+//
+//func renderworld() {
+//	w := mat.NewWorld()
+//	w.Light = append(w.Light, mat.NewLight(mat.NewPoint(-10, 1, -10), mat.NewColor(1, 1, 1)))
+//	w.Light = append(w.Light, mat.NewLight(mat.NewPoint(1, 13, 1), mat.NewColor(0.5, 0.5, 0.5)))
+//
+//	camera := mat.NewCamera(480, 320, math.Pi/3)
+//	viewTransform := mat.ViewTransform(mat.NewPoint(0, 1.5, -5), mat.NewPoint(0, 1, 0), mat.NewVector(0, 1, 0))
+//	camera.Transform = viewTransform
+//
+//	// Create floor
+//	floor := mat.NewSphere()
+//	floor.Transform = mat.Scale(10, 0.01, 10)
+//	floor.Material = mat.NewDefaultMaterial()
+//	floor.Material.Color = mat.NewColor(1, 0.9, 0.9)
+//	floor.Material.Specular = 0.0
+//	floor.Material.Reflectivity = 0.2
+//	w.Objects = append(w.Objects, floor)
+//
+//	// create left wall
+//	leftWall := mat.NewSphere()
+//
+//	scaleM := mat.Scale(10, 0.01, 10)
+//	rotXM := mat.RotateX(math.Pi / 2)
+//	rotYM := mat.RotateY(-math.Pi / 4)
+//	transM := mat.Translate(0, 0, 5)
+//
+//	m1 := mat.Multiply(transM, rotYM)
+//	m2 := mat.Multiply(m1, rotXM)
+//	m3 := mat.Multiply(m2, scaleM)
+//	leftWall.Transform = m3
+//	leftWall.Material = floor.Material
+//	w.Objects = append(w.Objects, leftWall)
+//
+//	// create right wall
+//	rightWall := mat.NewSphere()
+//
+//	scaleM = mat.Scale(10, 0.01, 10)
+//	rotXM = mat.RotateX(math.Pi / 2)
+//	rotYM = mat.RotateY(math.Pi / 4)
+//	transM = mat.Translate(0, 0, 5)
+//
+//	m1 = mat.Multiply(transM, rotYM)
+//	m2 = mat.Multiply(m1, rotXM)
+//	m3 = mat.Multiply(m2, scaleM)
+//	rightWall.Transform = m3
+//	rightWall.Material = floor.Material
+//	w.Objects = append(w.Objects, rightWall)
+//
+//	// middle sphere
+//	middle := mat.NewSphere()
+//	middle.Transform = mat.Translate(-0.5, 1, 0.5)
+//	middle.Material = mat.NewDefaultMaterial()
+//	middle.Material.Color = mat.NewColor(0.1, 1, 0.5)
+//	middle.Material.Diffuse = 0.7
+//	middle.Material.Specular = 0.3
+//	w.Objects = append(w.Objects, middle)
+//
+//	// right sphere
+//	right := mat.NewSphere()
+//	right.Transform = mat.Multiply(mat.Translate(1.5, 0.5, -0.5), mat.Scale(0.5, 0.5, 0.5))
+//	right.Material = mat.NewDefaultMaterial()
+//	right.Material.Color = mat.NewColor(0.5, 1, 0.1)
+//	right.Material.Diffuse = 0.7
+//	right.Material.Specular = 0.3
+//	w.Objects = append(w.Objects, right)
+//
+//	// left sphere
+//	left := mat.NewSphere()
+//	left.Transform = mat.Multiply(mat.Translate(-1.5, 0.33, -0.75), mat.Scale(0.33, 0.33, 0.33))
+//	left.Material = mat.NewDefaultMaterial()
+//	left.Material.Color = mat.NewColor(1, 0.8, 0.1)
+//	left.Material.Diffuse = 0.7
+//	left.Material.Specular = 0.3
+//	w.Objects = append(w.Objects, left)
+//
+//	// cube
+//	cube := mat.NewCube()
+//	cube.Transform = mat.Multiply(mat.Translate(-.6, 0.25, -1.5), mat.Scale(0.25, 0.25, 0.25))
+//	cube.Material = mat.NewDefaultMaterial()
+//	cube.Material.Color = mat.NewColor(1, 0.6, 0.2)
+//	cube.Material.Transparency = 0.0
+//	cube.Material.Diffuse = 0.7
+//	cube.Material.Specular = 0.3
+//	cube.Material.Reflectivity = 0.0
+//	w.Objects = append(w.Objects, cube)
+//
+//	canvas := mat.RenderThreaded(camera, w)
+//	// write
+//	data := canvas.ToPPM()
+//	err := ioutil.WriteFile("world1.ppm", []byte(data), os.FileMode(0755))
+//	if err != nil {
+//		fmt.Println(err.Error())
+//	}
+//}
 
 func shadedSphereDemo() {
 	c := mat.NewCanvas(512, 512)
