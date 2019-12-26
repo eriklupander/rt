@@ -56,7 +56,6 @@ func Lighting(material Material, object Shape, light Light, position, eyeVec, no
 			specular = black
 		} else {
 			// compute the specular contribution
-			// (check what POW does mathematically, it combines two floating point numbers...)
 			factor := math.Pow(reflectDotEye, material.Shininess)
 
 			// again, check precedense here

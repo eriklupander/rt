@@ -131,7 +131,7 @@ var black = mat.NewColor(0, 0, 0)
 //}
 
 func refraction() {
-	camera := mat.NewCamera(200, 200, 0.5)
+	camera := mat.NewCamera(600, 600, 0.5)
 	camera.Transform = mat.ViewTransform(mat.NewPoint(-4.5, 0.85, -4), mat.NewPoint(0, 0.85, 0), mat.NewVector(0, 1, 0))
 	camera.Inverse = mat.Inverse(camera.Transform)
 
@@ -216,7 +216,7 @@ func refraction() {
 
 		glassMtrl := mat.NewMaterial(mat.NewColor(0.8, 0.8, 0.9), 0, 0.2, 0.9, 300)
 		glassMtrl.Transparency = 0.8
-		glassMtrl.RefractiveIndex = 1.15
+		glassMtrl.RefractiveIndex = 1.5
 		glassBall.SetMaterial(glassMtrl)
 
 		w := mat.NewWorld()

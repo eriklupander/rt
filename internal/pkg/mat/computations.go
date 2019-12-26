@@ -63,20 +63,6 @@ func PrepareComputationForIntersectionPtr(i Intersection, r Ray, comps *Computat
 			break
 		}
 	}
-	//
-	//return Computation{
-	//	T:          i.T,
-	//	Object:     i.S,
-	//	Point:      comps.Point,
-	//	EyeVec:     eyeVec,
-	//	NormalVec:  normalVec,
-	//	ReflectVec: reflectVec,
-	//	Inside:     inside,
-	//	OverPoint:  overPoint,
-	//	UnderPoint: underPoint,
-	//	N1:         n1,
-	//	N2:         n2,
-	//}
 }
 
 func PrepareComputationForIntersection(i Intersection, r Ray, xs ...Intersection) Computation {

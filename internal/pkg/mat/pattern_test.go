@@ -102,39 +102,18 @@ func TestRingPattern(t *testing.T) {
 	assert.Equal(t, black, pattern.PatternAt(NewPoint(0.708, 0, 0.708)))
 }
 func TestCheckerPatternRepeatInX(t *testing.T) {
-	/*
-		Scenario: Checkers should repeat in x
-		Given pattern ← checkers_pattern(white, black)
-		Then pattern_at(pattern, point(0, 0, 0)) = white
-		And pattern_at(pattern, point(0.99, 0, 0)) = white
-		And pattern_at(pattern, point(1.01, 0, 0)) = black
-	*/
 	pattern := NewCheckerPattern(white, black)
 	assert.Equal(t, white, pattern.PatternAt(NewPoint(0, 0, 0)))
 	assert.Equal(t, white, pattern.PatternAt(NewPoint(0.99, 0, 0)))
 	assert.Equal(t, black, pattern.PatternAt(NewPoint(1.01, 0, 0)))
 }
 func TestCheckerPatternRepeatInY(t *testing.T) {
-	/*
-		Scenario: Checkers should repeat in y
-		Given pattern ← checkers_pattern(white, black)
-		Then pattern_at(pattern, point(0, 0, 0)) = white
-		And pattern_at(pattern, point(0, 0.99, 0)) = white
-		And pattern_at(pattern, point(0, 1.01, 0)) = black
-	*/
 	pattern := NewCheckerPattern(white, black)
 	assert.Equal(t, white, pattern.PatternAt(NewPoint(0, 0, 0)))
 	assert.Equal(t, white, pattern.PatternAt(NewPoint(0, 0.99, 0)))
 	assert.Equal(t, black, pattern.PatternAt(NewPoint(0, 1.01, 0)))
 }
 func TestCheckerPatternRepeatInZ(t *testing.T) {
-	/*
-		Scenario: Checkers should repeat in z
-		Given pattern ← checkers_pattern(white, black)
-		Then pattern_at(pattern, point(0, 0, 0)) = white
-		And pattern_at(pattern, point(0, 0, 0.99)) = white
-		And pattern_at(pattern, point(0, 0, 1.01)) = black
-	*/
 	pattern := NewCheckerPattern(white, black)
 	assert.Equal(t, white, pattern.PatternAt(NewPoint(0, 0, 0)))
 	assert.Equal(t, white, pattern.PatternAt(NewPoint(0, 0, 0.99)))

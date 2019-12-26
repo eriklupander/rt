@@ -1,6 +1,8 @@
 package mat
 
-import "sort"
+import (
+	"sort"
+)
 
 type Intersection struct {
 	T float64
@@ -48,13 +50,13 @@ func IntersectWithWorldPtr(w World, r Ray, xs []Intersection, inRay *Ray) []Inte
 	//xs = nil
 	for idx, _ := range w.Objects {
 		intersections := IntersectRayWithShapePtr(w.Objects[idx], r, inRay)
-		if len(intersections) > 0 {
-			for innerIdx := range intersections {
-				if intersections[innerIdx].T >= 0.0 {
-					xs = append(xs, intersections[innerIdx])
-				}
+
+		for innerIdx := range intersections {
+			if intersections[innerIdx].T >= 0.0 {
+				xs = append(xs, intersections[innerIdx])
 			}
 		}
+
 	}
 	// Remember that we must sort away negative ones?
 	sort.Slice(xs, func(i, j int) bool {

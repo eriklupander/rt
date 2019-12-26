@@ -144,7 +144,7 @@ func (rc *Context) renderPixel(job *job) {
 	}
 	rc.total = 0
 	rc.rayForPixel(job.col, job.row, &rc.firstRay)
-	color := rc.colorAt(rc.firstRay, 5, 5)
+	color := rc.colorAt(rc.firstRay, 5)
 	//if rc.Id == 0 {
 	//	fmt.Printf("finished color at %d %d, total: %d\n", job.col, job.row, rc.total)
 	//}
@@ -175,46 +175,39 @@ func (rc *Context) rayForPixel(x, y int, out *mat.Ray) {
 	out.Origin = rc.origin
 }
 
-func (rc *Context) colorAt(r mat.Ray, remainingReflections, remainingRefractions int) mat.Tuple4 {
+func (rc *Context) colorAt(r mat.Ray, remaining int) mat.Tuple4 {
 	rc.total++
-	//defer func() {
-	//	rc.depth--
-	//}()
-	//if rc.Id == 0 {
-	//	fmt.Printf("Ctx #%d - Enter colorAt with refl: %d refr: %d fake: %d ", rc.Id, remainingReflections, remainingRefractions, rc.fakeremain)
-	//	fmt.Printf("Depth: %d ", rc.depth)
-	//	fmt.Printf("Total: %d\n", rc.total)
-	//}
 
 	rc.cStack[rc.total].WorldXS = mat.IntersectWithWorldPtr(rc.world, r, rc.cStack[rc.total].WorldXS, &rc.cStack[rc.total].ShadowInRay)
 	if len(rc.cStack[rc.total].WorldXS) > 0 {
-		//comps := mat.PrepareComputationForIntersection(rc.cStack[rc.total].WorldXS[0], r)
 		mat.PrepareComputationForIntersectionPtr(rc.cStack[rc.total].WorldXS[0], r, &rc.cStack[rc.total].Comps, rc.cStack[rc.total].WorldXS...)
-		return rc.shadeHit(rc.cStack[rc.total].Comps, remainingReflections, remainingRefractions)
+		return rc.shadeHit(rc.cStack[rc.total].Comps, remaining)
 	} else {
 		return black
 	}
 }
 
-func (rc *Context) reflectedColor(comps mat.Computation, remainingReflections, remainingRefractions int) mat.Tuple4 {
-	if remainingReflections <= 0 || comps.Object.GetMaterial().Reflectivity == 0.0 {
+func (rc *Context) reflectedColor(comps mat.Computation, remaining int) mat.Tuple4 {
+	if remaining <= 0 || comps.Object.GetMaterial().Reflectivity == 0.0 {
 		return black
 	}
 	reflectRay := mat.NewRay(comps.OverPoint, comps.ReflectVec)
-	remainingReflections--
-	reflectedColor := rc.colorAt(reflectRay, remainingReflections, remainingRefractions)
+	remaining--
+	reflectedColor := rc.colorAt(reflectRay, remaining)
 	return mat.MultiplyByScalar(reflectedColor, comps.Object.GetMaterial().Reflectivity)
 }
 
-func (rc *Context) refractedColor(comps mat.Computation, remainingReflections, remainingRefractions int) mat.Tuple4 {
-	if remainingRefractions <= 0 || comps.Object.GetMaterial().Transparency == 0.0 {
+func (rc *Context) refractedColor(comps mat.Computation, remaining int) mat.Tuple4 {
+	if remaining <= 0 || comps.Object.GetMaterial().Transparency == 0.0 {
 		return black
 	}
 
 	// Find the ratio of first index of refraction to the second.
 	nRatio := comps.N1 / comps.N2
+
 	// cos(theta_i) is the same as the dot product of the two vectors
 	cosI := mat.Dot(comps.EyeVec, comps.NormalVec)
+
 	// Find sin(theta_t)^2 via trigonometric identity
 	sin2Theta := (nRatio * nRatio) * (1.0 - (cosI * cosI))
 	if sin2Theta > 1.0 {
@@ -234,20 +227,21 @@ func (rc *Context) refractedColor(comps mat.Computation, remainingReflections, r
 
 	// Find the color of the refracted ray, making sure to multiply
 	// by the transparency value to account for any opacity
-	color := mat.MultiplyByScalar(rc.colorAt(refractRay, remainingReflections, remainingRefractions-1), comps.Object.GetMaterial().Transparency)
+	remaining--
+	color := mat.MultiplyByScalar(rc.colorAt(refractRay, remaining), comps.Object.GetMaterial().Transparency)
 
-	return color //MultiplyByScalar(color, comps.Object.GetMaterial().RefractiveIndex)
+	return color
 }
 
-func (rc *Context) shadeHit(comps mat.Computation, remainingReflections, remainingRefractions int) mat.Tuple4 {
+func (rc *Context) shadeHit(comps mat.Computation, remaining int) mat.Tuple4 {
 	var surfaceColor = mat.NewColor(0, 0, 0)
 	for _, light := range rc.world.Light {
 		inShadow := rc.pointInShadow(light, comps.OverPoint)
 		color := mat.Lighting(comps.Object.GetMaterial(), comps.Object, light, comps.OverPoint, comps.EyeVec, comps.NormalVec, inShadow)
 		surfaceColor = mat.Add(surfaceColor, color)
 	}
-	reflectedColor := rc.reflectedColor(comps, remainingReflections, remainingRefractions)
-	refractedColor := rc.refractedColor(comps, remainingReflections, remainingRefractions)
+	reflectedColor := rc.reflectedColor(comps, remaining)
+	refractedColor := rc.refractedColor(comps, remaining)
 
 	material := comps.Object.GetMaterial()
 	if material.Reflectivity > 0.0 && material.Transparency > 0.0 {
@@ -274,7 +268,6 @@ func (rc *Context) pointInShadow(light mat.Light, p mat.Tuple4) bool {
 			}
 		}
 	}
-
 	return false
 }
 
