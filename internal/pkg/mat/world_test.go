@@ -234,14 +234,14 @@ func TestRefractedColorWithRefractedRay(t *testing.T) {
 		NewIntersection(-0.9899, s1),
 		NewIntersection(-0.4899, s2),
 		NewIntersection(0.4899, s2),
-		NewIntersection(0.4899, s1),
+		NewIntersection(0.9899, s1),
 	}
 
 	comps := PrepareComputationForIntersection(xs[2], r, xs...)
 	color := RefractedColor(w, comps, 5)
 	assert.Equal(t, 0.0, color.Get(0))
 	assert.InEpsilon(t, 0.99888, color.Get(1), Epsilon)
-	assert.InEpsilon(t, 0.04725, color.Get(2), Epsilon*10)
+	assert.InEpsilon(t, 0.04725, color.Get(2), Epsilon)
 }
 
 func TestShadeHitWithRefractedMaterial(t *testing.T) {
@@ -298,7 +298,7 @@ func TestShadeHitWhenBothTransparentAndRefractive(t *testing.T) {
 		NewIntersection(math.Sqrt(2), floor),
 	}
 	color := ShadeHit(w, PrepareComputationForIntersection(xs[0], r, xs...), 5, 5)
-	assert.InEpsilon(t, 0.93642, color.Get(0), Epsilon*3)
+	assert.InEpsilon(t, 0.93391, color.Get(0), Epsilon)
 	assert.InEpsilon(t, 0.69643, color.Get(1), Epsilon)
 	assert.InEpsilon(t, 0.69243, color.Get(2), Epsilon)
 }

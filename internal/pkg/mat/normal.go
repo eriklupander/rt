@@ -52,7 +52,7 @@ func RefractedColor(w World, comps Computation, remaining int) Tuple4 {
 	cosTheta := math.Sqrt(1.0 - sin2Theta)
 
 	// Compute the direction of the refracted ray
-	direction := Sub(MultiplyByScalar(comps.NormalVec, nRatio*cosI-cosTheta), MultiplyByScalar(comps.EyeVec, nRatio))
+	direction := Sub(MultiplyByScalar(comps.NormalVec, (nRatio*cosI)-cosTheta), MultiplyByScalar(comps.EyeVec, nRatio))
 
 	// Create the refracted ray
 	refractRay := NewRay(comps.UnderPoint, direction)

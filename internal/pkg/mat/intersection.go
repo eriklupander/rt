@@ -30,9 +30,9 @@ func IntersectWithWorld(w World, r Ray) []Intersection {
 		intersections := IntersectRayWithShape(w.Objects[idx], r)
 		if len(intersections) > 0 {
 			for innerIdx := range intersections {
-				if intersections[innerIdx].T >= 0.0 {
+				//if intersections[innerIdx].T >= 0.0 {
 					xs = append(xs, intersections[innerIdx])
-				}
+				//}
 			}
 		}
 	}

@@ -62,8 +62,14 @@ func TransformRay(r Ray, m1 Mat4x4) Ray {
 func ColorAt(w World, r Ray, remaining1, remaining2 int) Tuple4 {
 	xs := IntersectWithWorld(w, r)
 	if len(xs) > 0 {
-		comps := PrepareComputationForIntersection(xs[0], r)
-		return ShadeHit(w, comps, remaining1, remaining2)
+		xsi, b := Hit(xs)
+		if b {
+			comps := PrepareComputationForIntersection(xsi, r, xs...)
+			return ShadeHit(w, comps, remaining1, remaining2)
+		} else {
+			return black
+		}
+
 	} else {
 		return black
 	}
@@ -73,14 +79,14 @@ func ShadeHit(w World, comps Computation, remaining1, remaining2 int) Tuple4 {
 	var surfaceColor = NewColor(0, 0, 0)
 	for _, light := range w.Light {
 		inShadow := PointInShadow(w, light, comps.OverPoint)
-		color := Lighting(comps.Object.GetMaterial(), comps.Object, light, comps.Point, comps.EyeVec, comps.NormalVec, inShadow)
+		color := Lighting(comps.Object.GetMaterial(), comps.Object, light, comps.OverPoint, comps.EyeVec, comps.NormalVec, inShadow)
 		surfaceColor = Add(surfaceColor, color)
 	}
 	reflectedColor := ReflectedColor(w, comps, remaining1, remaining2)
 	refractedColor := RefractedColor(w, comps, remaining2)
 
-	mat := comps.Object.GetMaterial()
-	if mat.Reflectivity > 0.0 && mat.Transparency > 0.0 {
+	material := comps.Object.GetMaterial()
+	if material.Reflectivity > 0.0 && material.Transparency > 0.0 {
 		reflectance := Schlick(comps)
 		return Add(Add(surfaceColor, MultiplyByScalar(reflectedColor, reflectance)), MultiplyByScalar(refractedColor, 1-reflectance))
 	} else {
@@ -97,7 +103,7 @@ func PointInShadow(w World, light Light, p Tuple4) bool {
 	xs := IntersectWithWorld(w, ray)
 	if len(xs) > 0 {
 		for _, x := range xs {
-			if x.T < distance {
+			if x.T > 0 && x.T < distance {
 				return true
 			}
 		}
