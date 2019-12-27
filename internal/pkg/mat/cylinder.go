@@ -10,7 +10,18 @@ func NewCylinder() *Cylinder {
 	copy(m1.Elems, IdentityMatrix.Elems)
 	inv := NewMat4x4(make([]float64, 16))
 	copy(inv.Elems, IdentityMatrix.Elems)
-	return &Cylinder{Id: rand.Int63(), Transform: m1, Inverse: inv, Material: NewDefaultMaterial(), minY: math.Inf(-1), maxY: math.Inf(1)}
+
+	savedXs := make([]Intersection, 4)
+
+	return &Cylinder{
+		Id:        rand.Int63(),
+		Transform: m1,
+		Inverse:   inv,
+		Material:  NewDefaultMaterial(),
+		minY:      math.Inf(-1),
+		maxY:      math.Inf(1),
+		savedXs:   savedXs,
+	}
 }
 
 func NewCylinderMM(min, max float64) *Cylinder {
@@ -39,6 +50,8 @@ type Cylinder struct {
 	minY      float64
 	maxY      float64
 	closed    bool
+
+	savedXs []Intersection
 }
 
 func (c *Cylinder) ID() int64 {
@@ -67,13 +80,14 @@ func (c *Cylinder) SetMaterial(material Material) {
 }
 
 func (c *Cylinder) IntersectLocal(ray Ray) []Intersection {
-	var xs []Intersection
+	//var xs []Intersection
 	rdx2 := ray.Direction.Get(0) * ray.Direction.Get(0)
 	rdz2 := ray.Direction.Get(2) * ray.Direction.Get(2)
 
 	a := rdx2 + rdz2
+	c.savedXs = c.savedXs[:0]
 	if math.Abs(a) < Epsilon {
-		return c.intercectCaps(ray, xs)
+		return c.intercectCaps(ray, c.savedXs)
 	}
 
 	b := 2*ray.Origin.Get(0)*ray.Direction.Get(0) +
@@ -88,7 +102,7 @@ func (c *Cylinder) IntersectLocal(ray Ray) []Intersection {
 
 	// ray does not intersect the cylinder
 	if disc < 0 {
-		return xs //return c.intercectCaps(ray, xs)
+		return c.savedXs //return c.intercectCaps(ray, xs)
 	}
 
 	t0 := (-b - math.Sqrt(disc)) / (2 * a)
@@ -96,15 +110,15 @@ func (c *Cylinder) IntersectLocal(ray Ray) []Intersection {
 
 	y0 := ray.Origin.Get(1) + t0*ray.Direction.Get(1)
 	if y0 > c.minY && y0 < c.maxY {
-		xs = append(xs, NewIntersection(t0, c))
+		c.savedXs = append(c.savedXs, NewIntersection(t0, c))
 	}
 
 	y1 := ray.Origin.Get(1) + t1*ray.Direction.Get(1)
 	if y1 > c.minY && y1 < c.maxY {
-		xs = append(xs, NewIntersection(t1, c))
+		c.savedXs = append(c.savedXs, NewIntersection(t1, c))
 	}
 
-	return c.intercectCaps(ray, xs)
+	return c.intercectCaps(ray, c.savedXs)
 }
 
 func (c *Cylinder) NormalAtLocal(point Tuple4, intersection *Intersection) Tuple4 {

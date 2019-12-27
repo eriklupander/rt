@@ -2,7 +2,6 @@ package mat
 
 import (
 	"math"
-	"sort"
 )
 
 func NewRay(origin Tuple4, direction Tuple4) Ray {
@@ -61,9 +60,10 @@ func Hit(intersections []Intersection) (Intersection, bool) {
 	if len(xs) == 1 {
 		return xs[0], true
 	}
-	sort.Slice(xs, func(i, j int) bool {
-		return xs[i].T < xs[j].T
-	})
+	// original list should be sorted already
+	//sort.Slice(xs, func(i, j int) bool {
+	//	return xs[i].T < xs[j].T
+	//})
 	return xs[0], true
 }
 

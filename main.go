@@ -4,33 +4,39 @@ import (
 	"fmt"
 	"github.com/eriklupander/rt/internal/pkg/mat"
 	"github.com/eriklupander/rt/internal/pkg/render"
+	"image"
+	"image/png"
 	"io/ioutil"
+	"log"
 	"math"
+	"net/http"
 	_ "net/http/pprof"
 	"os"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
 	// we need a webserver to get the pprof webserver
-	//go func() {
-	//	log.Println(http.ListenAndServe("localhost:6060", nil))
-	//}()
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 	//parse()
 	//csg()
 	//withModel()
 	//groups()
-	refraction()
-	//worldWithPlane()
+	//refraction()
+	worldWithPlane()
 	//renderworld()
 	//shadedSphereDemo()
 	//circleDemo()
 	//clockDemo()
 	//projectileDemo()
 
-	//termChan := make(chan os.Signal)
-	//signal.Notify(termChan, syscall.SIGINT, syscall.SIGTERM)
-	//<-termChan // Blocks here!!
-	//fmt.Println("shutting down!")
+	termChan := make(chan os.Signal)
+	signal.Notify(termChan, syscall.SIGINT, syscall.SIGTERM)
+	<-termChan // Blocks here!!
+	fmt.Println("shutting down!")
 }
 
 var white = mat.NewColor(1, 1, 1)
@@ -251,67 +257,86 @@ func refraction() {
 
 func worldWithPlane() {
 	camera := mat.NewCamera(640, 480, math.Pi/3)
-	//camera := mat.NewCamera(320, 240, math.Pi/3)
 	viewTransform := mat.ViewTransform(mat.NewPoint(-2, 1.0, -4), mat.NewPoint(0, 0.5, 0), mat.NewVector(0, 1, 0))
 	camera.Transform = viewTransform
 	camera.Inverse = mat.Inverse(viewTransform)
 
+	light := mat.NewLight(mat.NewPoint(-5, 2.5, -3), mat.NewColor(1, 1, 1))
+
 	worlds := make([]mat.World, 8)
 	for i := 0; i < 8; i++ {
 		w := mat.NewWorld()
-		w.Light = append(w.Light, mat.NewLight(mat.NewPoint(-3, 2.5, -3), mat.NewColor(1, 1, 1)))
+		w.Light = append(w.Light, light)
 
 		floor := mat.NewPlane()
-		floor.SetMaterial(mat.NewMaterialWithReflectivity(mat.NewColor(1, 0.5, 0.5), 0.1, 0.9, 0.7, 240, 0.1))
+		floor.SetMaterial(mat.NewMaterialWithReflectivity(mat.NewColor(1, 0.5, 0.5), 0.1, 0.9, 0.7, 240, 0.2))
 		floor.Material.Pattern = mat.NewCheckerPattern(white, black)
-		floor.Material.Pattern.SetPatternTransform(mat.Scale(0.5, 0.5, 0.5))
+		floor.Material.Pattern.SetPatternTransform(mat.Scale(2, 2, 2))
 		w.Objects = append(w.Objects, floor)
+
+		ceil := mat.NewPlane()
+		ceil.SetTransform(mat.Translate(0, 5, 0))
+		ceilMat := mat.NewDefaultMaterial()
+		ceilPtrn := mat.NewCheckerPattern(mat.NewColor(0.85, 0.85, 0.85), mat.NewColor(1, 1, 1))
+		ceilPtrn.Transform = mat.Scale(0.2, 0.2, 0.2)
+		ceilMat.Pattern = ceilPtrn
+		ceilMat.Ambient = 0.5
+		ceilMat.Specular = 0
+		ceil.SetMaterial(ceilMat)
+		w.Objects = append(w.Objects, ceil)
 
 		wall := mat.NewPlane()
 		wall.SetMaterial(mat.NewMaterial(mat.NewColor(0.9, 0.9, 0.9), 0.1, 0.9, 0.7, 200))
+		wall.Material.Pattern = ceilPtrn
 		wall.SetTransform(mat.Translate(0, 0, 8))
 		wall.SetTransform(mat.RotateX(math.Pi / 2))
 		w.Objects = append(w.Objects, wall)
 
 		// transparent sphere
 		middle := mat.NewSphere()
-		middle.SetTransform(mat.Translate(-0.5, 1, 0.5))
-		middle.Material = mat.NewDefaultReflectiveMaterial(0.3)
-		middle.Material.Color = mat.NewColor(0.1, 0.1, 0.1)
-		middle.Material.Diffuse = 0.7
-		middle.Material.Specular = 0.6
-		middle.Material.Transparency = 0.95
-		middle.Material.RefractiveIndex = 1.2
+		middle.SetTransform(mat.Translate(-0.5, 0.75, 0.5))
+		middle.SetTransform(mat.Scale(0.75, 0.75, 0.75))
+		glassMtrl := mat.NewMaterial(mat.NewColor(0.8, 0.8, 0.9), 0, 0.2, 0.9, 300)
+		glassMtrl.Transparency = 1.0
+		glassMtrl.RefractiveIndex = 1.57
+		glassMtrl.Reflectivity = 0.3
+		middle.SetMaterial(glassMtrl)
 		w.Objects = append(w.Objects, middle)
 
 		// back sphere
 		right := mat.NewSphere()
-		right.SetTransform(mat.Multiply(mat.Translate(-0.75, 0.5, 2.5), mat.Scale(0.5, 0.5, 0.5)))
+		right.SetTransform(mat.Multiply(mat.Translate(-0.75, 0.5, 2), mat.Scale(0.5, 0.5, 0.5)))
 		right.Material = mat.NewDefaultMaterial()
 		right.Material.Color = mat.NewColor(1, 0, 0)
 		right.Material.Diffuse = 0.7
-		right.Material.Specular = 0.3
-		right.Material.Reflectivity = 0.3
+		right.Material.Specular = 0.9
+		right.Material.Reflectivity = 0.0
+		right.Material.Ambient = 0.1
 		w.Objects = append(w.Objects, right)
 
 		// cube
 		cube := mat.NewCube()
-		cube.SetTransform(mat.Multiply(mat.Translate(-1.6, 0.25, 1.5), mat.Scale(0.25, 0.25, 0.25)))
+		cube.SetTransform(mat.Multiply(mat.Translate(1, 0.25, -1.25), mat.Scale(0.25, 0.25, 0.25)))
 		cube.Material = mat.NewDefaultMaterial()
-		cube.Material.Color = mat.NewColor(1, 0.6, 0.2)
+		cube.Material.Color = mat.NewColor(1, 0.88, 0.63)
 		cube.Material.Transparency = 0.0
-		cube.Material.Diffuse = 0.7
-		cube.Material.Specular = 0.3
-		cube.Material.Reflectivity = 0.0
-		w.Objects = append(w.Objects, cube)
+		cube.Material.Diffuse = 0.3
+		cube.Material.Specular = 0.9
+		cube.Material.Reflectivity = 0.9
+		cube.Material.Shininess = 300
+		cube.Material.Ambient = 0.4
+		//w.Objects = append(w.Objects, cube)
 
 		//  Cylinder
 		cyl := mat.NewCylinderMMC(0.0, 3.0, true)
-		cyl.SetTransform(mat.Translate(-1.6, 0.5, 1.5))
-		cyl.SetTransform(mat.Scale(0.2, 0.2, 0.2))
-		m := mat.NewDefaultReflectiveMaterial(0.6)
-		m.Color = mat.NewColor(0.7, 0.5, 1.0)
-		cyl.SetMaterial(m)
+		cyl.SetTransform(mat.Translate(1, 0.0, -1)) //1, 0.25, -1
+		cyl.SetTransform(mat.Scale(0.2, 0.4, 0.2))
+		cyl.Material.Color = mat.NewColor(1, 0.88, 0.63)
+		cyl.Material.Transparency = 0.0
+		cyl.Material.Diffuse = 0.3
+		cyl.Material.Specular = 0.9
+		cyl.Material.Reflectivity = 0.3
+		cyl.Material.Shininess = 300
 		w.Objects = append(w.Objects, cyl)
 
 		gr := mat.NewGroup()
@@ -336,9 +361,10 @@ func worldWithPlane() {
 
 		s4 := mat.NewSphere()
 		s4.SetTransform(mat.Multiply(mat.Translate(1, 0.25, -1), mat.Scale(0.25, 0.25, 0.25)))
-		mat4 := mat.NewMaterialWithReflectivity(mat.NewColor(0.6, 0.6, 0.6), 0.1, 0.5, 0.8, 220.0, 0.4)
+		mat4 := mat.NewDefaultReflectiveMaterial(1.0)
+		mat4.Color = mat.NewColor(0, 0, 0)
 		s4.SetMaterial(mat4)
-		gr.AddChild(s4)
+		//gr.AddChild(s4)
 
 		w.Objects = append(w.Objects, gr)
 
@@ -346,16 +372,51 @@ func worldWithPlane() {
 	}
 
 	canvas := render.Threaded(camera, worlds)
-
+	// 300x139
+	//color := render.RenderSinglePixel(camera, worlds, 300, 139)
+	//fmt.Printf("%v\n", color)
 	//canvas := mat.RenderThreaded(camera, w)
-	mat.RenderReferenceAxises(canvas, camera)
+	//mat.RenderReferenceAxises(canvas, camera)
 
 	// write
+	myImage := image.NewRGBA(image.Rect(0, 0, canvas.W, canvas.H))
+
+	for i := 0; i < len(canvas.Pixels); i++ {
+		myImage.Pix[i*4] = clamp(canvas.Pixels[i].Elems[0])
+		myImage.Pix[i*4+1] = clamp(canvas.Pixels[i].Elems[1])
+		myImage.Pix[i*4+2] = clamp(canvas.Pixels[i].Elems[2])
+		myImage.Pix[i*4+3] = 255
+	}
+
+	// outputFile is a File type which satisfies Writer interface
+	outputFile, err := os.Create("test.png")
+	if err != nil {
+		panic(err.Error())
+	}
+
+	// Encode takes a writer interface and an image interface
+	// We pass it the File and the RGBA
+	png.Encode(outputFile, myImage)
+
+	// Don't forget to close files
+	outputFile.Close()
+
 	data := canvas.ToPPM()
-	err := ioutil.WriteFile("world-transparency-new-threaded.ppm", []byte(data), os.FileMode(0755))
+	err = ioutil.WriteFile("world-transparency-new-threaded.ppm", []byte(data), os.FileMode(0755))
 	if err != nil {
 		fmt.Println(err.Error())
 	}
+}
+
+func clamp(clr float64) uint8 {
+	c := clr * 255.0
+	rounded := math.Round(c)
+	if rounded > 255.0 {
+		rounded = 255.0
+	} else if rounded < 0.0 {
+		rounded = 0.0
+	}
+	return uint8(rounded)
 }
 
 //
@@ -492,100 +553,100 @@ func worldWithPlane() {
 //		fmt.Println(err.Error())
 //	}
 //}
-
-func shadedSphereDemo() {
-	c := mat.NewCanvas(512, 512)
-
-	// this is our eye starting 15 units "in front" of origo.
-	rayOrigin := mat.NewPoint(0, 0, -15.0)
-
-	// Note!! If I understand this correctly, the "wall" in this case is actually an abstraction
-	// of the "far" wall of the view frustum, giving something to cast our ray against, forming a vector between
-	// the eye and a point in world space.
-	wallZ := 20.0
-	wallSize := 7.0
-	pixelSize := wallSize / float64(c.W)
-	half := wallSize / 2
-	sphere := mat.NewSphere()
-	//mat.SetTransform(&sphere, mat.Translate(1, 1, 1))
-	material := mat.NewDefaultMaterial()
-	material.Color = mat.NewColor(1, 0.2, 1)
-	sphere.SetMaterial(material)
-
-	lightPos := mat.NewPoint(-10, 10, -10)
-	lightColor := mat.NewColor(1, 1, 1)
-	light := mat.NewLight(lightPos, lightColor)
-
-	for row := 0; row < c.W; row++ {
-		worldY := half - pixelSize*float64(row)
-
-		for col := 0; col < c.H; col++ {
-			worldX := -half + pixelSize*float64(col)
-			posOnWall := mat.NewPoint(worldX, worldY, wallZ)
-
-			// Build a ray (origin + direction)
-			rayFromOriginToPosOnWall := mat.NewRay(rayOrigin, mat.Normalize(mat.Sub(posOnWall, rayOrigin)))
-
-			// check if our ray intersects the sphere
-			intersections := mat.IntersectRayWithShape(sphere, rayFromOriginToPosOnWall)
-			intersection, found := mat.Hit(intersections)
-
-			if found {
-				pointOfHit := mat.Position(rayFromOriginToPosOnWall, intersection.T)
-				normalAtHit := mat.NormalAt(sphere, pointOfHit, nil)
-				minusEyeRayVector := mat.Negate(rayFromOriginToPosOnWall.Direction)
-				color := mat.Lighting(sphere.Material, sphere, light, pointOfHit, minusEyeRayVector, normalAtHit, false)
-
-				c.WritePixel(col, c.H-row, color)
-			}
-		}
-	}
-	// write
-	data := c.ToPPM()
-	err := ioutil.WriteFile("shadedcircle.ppm", []byte(data), os.FileMode(0755))
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-}
-
-func circleDemo() {
-	c := mat.NewCanvas(100, 100)
-
-	rayOrigin := mat.NewPoint(0, 0, -15.0)
-	wallZ := 20.0
-	wallSize := 7.0
-	pixelSize := wallSize / float64(c.W)
-	half := wallSize / 2
-	color := mat.NewColor(1, 0, 0)
-	sphere := mat.NewSphere()
-
-	//mat.SetTransform(sphere, mat.Scale(1, 0.5, 1))
-	//mat.SetTransform(sphere, mat.Multiply(mat.RotateZ(math.Pi/4), mat.Scale(0.5, 1, 1)))
-
-	for row := 0; row < c.W; row++ {
-		worldY := half - pixelSize*float64(row)
-
-		for col := 0; col < c.H; col++ {
-			worldX := -half + pixelSize*float64(col)
-			posOnWall := mat.NewPoint(worldX, worldY, wallZ)
-
-			rayFromOriginToPosOnWall := mat.NewRay(rayOrigin, mat.Normalize(mat.Sub(posOnWall, rayOrigin)))
-
-			// check if our ray intersects the sphere
-			intersections := mat.IntersectRayWithShape(sphere, rayFromOriginToPosOnWall)
-			_, found := mat.Hit(intersections)
-			if found {
-				c.WritePixel(col, c.H-row, color)
-			}
-		}
-	}
-	// write
-	data := c.ToPPM()
-	err := ioutil.WriteFile("circle.ppm", []byte(data), os.FileMode(0755))
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-}
+//
+//func shadedSphereDemo() {
+//	c := mat.NewCanvas(512, 512)
+//
+//	// this is our eye starting 15 units "in front" of origo.
+//	rayOrigin := mat.NewPoint(0, 0, -15.0)
+//
+//	// Note!! If I understand this correctly, the "wall" in this case is actually an abstraction
+//	// of the "far" wall of the view frustum, giving something to cast our ray against, forming a vector between
+//	// the eye and a point in world space.
+//	wallZ := 20.0
+//	wallSize := 7.0
+//	pixelSize := wallSize / float64(c.W)
+//	half := wallSize / 2
+//	sphere := mat.NewSphere()
+//	//mat.SetTransform(&sphere, mat.Translate(1, 1, 1))
+//	material := mat.NewDefaultMaterial()
+//	material.Color = mat.NewColor(1, 0.2, 1)
+//	sphere.SetMaterial(material)
+//
+//	lightPos := mat.NewPoint(-10, 10, -10)
+//	lightColor := mat.NewColor(1, 1, 1)
+//	light := mat.NewLight(lightPos, lightColor)
+//
+//	for row := 0; row < c.W; row++ {
+//		worldY := half - pixelSize*float64(row)
+//
+//		for col := 0; col < c.H; col++ {
+//			worldX := -half + pixelSize*float64(col)
+//			posOnWall := mat.NewPoint(worldX, worldY, wallZ)
+//
+//			// Build a ray (origin + direction)
+//			rayFromOriginToPosOnWall := mat.NewRay(rayOrigin, mat.Normalize(mat.Sub(posOnWall, rayOrigin)))
+//
+//			// check if our ray intersects the sphere
+//			intersections := mat.IntersectRayWithShape(sphere, rayFromOriginToPosOnWall)
+//			intersection, found := mat.Hit(intersections)
+//
+//			if found {
+//				pointOfHit := mat.Position(rayFromOriginToPosOnWall, intersection.T)
+//				normalAtHit := mat.NormalAt(sphere, pointOfHit, nil)
+//				minusEyeRayVector := mat.Negate(rayFromOriginToPosOnWall.Direction)
+//				color := mat.Lighting(sphere.Material, sphere, light, pointOfHit, minusEyeRayVector, normalAtHit, false)
+//
+//				c.WritePixel(col, c.H-row, color)
+//			}
+//		}
+//	}
+//	// write
+//	data := c.ToPPM()
+//	err := ioutil.WriteFile("shadedcircle.ppm", []byte(data), os.FileMode(0755))
+//	if err != nil {
+//		fmt.Println(err.Error())
+//	}
+//}
+//
+//func circleDemo() {
+//	c := mat.NewCanvas(100, 100)
+//
+//	rayOrigin := mat.NewPoint(0, 0, -15.0)
+//	wallZ := 20.0
+//	wallSize := 7.0
+//	pixelSize := wallSize / float64(c.W)
+//	half := wallSize / 2
+//	color := mat.NewColor(1, 0, 0)
+//	sphere := mat.NewSphere()
+//
+//	//mat.SetTransform(sphere, mat.Scale(1, 0.5, 1))
+//	//mat.SetTransform(sphere, mat.Multiply(mat.RotateZ(math.Pi/4), mat.Scale(0.5, 1, 1)))
+//
+//	for row := 0; row < c.W; row++ {
+//		worldY := half - pixelSize*float64(row)
+//
+//		for col := 0; col < c.H; col++ {
+//			worldX := -half + pixelSize*float64(col)
+//			posOnWall := mat.NewPoint(worldX, worldY, wallZ)
+//
+//			rayFromOriginToPosOnWall := mat.NewRay(rayOrigin, mat.Normalize(mat.Sub(posOnWall, rayOrigin)))
+//
+//			// check if our ray intersects the sphere
+//			intersections := mat.IntersectRayWithShape(sphere, rayFromOriginToPosOnWall)
+//			_, found := mat.Hit(intersections)
+//			if found {
+//				c.WritePixel(col, c.H-row, color)
+//			}
+//		}
+//	}
+//	// write
+//	data := c.ToPPM()
+//	err := ioutil.WriteFile("circle.ppm", []byte(data), os.FileMode(0755))
+//	if err != nil {
+//		fmt.Println(err.Error())
+//	}
+//}
 
 func clockDemo() {
 	c := mat.NewCanvas(80, 80)

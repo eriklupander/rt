@@ -46,19 +46,13 @@ func IntersectWithWorld(w World, r Ray) []Intersection {
 }
 
 func IntersectWithWorldPtr(w World, r Ray, xs []Intersection, inRay *Ray) []Intersection {
-	//xs = xs[:0]
-	//xs = nil
 	for idx, _ := range w.Objects {
 		intersections := IntersectRayWithShapePtr(w.Objects[idx], r, inRay)
 
 		for innerIdx := range intersections {
-			if intersections[innerIdx].T >= 0.0 {
-				xs = append(xs, intersections[innerIdx])
-			}
+			xs = append(xs, intersections[innerIdx])
 		}
-
 	}
-	// Remember that we must sort away negative ones?
 	sort.Slice(xs, func(i, j int) bool {
 		return xs[i].T < xs[j].T
 	})

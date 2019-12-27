@@ -14,6 +14,8 @@ type Group struct {
 	Parent    Shape
 	Children  []Shape
 	savedRay  Ray
+	innerRays []Ray
+	xsCache   []Intersection
 	bb        *BoundingBox
 	c         *Cube
 }
@@ -166,12 +168,18 @@ func NewGroup() *Group {
 	copy(m1.Elems, IdentityMatrix.Elems)
 	inv := NewMat4x4(make([]float64, 16))
 	copy(inv.Elems, IdentityMatrix.Elems)
+
+	cachedXs := make([]Intersection, 16)
+	innerRays := make([]Ray, 0)
+
 	return &Group{
 		Id:        rand.Int63(),
 		Transform: m1,
 		Inverse:   inv,
 		Children:  make([]Shape, 0),
 		savedRay:  NewRay(NewPoint(0, 0, 0), NewVector(0, 0, 0)),
+		xsCache:   cachedXs,
+		innerRays: innerRays,
 	}
 }
 
@@ -216,19 +224,21 @@ func (g *Group) IntersectLocal(ray Ray) []Intersection {
 	//	}
 	//}
 
-	xs := make([]Intersection, 0)
+	//xs := make([]Intersection, 0)
+	g.xsCache = g.xsCache[:0]
 	for idx := range g.Children {
 		//innerRay := TransformRay(ray, Inverse(g.Children[idx].GetTransform()))
-		innerRay := TransformRay(g.savedRay, g.Children[idx].GetInverse())
-		lxs := g.Children[idx].IntersectLocal(innerRay)
+		TransformRayPtr(g.savedRay, g.Children[idx].GetInverse(), &g.innerRays[idx])
+		lxs := g.Children[idx].IntersectLocal(g.innerRays[idx])
 		if len(lxs) > 0 {
-			xs = append(xs, lxs...)
+			g.xsCache = append(g.xsCache, lxs...)
 		}
 	}
-	sort.Slice(xs, func(i, j int) bool {
-		return xs[i].T < xs[j].T
+
+	sort.Slice(g.xsCache, func(i, j int) bool {
+		return g.xsCache[i].T < g.xsCache[j].T
 	})
-	return xs
+	return g.xsCache
 }
 
 func (g *Group) NormalAtLocal(point Tuple4, intersection *Intersection) Tuple4 {
@@ -242,4 +252,7 @@ func (g *Group) GetLocalRay() Ray {
 func (g *Group) AddChild(s Shape) {
 	g.Children = append(g.Children, s)
 	s.SetParent(g)
+
+	// allocate memory for inner rays each time a child is added.
+	g.innerRays = append(g.innerRays, NewRay(NewPoint(0, 0, 0), NewVector(0, 0, 0)))
 }

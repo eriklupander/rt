@@ -15,6 +15,9 @@ func NewSphere() *Sphere {
 	inv := NewMat4x4(make([]float64, 16))
 	copy(m1.Elems, IdentityMatrix.Elems)
 	copy(inv.Elems, IdentityMatrix.Elems)
+
+	xsCache := make([]Intersection, 2)
+	xsEmpty := make([]Intersection, 0)
 	return &Sphere{
 		Id:          rand.Int63(),
 		Transform:   m1,
@@ -22,6 +25,9 @@ func NewSphere() *Sphere {
 		Material:    NewDefaultMaterial(),
 		originPoint: NewPoint(0, 0, 0),
 		savedVec:    NewVector(0, 0, 0),
+		savedNormal: NewVector(0, 0, 0),
+		xsCache:     xsCache,
+		xsEmpty:     xsEmpty,
 	}
 }
 
@@ -44,6 +50,10 @@ type Sphere struct {
 	// cached stuff
 	originPoint Tuple4
 	savedVec    Tuple4
+	xsCache     []Intersection
+	xsEmpty     []Intersection
+
+	savedNormal Tuple4
 }
 
 func (s *Sphere) GetParent() Shape {
@@ -51,7 +61,8 @@ func (s *Sphere) GetParent() Shape {
 }
 
 func (s *Sphere) NormalAtLocal(point Tuple4, intersection *Intersection) Tuple4 {
-	return Sub(point, NewPoint(0, 0, 0))
+	SubPtr(point, s.originPoint, &s.savedNormal)
+	return s.savedNormal
 }
 
 func (s *Sphere) GetLocalRay() Ray {
@@ -61,6 +72,7 @@ func (s *Sphere) GetLocalRay() Ray {
 // IntersectLocal implements Sphere-ray intersection
 func (s *Sphere) IntersectLocal(r Ray) []Intersection {
 	s.savedRay = r
+	//s.xsCache = s.xsCache[:0]
 	// this is a vector from the origin of the ray to the center of the sphere at 0,0,0
 	SubPtr(r.Origin, s.originPoint, &s.savedVec)
 
@@ -76,16 +88,21 @@ func (s *Sphere) IntersectLocal(r Ray) []Intersection {
 	// calculate the discriminant
 	discriminant := (b * b) - 4*a*c
 	if discriminant < 0.0 {
-		return []Intersection{}
+		return s.xsEmpty
 	}
 
 	// finally, find the intersection distances on our ray. Some values:
 	t1 := (-b - math.Sqrt(discriminant)) / (2 * a)
 	t2 := (-b + math.Sqrt(discriminant)) / (2 * a)
-	return []Intersection{
-		{T: t1, S: s},
-		{T: t2, S: s},
-	}
+	s.xsCache[0].T = t1
+	s.xsCache[1].T = t2
+	s.xsCache[0].S = s
+	s.xsCache[1].S = s
+	return s.xsCache
+	//return []Intersection{
+	//	{T: t1, S: s},
+	//	{T: t2, S: s},
+	//}
 }
 
 func (s *Sphere) ID() int64 {
