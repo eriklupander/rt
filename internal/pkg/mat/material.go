@@ -13,10 +13,10 @@ type Material struct {
 }
 
 func NewMaterial(color Tuple4, ambient float64, diffuse float64, specular float64, shininess float64) Material {
-	return Material{Color: color, Ambient: ambient, Diffuse: diffuse, Specular: specular, Shininess: shininess}
+	return Material{Color: color, Ambient: ambient, Diffuse: diffuse, Specular: specular, Shininess: shininess, RefractiveIndex: 1.0}
 }
 func NewMaterialWithReflectivity(color Tuple4, ambient float64, diffuse float64, specular float64, shininess, reflectivity float64) Material {
-	return Material{Color: color, Ambient: ambient, Diffuse: diffuse, Specular: specular, Shininess: shininess, Reflectivity: reflectivity}
+	return Material{Color: color, Ambient: ambient, Diffuse: diffuse, Specular: specular, Shininess: shininess, Reflectivity: reflectivity, RefractiveIndex: 1.0}
 }
 func NewDefaultMaterial() Material {
 	return Material{Color: NewColor(1, 1, 1), Ambient: 0.1, Diffuse: 0.9, Specular: 0.9, Shininess: 200.0, Reflectivity: 0.0, Transparency: 0.0, RefractiveIndex: 1.0}

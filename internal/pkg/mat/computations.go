@@ -1,14 +1,79 @@
 package mat
 
-//var currentComp = Computation{
-//	Point:      NewPoint(0, 0, 0),
-//	EyeVec:     NewVector(0, 0, 0),
-//	NormalVec:  NewVector(0, 0, 0),
-//	OverPoint:  NewPoint(0, 0, 0),
-//	UnderPoint: NewPoint(0, 0, 0),
-//	ReflectVec: NewVector(0, 0, 0),
-//}
+func NewComputation() Computation {
+	containers := make([]Shape, 8)
+	containers = containers[:0]
+	return Computation{
+		T:          0,
+		Object:     nil,
+		Point:      NewPoint(0, 0, 0),
+		EyeVec:     NewVector(0, 0, 0),
+		NormalVec:  NewVector(0, 0, 0),
+		Inside:     false,
+		OverPoint:  NewPoint(0, 0, 0),
+		UnderPoint: NewPoint(0, 0, 0),
+		ReflectVec: NewVector(0, 0, 0),
+		N1:         0,
+		N2:         0,
 
+		localPoint:   NewPoint(0, 0, 0),
+		containers:   containers,
+		cachedOffset: NewVector(0, 0, 0),
+	}
+}
+
+func PrepareComputationForIntersectionPtr(i Intersection, r Ray, comps *Computation, xs ...Intersection) {
+	comps.T = i.T
+	comps.Object = i.S
+	PositionPtr(r, i.T, &comps.Point)
+	NegatePtr(r.Direction, &comps.EyeVec)
+	comps.NormalVec = NormalAt(i.S, comps.Point, &i) //  fix
+	//comps.NormalVec = NormalAtPtr(i.S, comps.Point, &i, &comps.localPoint) //  fix
+	ReflectPtr(r.Direction, comps.NormalVec, &comps.ReflectVec)
+
+	comps.Inside = false
+	if Dot(comps.EyeVec, comps.NormalVec) < 0 {
+		comps.Inside = true
+		NegatePtr(comps.NormalVec, &comps.NormalVec) // fix
+	}
+	MultiplyByScalarPtr(comps.NormalVec, Epsilon, &comps.cachedOffset)
+	AddPtr(comps.Point, comps.cachedOffset, &comps.OverPoint)
+	SubPtr(comps.Point, comps.cachedOffset, &comps.UnderPoint)
+
+	comps.N1 = 1.0
+	comps.N2 = 1.0
+
+	comps.containers = comps.containers[:0] // make([]Shape, 0)
+	for idx := range xs {
+		if xs[idx].S.ID() == i.S.ID() && i.T == xs[idx].T {
+			if len(comps.containers) == 0 {
+				comps.N1 = 1.0
+			} else {
+				comps.N1 = comps.containers[len(comps.containers)-1].GetMaterial().RefractiveIndex
+			}
+		}
+
+		index := indexOf(xs[idx].S, comps.containers)
+		if index > -1 {
+			copy(comps.containers[index:], comps.containers[index+1:])    // Shift a[i+1:] left one indexs[idx].
+			comps.containers[len(comps.containers)-1] = nil               // Erase last element (write zero value).
+			comps.containers = comps.containers[:len(comps.containers)-1] // Truncate slice.
+		} else {
+			comps.containers = append(comps.containers, xs[idx].S)
+		}
+
+		if xs[idx].S.ID() == i.S.ID() && xs[idx].T == i.T {
+			if len(comps.containers) == 0 {
+				comps.N2 = 1.0
+			} else {
+				comps.N2 = comps.containers[len(comps.containers)-1].GetMaterial().RefractiveIndex
+			}
+			break
+		}
+	}
+}
+
+// TODO refactor so tests uses the other one instead.
 func PrepareComputationForIntersection(i Intersection, r Ray, xs ...Intersection) Computation {
 	pos := Position(r, i.T)
 	eyeVec := Negate(r.Direction)
@@ -53,7 +118,6 @@ func PrepareComputationForIntersection(i Intersection, r Ray, xs ...Intersection
 			break
 		}
 	}
-	//return currentComp
 
 	return Computation{
 		T:          i.T,
@@ -69,45 +133,6 @@ func PrepareComputationForIntersection(i Intersection, r Ray, xs ...Intersection
 		N2:         n2,
 	}
 }
-
-//func refractions(i Intersection, xs []Intersection) (float64, float64) {
-//	var containers = make([]Shape, 0)
-//	var n1, n2 float64
-//	for a := 0; a < len(xs); a++	{
-//
-//		var curr_i = xs[a]
-//
-//		if curr_i.S.ID() == i.S.ID() && i.T == curr_i.T {
-//			if len(containers) == 0 {
-//				n1 = 1.0
-//			} else {
-//				n1 = containers[len(containers)-1].GetMaterial().RefractiveIndex
-//			}
-//		}
-//
-//		// if containers includes i.object then
-//
-//		if indexOfObj := indexOf(curr_i.S, containers); indexOfObj != -1 {
-//			copy(containers[indexOfObj:], containers[indexOfObj+1:]) // Shift a[i+1:] left one indexs[idx].
-//			containers[len(containers)-1] = nil            // Erase last element (write zero value).
-//			containers = containers[:len(containers)-1]    // Truncate slice.
-//			//containers.splice(indexOfObj, 1)
-//		} else {
-//			containers = append(containers, curr_i.S)
-//		}
-//
-//		if curr_i.S.ID() == i.S.ID() && i.T == curr_i.T	{
-//
-//			if len(containers) == 0 {
-//				n2 = 1.0
-//			} else {
-//				n2 = containers[len(containers)-1].GetMaterial().RefractiveIndex
-//			}
-//			break
-//		}
-//	}
-//	return n1, n2
-//}
 
 func indexOf(s Shape, list []Shape) int {
 	for idx := range list {
@@ -130,4 +155,30 @@ type Computation struct {
 	ReflectVec Tuple4
 	N1         float64
 	N2         float64
+
+	// cached stuff
+	localPoint   Tuple4
+	containers   []Shape
+	cachedOffset Tuple4
+}
+
+func NewLightData() LightData {
+	return LightData{
+		Ambient:        NewColor(0, 0, 0),
+		Diffuse:        NewColor(0, 0, 0),
+		Specular:       NewColor(0, 0, 0),
+		EffectiveColor: NewColor(0, 0, 0),
+		LightVec:       NewVector(0, 0, 0),
+		ReflectVec:     NewVector(0, 0, 0),
+	}
+}
+
+// LightData is used for pre-allocated memory for lighting computations.
+type LightData struct {
+	Ambient        Tuple4
+	Diffuse        Tuple4
+	Specular       Tuple4
+	EffectiveColor Tuple4
+	LightVec       Tuple4
+	ReflectVec     Tuple4
 }

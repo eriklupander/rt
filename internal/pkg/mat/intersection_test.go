@@ -46,7 +46,8 @@ func TestFindIntersectionsInDifferentMaterials(t *testing.T) {
 	}
 
 	for i := 0; i < len(xs); i++ {
-		comps := PrepareComputationForIntersection(xs[i], ray, xs...)
+		comps := NewComputation()
+		PrepareComputationForIntersectionPtr(xs[i], ray, &comps, xs...)
 		assert.Equal(t, tc[i].n1, comps.N1, "wrong N1 at index %d", i)
 		assert.Equal(t, tc[i].n2, comps.N2, "wrong N2 at index %d", i)
 	}
@@ -82,15 +83,7 @@ func TestSchlickUnderTotalInternalReflection(t *testing.T) {
 }
 
 func TestSchlickWhenPerpendicular(t *testing.T) {
-	/*
-		The Schlick approximation with a perpendicular viewing angle
-		Given shape := glass_sphere()
-		 r := ray(point(0, 0, 0), vector(0, 1, 0))
-		 xs := intersections(-1:shape, 1:shape)
-		When comps := prepare_computations(xs[1], r, xs)
-		 reflectance := schlick(comps)
-		Then reflectance = 0.04
-	*/
+
 	shape := NewGlassSphere()
 	r := NewRay(NewPoint(0, 0, 0), NewVector(0, 1, 0))
 	xs := []Intersection{
@@ -103,15 +96,7 @@ func TestSchlickWhenPerpendicular(t *testing.T) {
 }
 
 func TestSchlickWhenAngleIsSmall(t *testing.T) {
-	/*
-		Scenario: The Schlick approximation with small angle and n2 > n1
-		Given shape := glass_sphere()
-		 r := ray(point(0, 0.99, -2), vector(0, 0, 1))
-		 xs := intersections(1.8589:shape)
-		When comps := prepare_computations(xs[0], r, xs)
-		 reflectance := schlick(comps)
-		Then reflectance = 0.48873
-	*/
+
 	shape := NewGlassSphere()
 	r := NewRay(NewPoint(0, 0.99, -2), NewVector(0, 0, 1))
 	xs := []Intersection{

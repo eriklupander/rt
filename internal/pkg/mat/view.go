@@ -1,12 +1,7 @@
 package mat
 
 import (
-	"fmt"
-	"github.com/inhies/go-bytesize"
 	"math"
-	"runtime"
-	"sync"
-	"time"
 )
 
 type Camera struct {
@@ -85,78 +80,64 @@ func ViewTransform(from, to, up Tuple4) Mat4x4 {
 	return Multiply(vt, Translate(-from.Get(0), -from.Get(1), -from.Get(2)))
 }
 
-func RayForPixel(cam Camera, x, y int) Ray {
-
-	xOffset := cam.PixelSize * (float64(x) + 0.5)
-	yOffset := cam.PixelSize * (float64(y) + 0.5)
-
-	// this feels a little hacky but actually works.
-	worldX := cam.HalfWidth - xOffset
-	worldY := cam.HalfHeight - yOffset
-
-	pixel := MultiplyByTuple(cam.Inverse, NewPoint(worldX, worldY, -1.0))
-	origin := MultiplyByTuple(cam.Inverse, NewPoint(0, 0, 0))
-	direction := Normalize(Sub(pixel, origin))
-	return NewRay(origin, direction)
-}
-
-func Render(c Camera, w World) *Canvas {
-
-	st := time.Now()
-	canvas := NewCanvas(c.Width, c.Height)
-	for row := 0; row < c.Height; row++ {
-		for col := 0; col < c.Width; col++ {
-			ray := RayForPixel(c, col, row)
-			color := ColorAt(w, ray, 5, 5)
-			canvas.WritePixel(col, row, color)
-		}
-		fmt.Printf("%d / %d\n", row+1, c.Height)
-	}
-	stats := runtime.MemStats{}
-	runtime.ReadMemStats(&stats)
-	fmt.Printf("Memory: %v ", bytesize.New(float64(stats.Alloc)).String())
-	fmt.Printf("Mallocs: %v ", stats.Mallocs)
-	fmt.Printf("Total alloc: %v\n", bytesize.New(float64(stats.TotalAlloc)).String())
-	fmt.Printf("%v", time.Now().Sub(st))
-	return canvas
-}
-
-func RenderThreaded(c Camera, w World) *Canvas {
-	st := time.Now()
-	canvas := NewCanvas(c.Width, c.Height)
-	jobs := make(chan *job)
-	wg := sync.WaitGroup{}
-	stats := runtime.MemStats{}
-	wg.Add(canvas.W * canvas.H)
-	for i := 0; i < 8; i++ {
-		go workerFuncPerPixel(canvas, c, w, jobs, &wg)
-	}
-	for row := 0; row < c.Height; row++ {
-		for col := 0; col < c.Width; col++ {
-			jobs <- &job{row: row, col: col}
-		}
-		fmt.Printf("%d/%d\n", row, c.Height)
-	}
-	wg.Wait()
-	fmt.Println("All done")
-	runtime.ReadMemStats(&stats)
-	fmt.Printf("Memory: %v ", bytesize.New(float64(stats.Alloc)).String())
-	fmt.Printf("Mallocs: %v ", stats.Mallocs)
-	fmt.Printf("Total alloc: %v\n", bytesize.New(float64(stats.TotalAlloc)).String())
-	fmt.Printf("%v", time.Now().Sub(st))
-	return canvas
-}
-
-func workerFuncPerPixel(canvas *Canvas, c Camera, w World, jobs chan *job, wg *sync.WaitGroup) {
-	for job := range jobs {
-		ray := RayForPixel(c, job.col, job.row)
-		color := ColorAt(w, ray, 5, 5)
-		canvas.WritePixelMutex(job.col, job.row, color)
-		wg.Done()
-	}
-}
-
-type job struct {
-	row int
-	col int
-}
+//
+//func Render(c Camera, w World) *Canvas {
+//
+//	st := time.Now()
+//	canvas := NewCanvas(c.Width, c.Height)
+//	for row := 0; row < c.Height; row++ {
+//		for col := 0; col < c.Width; col++ {
+//			ray := RayForPixel(c, col, row)
+//			color := ColorAt(w, ray, 5, 5)
+//			canvas.WritePixel(col, row, color)
+//		}
+//		fmt.Printf("%d / %d\n", row+1, c.Height)
+//	}
+//	stats := runtime.MemStats{}
+//	runtime.ReadMemStats(&stats)
+//	fmt.Printf("Memory: %v ", bytesize.New(float64(stats.Alloc)).String())
+//	fmt.Printf("Mallocs: %v ", stats.Mallocs)
+//	fmt.Printf("Total alloc: %v\n", bytesize.New(float64(stats.TotalAlloc)).String())
+//	fmt.Printf("%v", time.Now().Sub(st))
+//	return canvas
+//}
+//
+//func RenderThreaded(c Camera, w World) *Canvas {
+//	st := time.Now()
+//	canvas := NewCanvas(c.Width, c.Height)
+//	jobs := make(chan *job)
+//	wg := sync.WaitGroup{}
+//	stats := runtime.MemStats{}
+//	wg.Add(canvas.W * canvas.H)
+//	for i := 0; i < 8; i++ {
+//		go workerFuncPerPixel(canvas, c, w, jobs, &wg)
+//	}
+//	for row := 0; row < c.Height; row++ {
+//		for col := 0; col < c.Width; col++ {
+//			jobs <- &job{row: row, col: col}
+//		}
+//		fmt.Printf("%d/%d\n", row, c.Height)
+//	}
+//	wg.Wait()
+//	fmt.Println("All done")
+//	runtime.ReadMemStats(&stats)
+//	fmt.Printf("Memory: %v ", bytesize.New(float64(stats.Alloc)).String())
+//	fmt.Printf("Mallocs: %v ", stats.Mallocs)
+//	fmt.Printf("Total alloc: %v\n", bytesize.New(float64(stats.TotalAlloc)).String())
+//	fmt.Printf("%v", time.Now().Sub(st))
+//	return canvas
+//}
+//
+//func workerFuncPerPixel(canvas *Canvas, c Camera, w World, jobs chan *job, wg *sync.WaitGroup) {
+//	for job := range jobs {
+//		ray := RayForPixel(c, job.col, job.row)
+//		color := ColorAt(w, ray, 5, 5)
+//		canvas.WritePixelMutex(job.col, job.row, color)
+//		wg.Done()
+//	}
+//}
+//
+//type job struct {
+//	row int
+//	col int
+//}

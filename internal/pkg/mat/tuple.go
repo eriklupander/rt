@@ -53,16 +53,24 @@ func Add(t1, t2 Tuple4) Tuple4 {
 	}
 	return t3
 }
-func Add3(t1, t2, t4 Tuple4, t3 *Tuple4) {
-	for i := 0; i < 4; i++ {
-		t3.Elems[i] = t1.Get(i) + t2.Get(i) + t4.Get(i)
-	}
-}
 
 func AddPtr(t1, t2 Tuple4, t3 *Tuple4) {
 	for i := 0; i < 4; i++ {
 		t3.Elems[i] = t1.Get(i) + t2.Get(i)
 	}
+}
+
+func Add3(t1, t2, t3 Tuple4, out *Tuple4) {
+	for i := 0; i < 4; i++ {
+		out.Elems[i] = t1.Get(i) + t2.Get(i) + t3.Get(i)
+	}
+}
+
+func (t3 Tuple4) Add(t2 Tuple4) Tuple4 {
+	for i := 0; i < 4; i++ {
+		t3.Elems[i] = t3.Get(i) + t2.Get(i)
+	}
+	return t3
 }
 
 func Sub(t1, t2 Tuple4) Tuple4 {
@@ -73,9 +81,9 @@ func Sub(t1, t2 Tuple4) Tuple4 {
 	return t3
 }
 
-func SubPtr(t1, t2 Tuple4, t3 *Tuple4) {
+func SubPtr(t1, t2 Tuple4, out *Tuple4) {
 	for i := 0; i < 4; i++ {
-		t3.Elems[i] = t1.Get(i) - t2.Get(i)
+		out.Elems[i] = t1.Get(i) - t2.Get(i)
 	}
 }
 
@@ -87,9 +95,9 @@ func Negate(t1 Tuple4) Tuple4 {
 	return t3
 }
 
-func NegatePtr(t1 Tuple4, t3 *Tuple4) {
+func NegatePtr(t1 Tuple4, out *Tuple4) {
 	for i := 0; i < 4; i++ {
-		t3.Elems[i] = 0 - t1.Get(i)
+		out.Elems[i] = 0 - t1.Get(i)
 	}
 }
 
@@ -100,11 +108,20 @@ func MultiplyByScalar(t1 Tuple4, scalar float64) Tuple4 {
 	}
 	return t3
 }
-func MultiplyByScalarPtr(t1 Tuple4, scalar float64, t3 *Tuple4) {
+
+func MultiplyByScalarPtr(t1 Tuple4, scalar float64, out *Tuple4) {
 	for i := 0; i < 4; i++ {
-		t3.Elems[i] = t1.Get(i) * scalar
+		out.Elems[i] = t1.Get(i) * scalar
 	}
 }
+
+func (t3 Tuple4) Multiply(scalar float64) Tuple4 {
+	for i := 0; i < 4; i++ {
+		t3.Elems[i] = t3.Elems[i] * scalar
+	}
+	return t3
+}
+
 func DivideByScalar(t1 Tuple4, scalar float64) Tuple4 {
 	t3 := Tuple4{Elems: make([]float64, 4)}
 	for i := 0; i < 4; i++ {
@@ -139,15 +156,8 @@ func Normalize(t1 Tuple4) Tuple4 {
 	return t3
 }
 
-func NormalizePtr2(t1 Tuple4, t3 *Tuple4) {
+func NormalizePtr(t1 Tuple4, out *Tuple4) {
 	magnitude := Magnitude(t1)
-	for i := 0; i < 4; i++ {
-		t3.Elems[i] = t1.Get(i) / magnitude
-	}
-}
-
-func NormalizePtr(t1 *Tuple4) {
-	magnitude := MagnitudePtr(t1)
 	var x, y, z, w float64
 
 	x = t1.Get(0) / magnitude
@@ -155,10 +165,10 @@ func NormalizePtr(t1 *Tuple4) {
 	z = t1.Get(2) / magnitude
 	w = t1.Get(3) / magnitude
 
-	t1.Elems[0] = x
-	t1.Elems[1] = y
-	t1.Elems[2] = z
-	t1.Elems[3] = w
+	out.Elems[0] = x
+	out.Elems[1] = y
+	out.Elems[2] = z
+	out.Elems[3] = w
 }
 
 // Dot product is the sum of the products of the corresponding entries of the two sequences of numbers
@@ -191,11 +201,11 @@ func Hadamard(t1 Tuple4, t2 Tuple4) Tuple4 {
 	return t3
 }
 
-func HadamardPtr(t1 Tuple4, t2 Tuple4, t3 *Tuple4) {
-	t3.Elems[0] = t1.Get(0) * t2.Get(0)
-	t3.Elems[1] = t1.Get(1) * t2.Get(1)
-	t3.Elems[2] = t1.Get(2) * t2.Get(2)
-	t3.Elems[3] = 1.0
+func HadamardPtr(t1 Tuple4, t2 Tuple4, out *Tuple4) {
+	out.Elems[0] = t1.Get(0) * t2.Get(0)
+	out.Elems[1] = t1.Get(1) * t2.Get(1)
+	out.Elems[2] = t1.Get(2) * t2.Get(2)
+	out.Elems[3] = 1.0
 }
 
 func TupleEquals(t1, t2 Tuple4) bool {
@@ -203,4 +213,10 @@ func TupleEquals(t1, t2 Tuple4) bool {
 		Eq(t1.Get(1), t2.Get(1)) &&
 		Eq(t1.Get(2), t2.Get(2)) &&
 		Eq(t1.Get(3), t2.Get(3))
+}
+
+func TupleXYZEq(t1, t2 Tuple4) bool {
+	return Eq(t1.Get(0), t2.Get(0)) &&
+		Eq(t1.Get(1), t2.Get(1)) &&
+		Eq(t1.Get(2), t2.Get(2))
 }

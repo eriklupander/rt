@@ -46,10 +46,10 @@ func TestLightingWithPattern(t *testing.T) {
 	normalVec := NewVector(0, 0, -1)
 	light := NewLight(NewPoint(0, 0, -10), NewColor(1, 1, 1))
 
-	c1 := light.Lighting(material, s, light, NewPoint(0.9, 0, 0), eyeVec, normalVec, false)
-	_ = light.Lighting(material, s, light, NewPoint(1.1, 0, 0), eyeVec, normalVec, false)
-	assert.Equal(t, white, c1)
-	//assert.Equal(t, black, c2)
+	c1 := Lighting(material, s, light, NewPoint(0.9, 0, 0), eyeVec, normalVec, false, NewLightData())
+	c2 := Lighting(material, s, light, NewPoint(1.1, 0, 0), eyeVec, normalVec, false, NewLightData())
+	assert.True(t, TupleXYZEq(white, c1))
+	assert.True(t, TupleXYZEq(black, c2))
 }
 
 func TestStripeWithObjectTransform(t *testing.T) {
@@ -89,9 +89,9 @@ func TestStripeWithBothObjectAndPatternTransform2(t *testing.T) {
 func TestGradientPattern(t *testing.T) {
 	pattern := NewGradientPattern(white, black)
 	assert.Equal(t, white, pattern.PatternAt(NewPoint(0, 0, 0)))
-	assert.Equal(t, NewColor(0.25, 0.25, 0.25), pattern.PatternAt(NewPoint(0.75, 0, 0)))
-	assert.Equal(t, NewColor(0.50, 0.5, 0.5), pattern.PatternAt(NewPoint(0.50, 0, 0)))
-	assert.Equal(t, NewColor(0.75, 0.75, 0.75), pattern.PatternAt(NewPoint(0.25, 0, 0)))
+	assert.True(t, TupleXYZEq(NewColor(0.25, 0.25, 0.25), pattern.PatternAt(NewPoint(0.75, 0, 0))))
+	assert.True(t, TupleXYZEq(NewColor(0.50, 0.5, 0.5), pattern.PatternAt(NewPoint(0.50, 0, 0))))
+	assert.True(t, TupleXYZEq(NewColor(0.75, 0.75, 0.75), pattern.PatternAt(NewPoint(0.25, 0, 0))))
 }
 func TestRingPattern(t *testing.T) {
 
@@ -102,39 +102,18 @@ func TestRingPattern(t *testing.T) {
 	assert.Equal(t, black, pattern.PatternAt(NewPoint(0.708, 0, 0.708)))
 }
 func TestCheckerPatternRepeatInX(t *testing.T) {
-	/*
-		Scenario: Checkers should repeat in x
-		Given pattern ← checkers_pattern(white, black)
-		Then pattern_at(pattern, point(0, 0, 0)) = white
-		And pattern_at(pattern, point(0.99, 0, 0)) = white
-		And pattern_at(pattern, point(1.01, 0, 0)) = black
-	*/
 	pattern := NewCheckerPattern(white, black)
 	assert.Equal(t, white, pattern.PatternAt(NewPoint(0, 0, 0)))
 	assert.Equal(t, white, pattern.PatternAt(NewPoint(0.99, 0, 0)))
 	assert.Equal(t, black, pattern.PatternAt(NewPoint(1.01, 0, 0)))
 }
 func TestCheckerPatternRepeatInY(t *testing.T) {
-	/*
-		Scenario: Checkers should repeat in y
-		Given pattern ← checkers_pattern(white, black)
-		Then pattern_at(pattern, point(0, 0, 0)) = white
-		And pattern_at(pattern, point(0, 0.99, 0)) = white
-		And pattern_at(pattern, point(0, 1.01, 0)) = black
-	*/
 	pattern := NewCheckerPattern(white, black)
 	assert.Equal(t, white, pattern.PatternAt(NewPoint(0, 0, 0)))
 	assert.Equal(t, white, pattern.PatternAt(NewPoint(0, 0.99, 0)))
 	assert.Equal(t, black, pattern.PatternAt(NewPoint(0, 1.01, 0)))
 }
 func TestCheckerPatternRepeatInZ(t *testing.T) {
-	/*
-		Scenario: Checkers should repeat in z
-		Given pattern ← checkers_pattern(white, black)
-		Then pattern_at(pattern, point(0, 0, 0)) = white
-		And pattern_at(pattern, point(0, 0, 0.99)) = white
-		And pattern_at(pattern, point(0, 0, 1.01)) = black
-	*/
 	pattern := NewCheckerPattern(white, black)
 	assert.Equal(t, white, pattern.PatternAt(NewPoint(0, 0, 0)))
 	assert.Equal(t, white, pattern.PatternAt(NewPoint(0, 0, 0.99)))

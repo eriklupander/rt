@@ -175,7 +175,8 @@ type CheckerPattern struct {
 }
 
 func (c *CheckerPattern) PatternAt(point Tuple4) Tuple4 {
-	if (int(math.Floor(point.Get(0)))+int(math.Floor(point.Get(1)))+int(math.Floor(point.Get(2))))%2 == 0 {
+	all := math.Floor(point.Get(0)) + math.Floor(point.Get(1)) + math.Floor(point.Get(2))
+	if int(math.Round(all))%2 == 0 {
 		return c.ColorA
 	}
 	return c.ColorB

@@ -88,16 +88,18 @@ func TestHitWhenAllIntersectsHaveNegativeT(t *testing.T) {
 	assert.False(t, found)
 }
 
-func TestHitIsLowestNonNegativeT(t *testing.T) {
-	s := NewSphere()
-	i1 := NewIntersection(5.0, s)
-	i2 := NewIntersection(7.0, s)
-	i3 := NewIntersection(-3, s)
-	i4 := NewIntersection(2.0, s)
-	xs := []Intersection{i1, i2, i3, i4}
-	i, _ := Hit(xs)
-	assert.True(t, IntersectionEqual(i, i4))
-}
+// NOTE! This test has been commented out since the list of intersections
+// passed to Hit() always has been sorted. This is an optimization.
+//func TestHitIsLowestNonNegativeT(t *testing.T) {
+//	s := NewSphere()
+//	i1 := NewIntersection(5.0, s)
+//	i2 := NewIntersection(7.0, s)
+//	i3 := NewIntersection(-3, s)
+//	i4 := NewIntersection(2.0, s)
+//	xs := []Intersection{i1, i2, i3, i4}
+//	i, _ := Hit(xs)
+//	assert.True(t, IntersectionEqual(i, i4))
+//}
 
 func TestTranslateRay(t *testing.T) {
 	r := NewRay(NewPoint(1, 2, 3), NewVector(0, 1, 0))

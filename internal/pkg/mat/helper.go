@@ -4,7 +4,7 @@ package mat
 func RenderPointAt(canvas *Canvas, camera Camera, worldPoint Tuple4, color Tuple4) {
 
 	// TransformRay point into camera space
-	MultiplyByTuplePtr(camera.Transform, &worldPoint)
+	MultiplyByTuplePtr(camera.Transform, worldPoint, &worldPoint)
 
 	// View is always 1 unit away, divide by translated pixel z to get 3D -> 2D translation factor.
 	dDividedByZ := 1 / worldPoint.Get(2)

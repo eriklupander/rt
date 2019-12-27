@@ -25,17 +25,19 @@ func TestLightEyeBetweenLightAndSphere(t *testing.T) {
 	eyev := NewVector(0, 0, -1)
 	normalv := NewVector(0, 0, -1)
 	light := NewLight(NewPoint(0, 0, -10), NewColor(1, 1, 1))
-	result := light.Lighting(material, s, light, position, eyev, normalv, false)
-	assert.Equal(t, 1.9, result.Get(0))
-	assert.Equal(t, 1.9, result.Get(1))
-	assert.Equal(t, 1.9, result.Get(2))
+
+	result := Lighting(material, s, light, position, eyev, normalv, false, NewLightData())
+	assert.InEpsilon(t, 1.9, result.Get(0), Epsilon)
+	assert.InEpsilon(t, 1.9, result.Get(1), Epsilon)
+	assert.InEpsilon(t, 1.9, result.Get(2), Epsilon)
 }
 func TestLight180ToSurfaceEye45(t *testing.T) {
 	s, material, position := setupBase()
 	eyev := NewVector(0, 0, -1)
 	normalv := NewVector(0, 0, -1)
 	light := NewLight(NewPoint(0, 10, -10), NewColor(1, 1, 1))
-	result := light.Lighting(material, s, light, position, eyev, normalv, false)
+
+	result := Lighting(material, s, light, position, eyev, normalv, false, NewLightData())
 	assert.InEpsilon(t, 0.7364, result.Get(0), Epsilon)
 	assert.InEpsilon(t, 0.7364, result.Get(1), Epsilon)
 	assert.InEpsilon(t, 0.7364, result.Get(2), Epsilon)
@@ -45,7 +47,8 @@ func TestLight45ToSurfaceEye180(t *testing.T) {
 	eyev := NewVector(0, rt2, -rt2)
 	normalv := NewVector(0, 0, -1)
 	light := NewLight(NewPoint(0, 0, -10), NewColor(1, 1, 1))
-	result := light.Lighting(material, s, light, position, eyev, normalv, false)
+
+	result := Lighting(material, s, light, position, eyev, normalv, false, NewLightData())
 	assert.Equal(t, 1.0, result.Get(0))
 	assert.Equal(t, 1.0, result.Get(1))
 	assert.Equal(t, 1.0, result.Get(2))
@@ -55,7 +58,8 @@ func TestLight45ToSurfaceEye45(t *testing.T) {
 	eyev := NewVector(0, -rt2, -rt2)
 	normalv := NewVector(0, 0, -1)
 	light := NewLight(NewPoint(0, 10, -10), NewColor(1, 1, 1))
-	result := light.Lighting(material, s, light, position, eyev, normalv, false)
+
+	result := Lighting(material, s, light, position, eyev, normalv, false, NewLightData())
 	assert.InEpsilon(t, 1.6364, result.Get(0), Epsilon)
 	assert.InEpsilon(t, 1.6364, result.Get(1), Epsilon)
 	assert.InEpsilon(t, 1.6364, result.Get(2), Epsilon)
@@ -65,7 +69,8 @@ func TestLightBehind(t *testing.T) {
 	eyev := NewVector(0, 0, -1)
 	normalv := NewVector(0, 0, -1)
 	light := NewLight(NewPoint(0, 0, 10), NewColor(1, 1, 1))
-	result := light.Lighting(material, s, light, position, eyev, normalv, false)
+
+	result := Lighting(material, s, light, position, eyev, normalv, false, NewLightData())
 	assert.Equal(t, 0.1, result.Get(0))
 	assert.Equal(t, 0.1, result.Get(1))
 	assert.Equal(t, 0.1, result.Get(2))

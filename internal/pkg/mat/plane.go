@@ -10,7 +10,17 @@ func NewPlane() *Plane {
 	copy(m1.Elems, IdentityMatrix.Elems)
 	inv := NewMat4x4(make([]float64, 16))
 	copy(inv.Elems, IdentityMatrix.Elems)
-	return &Plane{Id: rand.Int63(), Transform: m1, Inverse: inv, Material: NewDefaultMaterial(), Label: "Plane", savedXs: make([]Intersection, 1)}
+
+	savedXs := make([]Intersection, 1)
+
+	return &Plane{
+		Id:        rand.Int63(),
+		Transform: m1,
+		Inverse:   inv,
+		Material:  NewDefaultMaterial(),
+		Label:     "Plane",
+		savedXs:   savedXs,
+	}
 }
 
 type Plane struct {
@@ -21,7 +31,8 @@ type Plane struct {
 	Label     string
 	Parent    Shape
 	savedRay  Ray
-	savedXs   []Intersection
+
+	savedXs []Intersection
 }
 
 func (p *Plane) ID() int64 {
