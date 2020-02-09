@@ -29,6 +29,7 @@ func main() {
 	//groups()
 	//refraction()
 	worldWithPlane() // REFERENCE IMAGE!!
+	//sphereWithPlane()
 	//renderworld()
 	//shadedSphereDemo()
 	//circleDemo()
@@ -263,7 +264,7 @@ func refraction() {
 }
 
 func worldWithPlane() {
-	camera := mat.NewCamera(1920, 1080, math.Pi/3)
+	camera := mat.NewCamera(640, 480, math.Pi/3)
 	viewTransform := mat.ViewTransform(mat.NewPoint(-2, 1.0, -4), mat.NewPoint(0, 0.5, 0), mat.NewVector(0, 1, 0))
 	camera.Transform = viewTransform
 	camera.Inverse = mat.Inverse(viewTransform)
@@ -301,7 +302,8 @@ func worldWithPlane() {
 		w.Objects = append(w.Objects, wall)
 
 		// transparent sphere
-		middle := mat.NewSphere()
+		var middle *mat.Sphere
+		middle = mat.NewSphere()
 		middle.SetTransform(mat.Translate(-0.5, 0.75, 0.5))
 		middle.SetTransform(mat.Scale(0.75, 0.75, 0.75))
 		glassMtrl := mat.NewMaterial(mat.NewColor(0.8, 0.8, 0.9), 0, 0.2, 0.9, 300)
@@ -411,6 +413,73 @@ func worldWithPlane() {
 
 	data := canvas.ToPPM()
 	err = ioutil.WriteFile("world-transparency-new-threaded.ppm", []byte(data), os.FileMode(0755))
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+}
+
+func sphereWithPlane() {
+	camera := mat.NewCamera(1920, 1080, math.Pi/3)
+	viewTransform := mat.ViewTransform(mat.NewPoint(0, 0.0, -4.75), mat.NewPoint(0, 0, 0), mat.NewVector(0, 1, 0))
+	camera.Transform = viewTransform
+	camera.Inverse = mat.Inverse(viewTransform)
+
+	lightPos := mat.NewPoint(0, 3, 0)
+	lightColor := mat.NewColor(1, 1, 1)
+	light := mat.NewLight(lightPos, lightColor)
+	worlds := make([]mat.World, 8)
+	for i := 0; i < 8; i++ {
+		w := mat.NewWorld()
+		w.Light = append(w.Light, light)
+
+		floor := mat.NewPlane()
+		floor.SetTransform(mat.Translate(0, -0.99, 0))
+		floor.SetMaterial(mat.NewMaterialWithReflectivity(mat.NewColor(1, 0.5, 0.5), 0.1, 0.9, 0.7, 240, 0.2))
+		floor.Material.Pattern = mat.NewCheckerPattern(white, black)
+		floor.Material.Pattern.SetPatternTransform(mat.Scale(2, 2, 2))
+		w.Objects = append(w.Objects, floor)
+
+		sphere := mat.NewSphere()
+		material := mat.NewDefaultReflectiveMaterial(0.2)
+		material.Transparency = 0.9
+		material.Color = mat.NewColor(1, 0.2, 1)
+
+		glassMtrl := mat.NewMaterial(mat.NewColor(0.8, 0.8, 0.9), 0, 0.2, 0.9, 300)
+		glassMtrl.Transparency = 0.8
+		glassMtrl.RefractiveIndex = 1.5
+
+		sphere.SetMaterial(glassMtrl)
+		w.Objects = append(w.Objects, sphere)
+		worlds[i] = w
+	}
+
+	canvas := render.Threaded(camera, worlds)
+
+	// write
+	myImage := image.NewRGBA(image.Rect(0, 0, canvas.W, canvas.H))
+
+	for i := 0; i < len(canvas.Pixels); i++ {
+		myImage.Pix[i*4] = clamp(canvas.Pixels[i].Elems[0])
+		myImage.Pix[i*4+1] = clamp(canvas.Pixels[i].Elems[1])
+		myImage.Pix[i*4+2] = clamp(canvas.Pixels[i].Elems[2])
+		myImage.Pix[i*4+3] = 255
+	}
+
+	// outputFile is a File type which satisfies Writer interface
+	outputFile, err := os.Create("circleWithFloorForPresentationWithReflectionsAndTransparent.png")
+	if err != nil {
+		panic(err.Error())
+	}
+
+	// Encode takes a writer interface and an image interface
+	// We pass it the File and the RGBA
+	png.Encode(outputFile, myImage)
+
+	// Don't forget to close files
+	outputFile.Close()
+
+	data := canvas.ToPPM()
+	err = ioutil.WriteFile("circlewithfloor.ppm", []byte(data), os.FileMode(0755))
 	if err != nil {
 		fmt.Println(err.Error())
 	}
@@ -611,7 +680,7 @@ func clamp(clr float64) uint8 {
 //	}
 //	// write
 //	data := c.ToPPM()
-//	err := ioutil.WriteFile("shadedcircle.ppm", []byte(data), os.FileMode(0755))
+//	err := ioutil.WriteFile("shadedcircle2.ppm", []byte(data), os.FileMode(0755))
 //	if err != nil {
 //		fmt.Println(err.Error())
 //	}
@@ -650,33 +719,33 @@ func clamp(clr float64) uint8 {
 //	}
 //	// write
 //	data := c.ToPPM()
-//	err := ioutil.WriteFile("circle.ppm", []byte(data), os.FileMode(0755))
+//	err := ioutil.WriteFile("circle2.ppm", []byte(data), os.FileMode(0755))
 //	if err != nil {
 //		fmt.Println(err.Error())
 //	}
 //}
-
-func clockDemo() {
-	c := mat.NewCanvas(80, 80)
-	center := (c.W/2 + c.H/2) / 2
-	white := mat.NewColor(1, 1, 1)
-
-	point := mat.NewPoint(0, 1, 0)
-	for i := 0; i < 12; i++ {
-		rotation := float64(i) * (2 * math.Pi) / 12
-		rotMat := mat.RotateZ(rotation)
-		p2 := mat.MultiplyByTuple(rotMat, point)
-		p2 = mat.MultiplyByScalar(p2, 30.0)
-		c.WritePixel(center+int(p2.Get(0)), center-int(p2.Get(1)), white)
-	}
-
-	// write
-	data := c.ToPPM()
-	err := ioutil.WriteFile("clock.ppm", []byte(data), os.FileMode(0755))
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-}
+//
+//func clockDemo() {
+//	c := mat.NewCanvas(80, 80)
+//	center := (c.W/2 + c.H/2) / 2
+//	white := mat.NewColor(1, 1, 1)
+//
+//	point := mat.NewPoint(0, 1, 0)
+//	for i := 0; i < 12; i++ {
+//		rotation := float64(i) * (2 * math.Pi) / 12
+//		rotMat := mat.RotateZ(rotation)
+//		p2 := mat.MultiplyByTuple(rotMat, point)
+//		p2 = mat.MultiplyByScalar(p2, 30.0)
+//		c.WritePixel(center+int(p2.Get(0)), center-int(p2.Get(1)), white)
+//	}
+//
+//	// write
+//	data := c.ToPPM()
+//	err := ioutil.WriteFile("clock.ppm", []byte(data), os.FileMode(0755))
+//	if err != nil {
+//		fmt.Println(err.Error())
+//	}
+//}
 
 func projectileDemo() {
 	prj := NewProjectile(mat.NewPoint(0, 1, 0), mat.MultiplyByScalar(mat.Normalize(mat.NewVector(1, 1.8, 0)), 11.25))
