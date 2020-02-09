@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/eriklupander/rt/internal/pkg/mat"
+	"github.com/eriklupander/rt/internal/pkg/obj"
 	"github.com/eriklupander/rt/internal/pkg/render"
 	"image"
 	"image/png"
@@ -27,7 +28,7 @@ func main() {
 	//withModel()
 	//groups()
 	//refraction()
-	worldWithPlane()
+	worldWithPlane() // REFERENCE IMAGE!!
 	//renderworld()
 	//shadedSphereDemo()
 	//circleDemo()
@@ -98,44 +99,49 @@ var black = mat.NewColor(0, 0, 0)
 //	}
 //}
 //
-//func withModel() {
-//
-//	bytes, err := ioutil.ReadFile("Toilet.1.obj")
-//	if err != nil {
-//		panic(err.Error())
-//	}
-//
-//	parseObj := obj.ParseObj(string(bytes))
-//
-//	w := mat.NewWorld()
-//	w.Objects = append(w.Objects, parseObj.ToGroup())
-//	//w.Objects[0].SetTransform(mat.Scale(0.6, 0.6, 0.6))
-//	m := mat.NewDefaultMaterial()
-//	m.Ambient = 0.3
-//	m.Reflectivity = 0.5
-//	w.Objects[0].SetMaterial(m)
-//
-//	floor := mat.NewPlane()
-//	floor.SetMaterial(mat.NewMaterialWithReflectivity(mat.NewColor(1, 0.5, 0.5), 0.1, 0.9, 0.7, 200, 0.1))
-//	floor.Material.Pattern = mat.NewCheckerPattern(white, black)
-//	w.Objects = append(w.Objects, floor)
-//	w.Light = append(w.Light, mat.NewLight(mat.NewPoint(-1.5, 2.5, -3), mat.NewColor(1, 1, 1)))
-//
-//	camera := mat.NewCamera(96, 72, math.Pi/3)
-//	viewTransform := mat.ViewTransform(mat.NewPoint(-4.3, 5, -8), mat.NewPoint(0, 2.5, 0), mat.NewVector(0, 1, 0))
-//	camera.Transform = viewTransform
-//
-//	canvas := mat.RenderThreaded(camera, w)
-//
-//	mat.RenderReferenceAxises(canvas, camera)
-//
-//	// writec
-//	data := canvas.ToPPM()
-//	err = ioutil.WriteFile("toilet.ppm", []byte(data), os.FileMode(0755))
-//	if err != nil {
-//		fmt.Println(err.Error())
-//	}
-//}
+func withModel() {
+
+	bytes, err := ioutil.ReadFile("Toilet.1.obj")
+	if err != nil {
+		panic(err.Error())
+	}
+	camera := mat.NewCamera(96, 72, math.Pi/3)
+	viewTransform := mat.ViewTransform(mat.NewPoint(-4.3, 5, -8), mat.NewPoint(0, 2.5, 0), mat.NewVector(0, 1, 0))
+	camera.Transform = viewTransform
+
+	worlds := make([]mat.World, 0)
+
+	for i := 0; i < 8; i++ {
+		parseObj := obj.ParseObj(string(bytes))
+
+		w := mat.NewWorld()
+		w.Objects = append(w.Objects, parseObj.ToGroup())
+		//w.Objects[0].SetTransform(mat.Scale(0.6, 0.6, 0.6))
+		m := mat.NewDefaultMaterial()
+		m.Ambient = 0.3
+		m.Reflectivity = 0.5
+		w.Objects[0].SetMaterial(m)
+
+		floor := mat.NewPlane()
+		floor.SetMaterial(mat.NewMaterialWithReflectivity(mat.NewColor(1, 0.5, 0.5), 0.1, 0.9, 0.7, 200, 0.1))
+		floor.Material.Pattern = mat.NewCheckerPattern(white, black)
+		w.Objects = append(w.Objects, floor)
+		w.Light = append(w.Light, mat.NewLight(mat.NewPoint(-1.5, 2.5, -3), mat.NewColor(1, 1, 1)))
+		worlds = append(worlds, w)
+	}
+
+
+	//canvas := mat.RenderThreaded(camera, w)
+	canvas := render.Threaded(camera, worlds)
+	//mat.RenderReferenceAxises(canvas, camera)
+
+	// writec
+	data := canvas.ToPPM()
+	err = ioutil.WriteFile("toilet.ppm", []byte(data), os.FileMode(0755))
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+}
 
 func refraction() {
 	camera := mat.NewCamera(600, 600, 0.5)
@@ -257,7 +263,7 @@ func refraction() {
 }
 
 func worldWithPlane() {
-	camera := mat.NewCamera(640, 480, math.Pi/3)
+	camera := mat.NewCamera(1920, 1080, math.Pi/3)
 	viewTransform := mat.ViewTransform(mat.NewPoint(-2, 1.0, -4), mat.NewPoint(0, 0.5, 0), mat.NewVector(0, 1, 0))
 	camera.Transform = viewTransform
 	camera.Inverse = mat.Inverse(viewTransform)

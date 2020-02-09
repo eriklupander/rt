@@ -57,6 +57,7 @@ type Context struct {
 	jobs   chan *job
 	wg     *sync.WaitGroup
 	total  int
+	depth  int
 
 	// pixel cache
 	pointInView mat.Tuple4
@@ -78,7 +79,8 @@ func Threaded(c mat.Camera, worlds []mat.World) *mat.Canvas {
 	jobs := make(chan *job)
 
 	wg := sync.WaitGroup{}
-	wg.Add(canvas.W * canvas.H)
+	//wg.Add(canvas.W * canvas.H)
+	wg.Add(canvas.H)
 
 	// allocate GOMAXPROCS render Contexts
 	var GOMAXPROCS = 8
@@ -88,15 +90,24 @@ func Threaded(c mat.Camera, worlds []mat.World) *mat.Canvas {
 	}
 
 	// start workers
+	//for i := 0; i < GOMAXPROCS; i++ {
+	//	go renderContexts[i].workerFuncPerPixel()
+	//}
 	for i := 0; i < GOMAXPROCS; i++ {
-		go renderContexts[i].workerFuncPerPixel()
+		go renderContexts[i].workerFuncPerLine()
 	}
 
 	// start passing work to the workers, one pixel at a time
+	//for row := 0; row < c.Height; row++ {
+	//	for col := 0; col < c.Width; col++ {
+	//		jobs <- &job{row: row, col: col}
+	//	}
+	//	fmt.Printf("%d/%d\n", row, c.Height)
+	//}
 	for row := 0; row < c.Height; row++ {
-		for col := 0; col < c.Width; col++ {
-			jobs <- &job{row: row, col: col}
-		}
+		//for col := 0; col < c.Width; col++ {
+		jobs <- &job{row: row, col: 0}
+		//}
 		fmt.Printf("%d/%d\n", row, c.Height)
 	}
 
@@ -116,6 +127,15 @@ func (rc *Context) workerFuncPerPixel() {
 		rc.renderPixel(job)
 	}
 }
+func (rc *Context) workerFuncPerLine() {
+	for job := range rc.jobs {
+		for i:=0;i < 1920;i++ {
+			job.col = i
+			rc.renderPixel(job)
+		}
+		rc.wg.Done()
+	}
+}
 
 func (rc *Context) renderSinglePixel(col, row int) mat.Tuple4 {
 	for i := 0; i < 256; i++ {
@@ -123,6 +143,7 @@ func (rc *Context) renderSinglePixel(col, row int) mat.Tuple4 {
 		rc.cStack[i].ShadowXS = rc.cStack[i].ShadowXS[:0]
 	}
 	rc.total = 0
+	rc.depth = 0
 	rc.rayForPixel(col, row, &rc.firstRay)
 	color := rc.colorAt(rc.firstRay, 5, 5)
 	return color
@@ -134,13 +155,14 @@ func (rc *Context) renderPixel(job *job) {
 		rc.cStack[i].ShadowXS = rc.cStack[i].ShadowXS[:0]
 	}
 	rc.total = 0
+	rc.depth = 0
 	rc.rayForPixel(job.col, job.row, &rc.firstRay)
 	color := rc.colorAt(rc.firstRay, 5, 5)
 	//if rc.Id == 0 {
-	//	fmt.Printf("finished color at %d %d, total: %d\n", job.col, job.row, rc.total)
+	//fmt.Printf("finished color at %d %d, total: %d depth: %d\n", job.col, job.row, rc.total, rc.depth)
 	//}
 	rc.canvas.WritePixelMutex(job.col, job.row, color)
-	rc.wg.Done()
+	//rc.wg.Done()
 	//fmt.Printf("Thread %d remain: %d\n", rc.Id, rc.fakeremain)
 }
 
@@ -168,6 +190,7 @@ func (rc *Context) rayForPixel(x, y int, out *mat.Ray) {
 
 func (rc *Context) colorAt(r mat.Ray, remainingReflections int, remainingRefractions int) mat.Tuple4 {
 	rc.total++
+	rc.depth++
 
 	rc.cStack[rc.total].WorldXS = mat.IntersectWithWorldPtr(rc.world, r, rc.cStack[rc.total].WorldXS, &rc.cStack[rc.total].ShadowInRay)
 	if len(rc.cStack[rc.total].WorldXS) > 0 {
