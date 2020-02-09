@@ -79,8 +79,8 @@ func Threaded(c mat.Camera, worlds []mat.World) *mat.Canvas {
 	jobs := make(chan *job)
 
 	wg := sync.WaitGroup{}
-	//wg.Add(canvas.W * canvas.H)
-	wg.Add(canvas.H)
+	wg.Add(canvas.W * canvas.H)  // PIXEL RENDER
+	//wg.Add(canvas.H)               // LINE RENDER
 
 	// allocate GOMAXPROCS render Contexts
 	var GOMAXPROCS = 8
@@ -90,26 +90,32 @@ func Threaded(c mat.Camera, worlds []mat.World) *mat.Canvas {
 	}
 
 	// start workers
-	//for i := 0; i < GOMAXPROCS; i++ {
-	//	go renderContexts[i].workerFuncPerPixel()
-	//}
+	// Per-pixel worker:
 	for i := 0; i < GOMAXPROCS; i++ {
-		go renderContexts[i].workerFuncPerLine()
+		go renderContexts[i].workerFuncPerPixel()
 	}
 
-	// start passing work to the workers, one pixel at a time
-	//for row := 0; row < c.Height; row++ {
-	//	for col := 0; col < c.Width; col++ {
-	//		jobs <- &job{row: row, col: col}
-	//	}
-	//	fmt.Printf("%d/%d\n", row, c.Height)
+	// Per line worker:
+	//for i := 0; i < GOMAXPROCS; i++ {
+	//	go renderContexts[i].workerFuncPerLine()
 	//}
+
+	// start passing work to the workers:
+	// One pixel at a time
 	for row := 0; row < c.Height; row++ {
-		//for col := 0; col < c.Width; col++ {
-		jobs <- &job{row: row, col: 0}
-		//}
+		for col := 0; col < c.Width; col++ {
+			jobs <- &job{row: row, col: col}
+		}
 		fmt.Printf("%d/%d\n", row, c.Height)
 	}
+
+	// Pass by line
+	//for row := 0; row < c.Height; row++ {
+	//	//for col := 0; col < c.Width; col++ {
+	//	jobs <- &job{row: row, col: 0}
+	//	//}
+	//	fmt.Printf("%d/%d\n", row, c.Height)
+	//}
 
 	wg.Wait()
 	fmt.Println("All done")
@@ -162,7 +168,8 @@ func (rc *Context) renderPixel(job *job) {
 	//fmt.Printf("finished color at %d %d, total: %d depth: %d\n", job.col, job.row, rc.total, rc.depth)
 	//}
 	rc.canvas.WritePixelMutex(job.col, job.row, color)
-	//rc.wg.Done()
+	// MUST BE COMMENTED OUT WHEN RUNNING LINE-MODE
+	rc.wg.Done()
 	//fmt.Printf("Thread %d remain: %d\n", rc.Id, rc.fakeremain)
 }
 
