@@ -129,7 +129,7 @@ func (rc *Context) workerFuncPerPixel() {
 }
 func (rc *Context) workerFuncPerLine() {
 	for job := range rc.jobs {
-		for i:=0;i < 1920;i++ {
+		for i:=0;i < rc.camera.Width;i++ {
 			job.col = i
 			rc.renderPixel(job)
 		}
