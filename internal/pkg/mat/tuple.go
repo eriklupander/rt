@@ -132,10 +132,10 @@ func DivideByScalar(t1 Tuple4, scalar float64) Tuple4 {
 
 // Magnitude measures the length of the passed vector. It's basically pythagoras sqrt(x2 + y2 + z2 + w2)
 func Magnitude(t1 Tuple4) float64 {
-	return math.Sqrt(t1.Elems[0]*t1.Elems[0] +
-		t1.Elems[1]*t1.Elems[1] +
-		t1.Elems[2]*t1.Elems[2])
-
+	return math.Sqrt(
+		t1.Elems[0]*t1.Elems[0] +
+			t1.Elems[1]*t1.Elems[1] +
+			t1.Elems[2]*t1.Elems[2])
 }
 
 func MagnitudePtr(t1 *Tuple4) float64 {

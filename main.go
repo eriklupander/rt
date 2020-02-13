@@ -131,7 +131,6 @@ func withModel() {
 		worlds = append(worlds, w)
 	}
 
-
 	//canvas := mat.RenderThreaded(camera, w)
 	canvas := render.Threaded(camera, worlds)
 	//mat.RenderReferenceAxises(canvas, camera)
@@ -264,7 +263,7 @@ func refraction() {
 }
 
 func worldWithPlane() {
-	camera := mat.NewCamera(640, 480, math.Pi/3)
+	camera := mat.NewCamera(1920, 1080, math.Pi/3)
 	viewTransform := mat.ViewTransform(mat.NewPoint(-2, 1.0, -4), mat.NewPoint(0, 0.5, 0), mat.NewVector(0, 1, 0))
 	camera.Transform = viewTransform
 	camera.Inverse = mat.Inverse(viewTransform)
@@ -419,12 +418,12 @@ func worldWithPlane() {
 }
 
 func sphereWithPlane() {
-	camera := mat.NewCamera(1920, 1080, math.Pi/3)
+	camera := mat.NewCamera(9, 8, math.Pi/3)
 	viewTransform := mat.ViewTransform(mat.NewPoint(0, 0.0, -4.75), mat.NewPoint(0, 0, 0), mat.NewVector(0, 1, 0))
 	camera.Transform = viewTransform
 	camera.Inverse = mat.Inverse(viewTransform)
 
-	lightPos := mat.NewPoint(0, 3, 0)
+	lightPos := mat.NewPoint(-3, 0.1, -3)
 	lightColor := mat.NewColor(1, 1, 1)
 	light := mat.NewLight(lightPos, lightColor)
 	worlds := make([]mat.World, 8)
@@ -432,23 +431,23 @@ func sphereWithPlane() {
 		w := mat.NewWorld()
 		w.Light = append(w.Light, light)
 
-		floor := mat.NewPlane()
-		floor.SetTransform(mat.Translate(0, -0.99, 0))
-		floor.SetMaterial(mat.NewMaterialWithReflectivity(mat.NewColor(1, 0.5, 0.5), 0.1, 0.9, 0.7, 240, 0.2))
-		floor.Material.Pattern = mat.NewCheckerPattern(white, black)
-		floor.Material.Pattern.SetPatternTransform(mat.Scale(2, 2, 2))
-		w.Objects = append(w.Objects, floor)
+		//floor := mat.NewPlane()
+		//floor.SetTransform(mat.Translate(0, -0.99, 0))
+		//floor.SetMaterial(mat.NewMaterialWithReflectivity(mat.NewColor(1, 0.5, 0.5), 0.1, 0.9, 0.7, 240, 0.2))
+		//floor.Material.Pattern = mat.NewCheckerPattern(white, black)
+		//floor.Material.Pattern.SetPatternTransform(mat.Scale(2, 2, 2))
+		//w.Objects = append(w.Objects, floor)
 
 		sphere := mat.NewSphere()
 		material := mat.NewDefaultReflectiveMaterial(0.2)
 		material.Transparency = 0.9
 		material.Color = mat.NewColor(1, 0.2, 1)
+		sphere.SetMaterial(material)
+		//glassMtrl := mat.NewMaterial(mat.NewColor(0.8, 0.8, 0.9), 0, 0.2, 0.9, 300)
+		//glassMtrl.Transparency = 0.8
+		//glassMtrl.RefractiveIndex = 1.5
 
-		glassMtrl := mat.NewMaterial(mat.NewColor(0.8, 0.8, 0.9), 0, 0.2, 0.9, 300)
-		glassMtrl.Transparency = 0.8
-		glassMtrl.RefractiveIndex = 1.5
-
-		sphere.SetMaterial(glassMtrl)
+		//sphere.SetMaterial(glassMtrl)
 		w.Objects = append(w.Objects, sphere)
 		worlds[i] = w
 	}
@@ -466,7 +465,7 @@ func sphereWithPlane() {
 	}
 
 	// outputFile is a File type which satisfies Writer interface
-	outputFile, err := os.Create("circleWithFloorForPresentationWithReflectionsAndTransparent.png")
+	outputFile, err := os.Create("lowressphere.png")
 	if err != nil {
 		panic(err.Error())
 	}
@@ -479,7 +478,7 @@ func sphereWithPlane() {
 	outputFile.Close()
 
 	data := canvas.ToPPM()
-	err = ioutil.WriteFile("circlewithfloor.ppm", []byte(data), os.FileMode(0755))
+	err = ioutil.WriteFile("lowressphere.ppm", []byte(data), os.FileMode(0755))
 	if err != nil {
 		fmt.Println(err.Error())
 	}

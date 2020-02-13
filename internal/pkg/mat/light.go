@@ -12,8 +12,8 @@ type Light struct {
 func NewLight(position Tuple4, intensity Tuple4) Light {
 
 	return Light{
-		Position:        position,
-		Intensity:       intensity,
+		Position:  position,
+		Intensity: intensity,
 	}
 }
 

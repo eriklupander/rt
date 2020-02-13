@@ -79,7 +79,7 @@ func Threaded(c mat.Camera, worlds []mat.World) *mat.Canvas {
 	jobs := make(chan *job)
 
 	wg := sync.WaitGroup{}
-	wg.Add(canvas.W * canvas.H)  // PIXEL RENDER
+	wg.Add(canvas.W * canvas.H) // PIXEL RENDER
 	//wg.Add(canvas.H)               // LINE RENDER
 
 	// allocate GOMAXPROCS render Contexts
@@ -135,7 +135,7 @@ func (rc *Context) workerFuncPerPixel() {
 }
 func (rc *Context) workerFuncPerLine() {
 	for job := range rc.jobs {
-		for i:=0;i < 1920;i++ {
+		for i := 0; i < 1920; i++ {
 			job.col = i
 			rc.renderPixel(job)
 		}
