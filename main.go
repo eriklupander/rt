@@ -263,7 +263,7 @@ func refraction() {
 }
 
 func worldWithPlane() {
-	camera := mat.NewCamera(640, 480, math.Pi/3)
+	camera := mat.NewCamera(1920, 1080, math.Pi/3)
 	viewTransform := mat.ViewTransform(mat.NewPoint(-2, 1.0, -4), mat.NewPoint(0, 0.5, 0), mat.NewVector(0, 1, 0))
 	camera.Transform = viewTransform
 	camera.Inverse = mat.Inverse(viewTransform)
