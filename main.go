@@ -10,7 +10,9 @@ import (
 	"io/ioutil"
 	"log"
 	"math"
+	"math/rand"
 	"net/http"
+	"time"
 
 	_ "net/http/pprof"
 	"os"
@@ -19,6 +21,7 @@ import (
 )
 
 func main() {
+	rand.Seed(time.Now().Unix())
 	// we need a webserver to get the pprof webserver
 	go func() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))
@@ -129,7 +132,6 @@ func withModel() {
 		w.Light = append(w.Light, mat.NewLight(mat.NewPoint(-1.5, 2.5, -3), mat.NewColor(1, 1, 1)))
 		worlds = append(worlds, w)
 	}
-
 
 	//canvas := mat.RenderThreaded(camera, w)
 	canvas := render.Threaded(camera, worlds)
@@ -263,7 +265,7 @@ func refraction() {
 }
 
 func worldWithPlane() {
-	camera := mat.NewCamera(1920, 1080, math.Pi/3)
+	camera := mat.NewCamera(640, 480, math.Pi/3)
 	viewTransform := mat.ViewTransform(mat.NewPoint(-2, 1.0, -4), mat.NewPoint(0, 0.5, 0), mat.NewVector(0, 1, 0))
 	camera.Transform = viewTransform
 	camera.Inverse = mat.Inverse(viewTransform)
@@ -397,7 +399,7 @@ func worldWithPlane() {
 	}
 
 	// outputFile is a File type which satisfies Writer interface
-	outputFile, err := os.Create("test.png")
+	outputFile, err := os.Create("test-0.5-shadow-50-samples.png")
 	if err != nil {
 		panic(err.Error())
 	}

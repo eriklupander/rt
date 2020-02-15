@@ -221,30 +221,114 @@ func TestColorWhenCastWithinSphereAtInsideSphere(t *testing.T) {
 	assert.InEpsilon(t, w.Objects[1].GetMaterial().Color.Get(2), color.Get(2), mat.Epsilon)
 }
 
-func TestPointNotInShadow(t *testing.T) {
+//
+//func TestPointNotInShadow(t *testing.T) {
+//	w := mat.NewDefaultWorld()
+//	rc := New(w)
+//	p := mat.NewPoint(0, 10, 10)
+//	assert.False(t, rc.pointInShadow(w.Light[0], p))
+//}
+//func TestPointInShadow(t *testing.T) {
+//	w := mat.NewDefaultWorld()
+//	rc := New(w)
+//	p := mat.NewPoint(10, -10, 10)
+//	assert.True(t, rc.pointInShadow(w.Light[0], p))
+//}
+//func TestPointNotInShadowWhenBehindLight(t *testing.T) {
+//	w := mat.NewDefaultWorld()
+//	rc := New(w)
+//	p := mat.NewPoint(-20, 20, -20)
+//	assert.False(t, rc.pointInShadow(w.Light[0], p))
+//}
+//func TestPointNotInShadowWhenBehindPoint(t *testing.T) {
+//	w := mat.NewDefaultWorld()
+//	rc := New(w)
+//	p := mat.NewPoint(-2, 2, -2)
+//	assert.False(t, rc.pointInShadow(w.Light[0], p))
+//}
+
+func TestIsShadowed(t *testing.T) {
 	w := mat.NewDefaultWorld()
+	lp := mat.NewPoint(-10, -10, -10)
+	testcases := []struct {
+		point  mat.Tuple4
+		result bool
+	}{
+		{mat.NewPoint(-10, -10, 10), false},
+		{mat.NewPoint(10, 10, 10), true},
+		{mat.NewPoint(-20, -20, -20), false},
+		{mat.NewPoint(-5, -5, -5), false},
+	}
+
 	rc := New(w)
-	p := mat.NewPoint(0, 10, 10)
-	assert.False(t, rc.pointInShadow(w.Light[0], p))
+	for _, tc := range testcases {
+		rc.total++
+		//rc.depth++
+		isS := rc.isShadowed(lp, tc.point)
+		assert.Equal(t, tc.result, isS)
+	}
 }
-func TestPointInShadow(t *testing.T) {
+
+func TestIntensityAt(t *testing.T) {
 	w := mat.NewDefaultWorld()
+	testcases := []struct {
+		point  mat.Tuple4
+		result float64
+	}{
+		{mat.NewPoint(0, 1.0001, 0), 1.0},
+		{mat.NewPoint(-1.0001, 0, 0), 1.0},
+		{mat.NewPoint(0, 0, -1.0001), 1.0},
+		{mat.NewPoint(0, 0, 1.0001), 0.0},
+		{mat.NewPoint(1.0001, 0, 0), 0.0},
+		{mat.NewPoint(0, -1.0001, 0), 0.0},
+		{mat.NewPoint(0, 0, 0), 0.0},
+	}
+
 	rc := New(w)
-	p := mat.NewPoint(10, -10, 10)
-	assert.True(t, rc.pointInShadow(w.Light[0], p))
+	for _, tc := range testcases {
+		rc.total++
+		//rc.depth++
+		isS := rc.intensityAt(rc.world.Light[0], tc.point)
+		assert.Equal(t, tc.result, isS)
+	}
 }
-func TestPointNotInShadowWhenBehindLight(t *testing.T) {
+
+func TestLightUsesIntensityForAttenuation(t *testing.T) {
 	w := mat.NewDefaultWorld()
-	rc := New(w)
-	p := mat.NewPoint(-20, 20, -20)
-	assert.False(t, rc.pointInShadow(w.Light[0], p))
+	w.Light[0] = mat.NewLight(mat.NewPoint(0, 0, -10), mat.NewColor(1, 1, 1))
+	m1 := w.Objects[0].GetMaterial()
+	m1.Ambient = 0.1
+	m1.Diffuse = 0.9
+	m1.Specular = 0.0
+	m1.Color = mat.NewColor(1, 1, 1)
+	w.Objects[0].SetMaterial(m1)
+
+	pt := mat.NewPoint(0, 0, -1)
+	eyev := mat.NewVector(0, 0, -1)
+	normalv := mat.NewVector(0, 0, -1)
+
+	c1 := mat.Lighting(w.Objects[0].GetMaterial(), w.Objects[0], w.Light[0], pt, eyev, normalv, 1.0, mat.NewLightData())
+	c2 := mat.Lighting(w.Objects[0].GetMaterial(), w.Objects[0], w.Light[0], pt, eyev, normalv, 0.5, mat.NewLightData())
+	c3 := mat.Lighting(w.Objects[0].GetMaterial(), w.Objects[0], w.Light[0], pt, eyev, normalv, 0.0, mat.NewLightData())
+
+	assert.True(t, mat.TupleXYZEq(c1, mat.NewColor(1, 1, 1)))
+	assert.True(t, mat.TupleXYZEq(c2, mat.NewColor(0.55, 0.55, 0.55)))
+	assert.True(t, mat.TupleXYZEq(c3, mat.NewColor(0.1, 0.1, 0.1)))
+	assert.True(t, mat.TupleXYZEq(c3, mat.NewColor(0.1, 0.1, 0.1)))
 }
-func TestPointNotInShadowWhenBehindPoint(t *testing.T) {
-	w := mat.NewDefaultWorld()
-	rc := New(w)
-	p := mat.NewPoint(-2, 2, -2)
-	assert.False(t, rc.pointInShadow(w.Light[0], p))
-}
+
+//func TestPointNotInShadowWhenBehindLight(t *testing.T) {
+//	w := mat.NewDefaultWorld()
+//	rc := New(w)
+//	p := mat.NewPoint(-20, 20, -20)
+//	assert.False(t, rc.pointInShadow(w.Light[0], p))
+//}
+//func TestPointNotInShadowWhenBehindPoint(t *testing.T) {
+//	w := mat.NewDefaultWorld()
+//	rc := New(w)
+//	p := mat.NewPoint(-2, 2, -2)
+//	assert.False(t, rc.pointInShadow(w.Light[0], p))
+//}
 
 // Big one on page 114
 func TestWorldWithShadowTest(t *testing.T) {

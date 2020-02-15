@@ -12,13 +12,13 @@ type Light struct {
 func NewLight(position Tuple4, intensity Tuple4) Light {
 
 	return Light{
-		Position:        position,
-		Intensity:       intensity,
+		Position:  position,
+		Intensity: intensity,
 	}
 }
 
 // Lighting computes the color of a given pixel given phong shading
-func Lighting(material Material, object Shape, light Light, position, eyeVec, normalVec Tuple4, inShadow bool, lightData LightData) Tuple4 {
+func Lighting(material Material, object Shape, light Light, position, eyeVec, normalVec Tuple4, intensity float64, lightData LightData) Tuple4 {
 	var color Tuple4
 
 	if material.HasPattern() {
@@ -26,7 +26,7 @@ func Lighting(material Material, object Shape, light Light, position, eyeVec, no
 	} else {
 		color = material.Color
 	}
-	if inShadow {
+	if intensity == 0.0 {
 		MultiplyByScalarPtr(color, material.Ambient, &lightData.EffectiveColor)
 		return lightData.EffectiveColor
 	}
@@ -73,6 +73,10 @@ func Lighting(material Material, object Shape, light Light, position, eyeVec, no
 			MultiplyByScalarPtr(light.Intensity, material.Specular*factor, &specular)
 		}
 	}
+
+	// for soft shadows, multiply by intensity
+	diffuse = diffuse.Multiply(intensity)
+	specular = specular.Multiply(intensity)
 	// Add the three contributions together to get the final shading
 	// Uses standard Tuple addition
 	return lightData.Ambient.Add(diffuse.Add(specular))
