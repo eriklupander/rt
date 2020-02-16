@@ -11,7 +11,6 @@ import (
 	"log"
 	"math"
 	"net/http"
-
 	_ "net/http/pprof"
 	"os"
 	"os/signal"
@@ -19,6 +18,8 @@ import (
 )
 
 func main() {
+	//runtime.SetBlockProfileRate(1)
+	//runtime.SetMutexProfileFraction(1)
 	// we need a webserver to get the pprof webserver
 	go func() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))
