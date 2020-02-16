@@ -271,6 +271,10 @@ func TestIsShadowed(t *testing.T) {
 
 func TestIntensityAt(t *testing.T) {
 	w := mat.NewDefaultWorld()
+	w.AreaLight = append(w.AreaLight, mat.NewAreaLight(mat.NewPoint(-10, 10, -10),
+		mat.NewVector(1,0,0), 1,
+		mat.NewVector(0, 1, 0), 1,
+		mat.NewColor(1, 1, 1)))
 	testcases := []struct {
 		point  mat.Tuple4
 		result float64
@@ -288,7 +292,7 @@ func TestIntensityAt(t *testing.T) {
 	for _, tc := range testcases {
 		rc.total++
 		//rc.depth++
-		isS := rc.intensityAt(rc.world.Light[0], tc.point)
+		isS := rc.intensityAt(rc.world.AreaLight[0], tc.point)
 		assert.Equal(t, tc.result, isS)
 	}
 }
@@ -296,6 +300,10 @@ func TestIntensityAt(t *testing.T) {
 func TestLightUsesIntensityForAttenuation(t *testing.T) {
 	w := mat.NewDefaultWorld()
 	w.Light[0] = mat.NewLight(mat.NewPoint(0, 0, -10), mat.NewColor(1, 1, 1))
+	//w.AreaLight = append(w.AreaLight, mat.NewAreaLight(mat.NewPoint(-10, 10, -10),
+	//	mat.NewVector(1,0,0), 1,
+	//	mat.NewVector(0, 1, 0), 1,
+	//	mat.NewColor(1, 1, 1)))
 	m1 := w.Objects[0].GetMaterial()
 	m1.Ambient = 0.1
 	m1.Diffuse = 0.9
@@ -307,13 +315,12 @@ func TestLightUsesIntensityForAttenuation(t *testing.T) {
 	eyev := mat.NewVector(0, 0, -1)
 	normalv := mat.NewVector(0, 0, -1)
 
-	c1 := mat.Lighting(w.Objects[0].GetMaterial(), w.Objects[0], w.Light[0], pt, eyev, normalv, 1.0, mat.NewLightData())
-	c2 := mat.Lighting(w.Objects[0].GetMaterial(), w.Objects[0], w.Light[0], pt, eyev, normalv, 0.5, mat.NewLightData())
-	c3 := mat.Lighting(w.Objects[0].GetMaterial(), w.Objects[0], w.Light[0], pt, eyev, normalv, 0.0, mat.NewLightData())
+	c1 := mat.LightingPointLight(w.Objects[0].GetMaterial(), w.Objects[0], w.Light[0], pt, eyev, normalv, 1.0, mat.NewLightData())
+	c2 := mat.LightingPointLight(w.Objects[0].GetMaterial(), w.Objects[0], w.Light[0], pt, eyev, normalv, 0.5, mat.NewLightData())
+	c3 := mat.LightingPointLight(w.Objects[0].GetMaterial(), w.Objects[0], w.Light[0], pt, eyev, normalv, 0.0, mat.NewLightData())
 
 	assert.True(t, mat.TupleXYZEq(c1, mat.NewColor(1, 1, 1)))
 	assert.True(t, mat.TupleXYZEq(c2, mat.NewColor(0.55, 0.55, 0.55)))
-	assert.True(t, mat.TupleXYZEq(c3, mat.NewColor(0.1, 0.1, 0.1)))
 	assert.True(t, mat.TupleXYZEq(c3, mat.NewColor(0.1, 0.1, 0.1)))
 }
 
@@ -500,4 +507,40 @@ func TestShadeHitWhenBothTransparentAndRefractive(t *testing.T) {
 	assert.InEpsilon(t, 0.93391, color.Get(0), mat.Epsilon)
 	assert.InEpsilon(t, 0.69643, color.Get(1), mat.Epsilon)
 	assert.InEpsilon(t, 0.69243, color.Get(2), mat.Epsilon)
+}
+
+func TestAreaLightIntensityAt(t *testing.T) {
+	/*
+		The area light intensity function
+		  Given w ← default_world()
+		    And corner ← point(-0.5, -0.5, -5)
+		    And v1 ← vector(1, 0, 0)
+		    And v2 ← vector(0, 1, 0)
+		    And light ← area_light(corner, v1, 2, v2, 2, color(1, 1, 1))
+		    And pt ← <point>
+		  When intensity ← intensity_at(light, pt, w)
+		  Then intensity = <result>
+
+	*/
+	w := mat.NewDefaultWorld()
+	corner := mat.NewPoint(-0.5, -0.5, -5)
+	v1 := mat.NewVector(1, 0, 0)
+	v2 := mat.NewVector(0, 1, 0)
+	light := mat.NewAreaLight(corner, v1, 2, v2, 2, mat.NewColor(1, 1, 1))
+	testcases := []struct {
+		point  mat.Tuple4
+		result float64
+	}{
+		{mat.NewPoint(0, 0, 2), 0.0},
+		{mat.NewPoint(1, -1, 2), 0.25},
+		{mat.NewPoint(1.5, 0, 2), 0.50},
+		{mat.NewPoint(1.25, 1.25, 3), 0.75},
+		{mat.NewPoint(0, 0, -2), 1.0},
+	}
+	rc := New(w)
+	w.AreaLight = append(w.AreaLight, light)
+	for _, tc := range testcases {
+		intensity := rc.intensityAt(light, tc.point)
+		assert.Equal(t, tc.result, intensity)
+	}
 }

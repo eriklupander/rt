@@ -10,7 +10,7 @@ func NewCone() *Cone {
 	copy(m1.Elems, IdentityMatrix.Elems)
 	inv := NewMat4x4(make([]float64, 16))
 	copy(inv.Elems, IdentityMatrix.Elems)
-	return &Cone{Id: rand.Int63(), Transform: m1, Inverse: inv, Material: NewDefaultMaterial(), minY: math.Inf(-1), maxY: math.Inf(1)}
+	return &Cone{Id: rand.Int63(), Transform: m1, Inverse: inv, Material: NewDefaultMaterial(), minY: math.Inf(-1), maxY: math.Inf(1), Shadow:  true}
 }
 
 func NewConeMM(min, max float64) *Cone {
@@ -39,6 +39,7 @@ type Cone struct {
 	minY      float64
 	maxY      float64
 	closed    bool
+	Shadow bool
 }
 
 func (c *Cone) ID() int64 {
@@ -182,4 +183,7 @@ func (c *Cone) GetParent() Shape {
 }
 func (c *Cone) SetParent(shape Shape) {
 	c.Parent = shape
+}
+func (c *Cone) CastShadow()  bool {
+	return c.Shadow
 }

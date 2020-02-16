@@ -31,6 +31,7 @@ type SmoothTriangle struct {
 	N2       Tuple4
 	N3       Tuple4
 	Material Material
+	Shadow bool
 }
 
 func (s *SmoothTriangle) ID() int64 {
@@ -99,4 +100,7 @@ func (s *SmoothTriangle) GetParent() Shape {
 
 func (s *SmoothTriangle) SetParent(shape Shape) {
 
+}
+func (s *SmoothTriangle) CastShadow()  bool {
+	return s.Shadow
 }

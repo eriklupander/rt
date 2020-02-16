@@ -2,6 +2,7 @@ package render
 
 import (
 	"fmt"
+	"github.com/eriklupander/rt/internal/pkg/constant"
 	"github.com/eriklupander/rt/internal/pkg/mat"
 	"github.com/inhies/go-bytesize"
 	"math"
@@ -92,10 +93,8 @@ func Threaded(c mat.Camera, worlds []mat.World) *mat.Canvas {
 	//wg.Add(canvas.W * canvas.H)
 	wg.Add(canvas.H)
 
-	// allocate GOMAXPROCS render Contexts
-	var GOMAXPROCS = 8
-	renderContexts := make([]Context, GOMAXPROCS)
-	for i := 0; i < GOMAXPROCS; i++ {
+	renderContexts := make([]Context, constant.GOMAXPROCS)
+	for i := 0; i < constant.GOMAXPROCS; i++ {
 		renderContexts[i] = NewContext(i, worlds[i], c, canvas, jobs, &wg)
 	}
 
@@ -103,7 +102,7 @@ func Threaded(c mat.Camera, worlds []mat.World) *mat.Canvas {
 	//for i := 0; i < GOMAXPROCS; i++ {
 	//	go renderContexts[i].workerFuncPerPixel()
 	//}
-	for i := 0; i < GOMAXPROCS; i++ {
+	for i := 0; i < constant.GOMAXPROCS; i++ {
 		go renderContexts[i].workerFuncPerLine()
 	}
 
@@ -147,6 +146,12 @@ func (rc *Context) workerFuncPerLine() {
 	}
 }
 
+func SinglePixel(w mat.World, camera mat.Camera, col, row int) mat.Tuple4 {
+	rc := New(w)
+	rc.camera = camera
+	return rc.renderSinglePixel(col, row)
+}
+
 func (rc *Context) renderSinglePixel(col, row int) mat.Tuple4 {
 	for i := 0; i < 256; i++ {
 		rc.cStack[i].WorldXS = rc.cStack[i].WorldXS[:0]
@@ -181,12 +186,25 @@ func (rc *Context) renderPixel(job *job) {
 
 }
 
-func (rc *Context) intensityAt(light mat.Light, point mat.Tuple4) float64 {
-	if rc.isShadowed(light.Position, point) {
-		return 0.0
-	} else {
-		return 1.0
+func (rc *Context) intensityAt(light mat.AreaLight, point mat.Tuple4) float64 {
+	total := 0.0
+
+	for v := 0; v < light.VSteps; v++ {
+		for u := 0; u < light.USteps; u++ {
+			lightPos := mat.PointOnLight(light, float64(u), float64(v))
+			if !rc.isShadowed(lightPos, point) {
+				total = total + 1.0
+			}
+		}
 	}
+	return total / light.Samples
+	/*
+		if rc.isShadowed(light.Position, point) {
+			return 0.0
+		} else {
+			return 1.0
+		}
+	*/
 }
 
 func (rc *Context) sumColors() mat.Tuple4 {
@@ -301,11 +319,22 @@ func (rc *Context) refractedColor(comps mat.Computation, remainingReflections, r
 
 func (rc *Context) shadeHit(comps mat.Computation, remainingReflections, remainingRefractions int) mat.Tuple4 {
 	var surfaceColor = mat.NewColor(0, 0, 0)
-	for _, light := range rc.world.Light {
-		//inShadow := rc.pointInShadow(light, comps.OverPoint)
-		//isShadowed := rc.isShadowed(light.Position, comps.OverPoint)
-		intensity := rc.intensityAt(light, comps.OverPoint)
-		color := mat.Lighting(comps.Object.GetMaterial(), comps.Object, light, comps.OverPoint, comps.EyeVec, comps.NormalVec, intensity, rc.cStack[rc.total].LightData)
+
+	// Light for point lights
+	//for _, light := range rc.world.Light {
+	//	isShadowed := rc.isShadowed(light.Position, comps.OverPoint)
+	//	intensity := 1.0
+	//	if isShadowed {
+	//		intensity = 0.0
+	//	}
+	//	color := mat.LightingPointLight(comps.Object.GetMaterial(), comps.Object, light, comps.OverPoint, comps.EyeVec, comps.NormalVec, intensity, rc.cStack[rc.total].LightData)
+	//	surfaceColor = mat.Add(surfaceColor, color)
+	//}
+
+	// Light for area lights
+	for i := range rc.world.AreaLight {
+		intensity := rc.intensityAt(rc.world.AreaLight[i], comps.OverPoint)
+		color := mat.Lighting(comps.Object.GetMaterial(), comps.Object, rc.world.AreaLight[i], comps.OverPoint, comps.EyeVec, comps.NormalVec, intensity, rc.cStack[rc.total].LightData)
 		surfaceColor = mat.Add(surfaceColor, color)
 	}
 	reflectedColor := rc.reflectedColor(comps, remainingReflections, remainingRefractions)
@@ -314,18 +343,13 @@ func (rc *Context) shadeHit(comps mat.Computation, remainingReflections, remaini
 	material := comps.Object.GetMaterial()
 	if material.Reflectivity > 0.0 && material.Transparency > 0.0 {
 		reflectance := mat.Schlick(comps)
-		//return surfaceColor.Add(reflectedColor.Multiply(reflectance)).Add(refractedColor.Multiply(1 - reflectance))
 		return mat.Add(mat.Add(surfaceColor, reflectedColor.Multiply(reflectance)), refractedColor.Multiply(1-reflectance))
-		//mat.Add3(surfaceColor, reflectedColor.Multiply(reflectance), refractedColor.Multiply(1 - reflectance), &comps.ShadeColor)
-		//return comps.ShadeColor
 	} else {
-		//return surfaceColor.Add(reflectedColor.Add(refractedColor))
 		return mat.Add(surfaceColor, mat.Add(reflectedColor, refractedColor))
-		//mat.Add3(surfaceColor, reflectedColor, refractedColor, &comps.ShadeColor)
-		//return comps.ShadeColor
 	}
 }
 
+// OK?
 func (rc *Context) pointInShadow(lightPosition mat.Tuple4, p mat.Tuple4) bool {
 
 	vecToLight := mat.Sub(lightPosition, p)
@@ -409,7 +433,7 @@ func (rc *Context) isShadowed(lightPosition mat.Tuple4, p mat.Tuple4) bool {
 	ray := mat.NewRay(p, mat.Normalize(vecToLight))
 
 	// use stack...
-	rc.cStack[rc.total].ShadowXS = mat.IntersectWithWorldPtr(rc.world, ray, rc.cStack[rc.total].ShadowXS, &rc.cStack[rc.total].InRay)
+	rc.cStack[rc.total].ShadowXS = mat.IntersectWithWorldPtrForShadow(rc.world.Objects, ray, rc.cStack[rc.total].ShadowXS, &rc.cStack[rc.total].InRay)
 	if len(rc.cStack[rc.total].ShadowXS) > 0 {
 		for _, x := range rc.cStack[rc.total].ShadowXS {
 			if x.T > 0.0 && x.T < distance {

@@ -12,6 +12,7 @@ type Shape interface {
 	GetLocalRay() Ray
 	GetParent() Shape
 	SetParent(shape Shape)
+	CastShadow() bool
 }
 
 var currentPoint = NewPoint(0, 0, 0)

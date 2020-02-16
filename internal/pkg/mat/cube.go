@@ -21,7 +21,8 @@ func NewCube() *Cube {
 		Transform: m1,
 		Inverse:   inv,
 		Material:  NewDefaultMaterial(),
-		savedXs:   savedXs}
+		savedXs:   savedXs,
+		Shadow:  true}
 }
 
 type Cube struct {
@@ -31,6 +32,7 @@ type Cube struct {
 	Material  Material
 	Label     string
 	Parent    Shape
+	Shadow bool
 	savedRay  Ray
 	savedXs   []Intersection
 }
@@ -142,4 +144,7 @@ func min(values ...float64) float64 {
 		}
 	}
 	return c
+}
+func (c *Cube) CastShadow()  bool {
+	return c.Shadow
 }

@@ -111,3 +111,6 @@ func (g *Group) AddChild(s Shape) {
 	// allocate memory for inner rays each time a child is added.
 	g.innerRays = append(g.innerRays, NewRay(NewPoint(0, 0, 0), NewVector(0, 0, 0)))
 }
+func (g *Group) CastShadow() bool {
+	return false
+}

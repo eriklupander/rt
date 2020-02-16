@@ -58,6 +58,22 @@ func IntersectWithWorldPtr(w World, r Ray, xs []Intersection, inRay *Ray) []Inte
 	})
 	return xs
 }
+func IntersectWithWorldPtrForShadow(objects []Shape, r Ray, xs []Intersection, inRay *Ray) []Intersection {
+	for idx, _ := range objects {
+		if !objects[idx].CastShadow() {
+			continue
+		}
+		intersections := IntersectRayWithShapePtr(objects[idx], r, inRay)
+
+		for innerIdx := range intersections {
+			xs = append(xs, intersections[innerIdx])
+		}
+	}
+	sort.Slice(xs, func(i, j int) bool {
+		return xs[i].T < xs[j].T
+	})
+	return xs
+}
 
 func IntersectionAllowed(op string, lhit, inl, inr bool) bool {
 	if op == "union" {

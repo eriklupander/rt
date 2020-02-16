@@ -20,6 +20,7 @@ func NewPlane() *Plane {
 		Material:  NewDefaultMaterial(),
 		Label:     "Plane",
 		savedXs:   savedXs,
+		Shadow:  true,
 	}
 }
 
@@ -31,6 +32,7 @@ type Plane struct {
 	Label     string
 	Parent    Shape
 	savedRay  Ray
+	Shadow bool
 
 	savedXs []Intersection
 }
@@ -82,4 +84,7 @@ func (p *Plane) GetParent() Shape {
 }
 func (p *Plane) SetParent(shape Shape) {
 	p.Parent = shape
+}
+func (p *Plane) CastShadow() bool {
+	return p.Shadow
 }

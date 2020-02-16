@@ -1,8 +1,9 @@
 package mat
 
 type World struct {
-	Light   []Light
-	Objects []Shape
+	Light     []Light
+	AreaLight []AreaLight
+	Objects   []Shape
 }
 
 func NewDefaultWorld() World {

@@ -21,6 +21,7 @@ func NewCylinder() *Cylinder {
 		minY:      math.Inf(-1),
 		maxY:      math.Inf(1),
 		savedXs:   savedXs,
+		Shadow:  true,
 	}
 }
 
@@ -50,6 +51,7 @@ type Cylinder struct {
 	minY      float64
 	maxY      float64
 	closed    bool
+	Shadow bool
 
 	savedXs []Intersection
 }
@@ -169,4 +171,7 @@ func (c *Cylinder) intercectCaps(ray Ray, xs []Intersection) []Intersection {
 		xs = append(xs, NewIntersection(t, c))
 	}
 	return xs
+}
+func (c *Cylinder) CastShadow()  bool {
+	return c.Shadow
 }

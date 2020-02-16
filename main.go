@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/eriklupander/rt/internal/pkg/constant"
 	"github.com/eriklupander/rt/internal/pkg/mat"
 	"github.com/eriklupander/rt/internal/pkg/obj"
 	"github.com/eriklupander/rt/internal/pkg/render"
@@ -26,12 +27,14 @@ func main() {
 	go func() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))
 	}()
+
+	softshadows()
 	//parse()
 	//csg()
 	//withModel()
 	//groups()
 	//refraction()
-	worldWithPlane() // REFERENCE IMAGE!!
+	//worldWithPlane() // REFERENCE IMAGE!!
 	//renderworld()
 	//shadedSphereDemo()
 	//circleDemo()
@@ -114,7 +117,7 @@ func withModel() {
 
 	worlds := make([]mat.World, 0)
 
-	for i := 0; i < 8; i++ {
+	for i := 0; i < constant.GOMAXPROCS; i++ {
 		parseObj := obj.ParseObj(string(bytes))
 
 		w := mat.NewWorld()
@@ -264,18 +267,111 @@ func refraction() {
 	}
 }
 
+func softshadows() {
+	camera := mat.NewCamera(800, 320, 0.7854)
+	viewTransform := mat.ViewTransform(mat.NewPoint(-3, 1.0, 2.5), mat.NewPoint(0, 0.5, 0), mat.NewVector(0, 1, 0))
+	camera.Transform = viewTransform
+	camera.Inverse = mat.Inverse(viewTransform)
+
+	al := mat.NewAreaLight(
+		mat.NewPoint(-1, 2, 4),
+		mat.NewVector(2, 0, 0), 2,
+		mat.NewVector(0, 2, 0), 2,
+		mat.NewColor(1.5, 1.5, 1.5))
+
+	//light := mat.NewLight(mat.NewPoint(-1, 2, 4), mat.NewColor(1.5, 1.5, 1.5))
+
+	worlds := make([]mat.World, constant.GOMAXPROCS)
+	for i := 0; i < constant.GOMAXPROCS; i++ {
+		w := mat.NewWorld()
+
+		w.AreaLight = append(w.AreaLight, al)
+		//w.Light = append(w.Light, light)
+
+		cube := mat.NewCube()
+		cm := mat.NewMaterial(mat.NewColor(1.5, 1.5, 1.5), 1, 0, 0, 100)
+		cube.SetMaterial(cm)
+		cube.SetTransform(mat.Translate(0, 3, 4))
+		cube.SetTransform(mat.Scale(1, 1, 0.1))
+		cube.Shadow = false
+
+		plane := mat.NewPlane()
+		pm := mat.NewMaterial(mat.NewColor(1, 1, 1), 0.025, 0.67, 0, 200)
+		plane.SetMaterial(pm)
+
+		sphere1 := mat.NewSphere()
+		sm1 := mat.NewMaterial(mat.NewColor(1, 0, 0), 0.1, 0.6, 0, 200)
+		sm1.Reflectivity = 0.3
+		sphere1.SetMaterial(sm1)
+		sphere1.SetTransform(mat.Translate(0.5, 0.5, 0))
+		sphere1.SetTransform(mat.Scale(0.5, 0.5, 0.5))
+
+		sphere2 := mat.NewSphere()
+		sm2 := mat.NewMaterial(mat.NewColor(0.5, 0.5, 1), 0.1, 0.6, 0, 200)
+		sm2.Reflectivity = 0.3
+		sphere2.SetMaterial(sm2)
+		sphere2.SetTransform(mat.Translate(-0.25, 0.33, 0))
+		sphere2.SetTransform(mat.Scale(0.33, 0.33, 0.33))
+
+		w.Objects = append(w.Objects, cube)
+		w.Objects = append(w.Objects, plane)
+		w.Objects = append(w.Objects, sphere1)
+		w.Objects = append(w.Objects, sphere2)
+
+		worlds[i] = w
+	}
+
+	//fmt.Printf("%+v\n", render.SinglePixel(worlds[0], camera, 360, 140))
+
+	//os.Exit(0)
+	canvas := render.Threaded(camera, worlds)
+
+	myImage := image.NewRGBA(image.Rect(0, 0, canvas.W, canvas.H))
+
+	for i := 0; i < len(canvas.Pixels); i++ {
+		myImage.Pix[i*4] = clamp(canvas.Pixels[i].Elems[0])
+		myImage.Pix[i*4+1] = clamp(canvas.Pixels[i].Elems[1])
+		myImage.Pix[i*4+2] = clamp(canvas.Pixels[i].Elems[2])
+		myImage.Pix[i*4+3] = 255
+	}
+
+	// outputFile is a File type which satisfies Writer interface
+	outputFile, err := os.Create("reference-experiments.png")
+	if err != nil {
+		panic(err.Error())
+	}
+
+	// Encode takes a writer interface and an image interface
+	// We pass it the File and the RGBA
+	png.Encode(outputFile, myImage)
+
+	// Don't forget to close files
+	outputFile.Close()
+
+	data := canvas.ToPPM()
+	err = ioutil.WriteFile("reference-arealight.ppm", []byte(data), os.FileMode(0755))
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+}
+
 func worldWithPlane() {
 	camera := mat.NewCamera(640, 480, math.Pi/3)
 	viewTransform := mat.ViewTransform(mat.NewPoint(-2, 1.0, -4), mat.NewPoint(0, 0.5, 0), mat.NewVector(0, 1, 0))
 	camera.Transform = viewTransform
 	camera.Inverse = mat.Inverse(viewTransform)
 
-	light := mat.NewLight(mat.NewPoint(-5, 2.5, -3), mat.NewColor(1, 1, 1))
-
+	//light := mat.NewLight(mat.NewPoint(-5, 2.5, -3), mat.NewColor(1, 1, 1))
+	areaLight := mat.NewAreaLight(
+		mat.NewPoint(-5, 2.5, -3),
+		mat.NewVector(2, 0, 0), 4,
+		mat.NewVector(0, 1.5, 0), 3,
+		mat.NewColor(1, 1, 1))
 	worlds := make([]mat.World, 8)
 	for i := 0; i < 8; i++ {
 		w := mat.NewWorld()
-		w.Light = append(w.Light, light)
+		//w.Light = append(w.Light, light)
+		w.AreaLight = append(w.AreaLight, areaLight)
 
 		floor := mat.NewPlane()
 		floor.SetTransform(mat.Translate(0, 0.01, 0))
@@ -399,7 +495,7 @@ func worldWithPlane() {
 	}
 
 	// outputFile is a File type which satisfies Writer interface
-	outputFile, err := os.Create("test-0.5-shadow-50-samples.png")
+	outputFile, err := os.Create("test-arealight-4x3-samller.png")
 	if err != nil {
 		panic(err.Error())
 	}

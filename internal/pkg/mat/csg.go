@@ -10,7 +10,7 @@ func NewCSG(operation string, left, right Shape) *CSG {
 	copy(m1.Elems, IdentityMatrix.Elems)
 	inv := NewMat4x4(make([]float64, 16))
 	copy(inv.Elems, IdentityMatrix.Elems)
-	c := &CSG{Id: rand.Int63(), Transform: m1, Inverse: inv, Left: left, Right: right, Operation: operation}
+	c := &CSG{Id: rand.Int63(), Transform: m1, Inverse: inv, Left: left, Right: right, Operation: operation, Shadow:  true}
 	left.SetParent(c)
 	right.SetParent(c)
 	return c
@@ -25,6 +25,7 @@ type CSG struct {
 	Operation string
 	Parent    Shape
 	Material  Material
+	Shadow bool
 }
 
 func (c *CSG) ID() int64 {
@@ -76,4 +77,7 @@ func (c *CSG) GetParent() Shape {
 
 func (c *CSG) SetParent(shape Shape) {
 	c.Parent = shape
+}
+func (c *CSG) CastShadow()  bool {
+	return c.Shadow
 }

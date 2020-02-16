@@ -10,6 +10,7 @@ type Triangle struct {
 	E2       Tuple4
 	N        Tuple4
 	Material Material
+	Shadow bool
 }
 
 func (t *Triangle) ID() int64 {
@@ -34,6 +35,10 @@ func (t *Triangle) GetMaterial() Material {
 
 func (t *Triangle) SetMaterial(material Material) {
 	panic("implement me")
+}
+
+func (t *Triangle) CastShadow() bool {
+	return t.Shadow
 }
 
 func (t *Triangle) IntersectLocal(ray Ray) []Intersection {
