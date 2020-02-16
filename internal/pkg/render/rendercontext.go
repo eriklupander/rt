@@ -21,7 +21,7 @@ func New(world mat.World) Context {
 		cStack[i] = NewShadeData()
 	}
 
-	samples := make([]mat.Tuple4, 10)
+	samples := make([]mat.Tuple4, 16)
 	for i := 0; i < len(samples); i++ {
 		samples[i] = mat.NewColor(0, 0, 0)
 	}
@@ -169,7 +169,7 @@ func (rc *Context) renderPixel(job *job) {
 	// experiment: run rayForPixel + colorAt 10 times, with random offset within the pixel
 	// Then compute the average color of all
 	rc.samples = rc.samples[:0]
-	for i := 0; i < 1; i++ {
+	for i := 0; i < 16; i++ {
 		for i := 0; i < 256; i++ {
 			rc.cStack[i].WorldXS = rc.cStack[i].WorldXS[:0]
 			rc.cStack[i].ShadowXS = rc.cStack[i].ShadowXS[:0]
@@ -178,7 +178,7 @@ func (rc *Context) renderPixel(job *job) {
 		rc.depth = 0
 
 		rc.rayForPixel(job.col, job.row, &rc.firstRay)
-		rc.samples = append(rc.samples, rc.colorAt(rc.firstRay, 5, 5))
+		rc.samples = append(rc.samples, rc.colorAt(rc.firstRay, 2, 2))
 	}
 
 	// calc avg color

@@ -268,15 +268,15 @@ func refraction() {
 }
 
 func softshadows() {
-	camera := mat.NewCamera(800, 320, 0.7854)
+	camera := mat.NewCamera(1600, 640, 0.7854)
 	viewTransform := mat.ViewTransform(mat.NewPoint(-3, 1.0, 2.5), mat.NewPoint(0, 0.5, 0), mat.NewVector(0, 1, 0))
 	camera.Transform = viewTransform
 	camera.Inverse = mat.Inverse(viewTransform)
 
 	al := mat.NewAreaLight(
 		mat.NewPoint(-1, 2, 4),
-		mat.NewVector(2, 0, 0), 2,
-		mat.NewVector(0, 2, 0), 2,
+		mat.NewVector(2, 0, 0), 4,
+		mat.NewVector(0, 2, 0), 4,
 		mat.NewColor(1.5, 1.5, 1.5))
 
 	//light := mat.NewLight(mat.NewPoint(-1, 2, 4), mat.NewColor(1.5, 1.5, 1.5))
@@ -336,7 +336,7 @@ func softshadows() {
 	}
 
 	// outputFile is a File type which satisfies Writer interface
-	outputFile, err := os.Create("reference-experiments.png")
+	outputFile, err := os.Create("reference-highres-multisample-4x4-2depth.png")
 	if err != nil {
 		panic(err.Error())
 	}
