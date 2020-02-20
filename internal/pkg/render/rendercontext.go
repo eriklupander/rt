@@ -15,7 +15,11 @@ import (
 var originPoint = mat.NewPoint(0, 0, 0)
 var black = mat.NewColor(0, 0, 0)
 
+// New creates a new render context to be used exclusively by a single Render worker
 func New(world mat.World) Context {
+
+	// allocate a "stack" of 256 ShadeData instances, e.g. meaning that the render of a single pixel may recurse and
+	// spawn up to 256 additonal rays/intersection tests without having to allocate new memory.
 	cStack := make([]ShadeData, 256)
 	for i := 0; i < 256; i++ {
 		cStack[i] = NewShadeData()
@@ -40,6 +44,7 @@ func New(world mat.World) Context {
 	}
 }
 
+// NewContext uses the passed parameters after creating a render context.
 func NewContext(id int, world mat.World, camera mat.Camera, canvas *mat.Canvas, jobs chan *job, wg *sync.WaitGroup) Context {
 	ctx := New(world)
 	ctx.Id = id
@@ -74,39 +79,33 @@ type Context struct {
 	cStack []ShadeData
 }
 
+// Threaded sets up workers and producer for rendering the passed camera + slice of worlds.
+// Note that the length of worlds must be equal or greater than the number of constant.RenderThreads
 func Threaded(c mat.Camera, worlds []mat.World) *mat.Canvas {
+	if len(worlds) < constant.RenderThreads {
+		panic("Number of world instances must be equal or greater than the configured renderThreads")
+	}
 	st := time.Now()
 	canvas := mat.NewCanvas(c.Width, c.Height)
 	jobs := make(chan *job)
 
 	wg := sync.WaitGroup{}
-	//wg.Add(canvas.W * canvas.H)
 	wg.Add(canvas.H)
 
+	// Create the render contexts, one per worker
 	renderContexts := make([]Context, constant.RenderThreads)
 	for i := 0; i < constant.RenderThreads; i++ {
 		renderContexts[i] = NewContext(i, worlds[i], c, canvas, jobs, &wg)
 	}
 
 	// start workers
-	//for i := 0; i < GOMAXPROCS; i++ {
-	//	go renderContexts[i].workerFuncPerPixel()
-	//}
 	for i := 0; i < constant.RenderThreads; i++ {
 		go renderContexts[i].workerFuncPerLine()
 	}
 
-	// start passing work to the workers, one pixel at a time
-	//for row := 0; row < c.Height; row++ {
-	//	for col := 0; col < c.Width; col++ {
-	//		jobs <- &job{row: row, col: col}
-	//	}
-	//	fmt.Printf("%d/%d\n", row, c.Height)
-	//}
+	// start passing work to the workers, one line at a time
 	for row := 0; row < c.Height; row++ {
-		//for col := 0; col < c.Width; col++ {
 		jobs <- &job{row: row, col: 0}
-		//}
 		fmt.Printf("%d/%d\n", row, c.Height)
 	}
 
@@ -157,12 +156,7 @@ func (rc *Context) renderPixel(job *job) {
 	rc.depth = 0
 	rc.rayForPixel(job.col, job.row, &rc.firstRay)
 	color := rc.colorAt(rc.firstRay, 5, 5)
-	//if rc.Id == 0 {
-	//fmt.Printf("finished color at %d %d, total: %d depth: %d\n", job.col, job.row, rc.total, rc.depth)
-	//}
 	rc.canvas.WritePixelMutex(job.col, job.row, color)
-	//rc.wg.Done()
-	//fmt.Printf("Thread %d remain: %d\n", rc.Id, rc.fakeremain)
 }
 
 func (rc *Context) rayForPixel(x, y int, out *mat.Ray) {
@@ -174,7 +168,6 @@ func (rc *Context) rayForPixel(x, y int, out *mat.Ray) {
 	worldX := rc.camera.HalfWidth - xOffset
 	worldY := rc.camera.HalfHeight - yOffset
 
-	// mat.NewPoint(worldX, worldY, -1.0)
 	rc.pointInView.Elems[0] = worldX
 	rc.pointInView.Elems[1] = worldY
 
@@ -217,7 +210,6 @@ func (rc *Context) reflectedColor(comps mat.Computation, remainingReflections, r
 	reflectRay := mat.NewRay(comps.OverPoint, comps.ReflectVec)
 	remainingReflections--
 	reflectedColor := rc.colorAt(reflectRay, remainingReflections, remainingRefractions)
-	//return mat.MultiplyByScalar(reflectedColor, comps.Object.GetMaterial().Reflectivity)
 	return reflectedColor.Multiply(comps.Object.GetMaterial().Reflectivity)
 }
 
@@ -257,7 +249,6 @@ func (rc *Context) refractedColor(comps mat.Computation, remainingReflections, r
 	remainingRefractions--
 	nextColor := rc.colorAt(refractRay, remainingRefractions, remainingReflections)
 	transparency := comps.Object.GetMaterial().Transparency
-	//color := mat.MultiplyByScalar(nextColor, transparency)
 
 	return nextColor.Multiply(transparency)
 }
@@ -275,15 +266,9 @@ func (rc *Context) shadeHit(comps mat.Computation, remainingReflections, remaini
 	material := comps.Object.GetMaterial()
 	if material.Reflectivity > 0.0 && material.Transparency > 0.0 {
 		reflectance := mat.Schlick(comps)
-		//return surfaceColor.Add(reflectedColor.Multiply(reflectance)).Add(refractedColor.Multiply(1 - reflectance))
 		return mat.Add(mat.Add(surfaceColor, reflectedColor.Multiply(reflectance)), refractedColor.Multiply(1-reflectance))
-		//mat.Add3(surfaceColor, reflectedColor.Multiply(reflectance), refractedColor.Multiply(1 - reflectance), &comps.ShadeColor)
-		//return comps.ShadeColor
 	} else {
-		//return surfaceColor.Add(reflectedColor.Add(refractedColor))
 		return mat.Add(surfaceColor, mat.Add(reflectedColor, refractedColor))
-		//mat.Add3(surfaceColor, reflectedColor, refractedColor, &comps.ShadeColor)
-		//return comps.ShadeColor
 	}
 }
 
@@ -358,7 +343,6 @@ func (rc *Context) lighting(material mat.Material, object mat.Shape, light mat.L
 	// Add the three contributions together to get the final shading
 	// Uses standard Tuple addition
 	return ambient.Add(diffuse.Add(specular))
-	//return Add(Add(ambient, diffuse), specular)
 }
 
 type job struct {
@@ -378,6 +362,7 @@ type ShadeData struct {
 	LightData mat.LightData
 }
 
+// NewShadeData pre-allocates intersection lists etc
 func NewShadeData() ShadeData {
 	worldXS := make([]mat.Intersection, 16)
 	shadowXS := make([]mat.Intersection, 16)

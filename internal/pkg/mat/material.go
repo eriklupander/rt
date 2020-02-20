@@ -29,7 +29,7 @@ func NewDefaultReflectiveMaterial(reflectivity float64) Material {
 func NewGlassMaterial(refractiveIndex float64) Material {
 	m := NewDefaultMaterial()
 	m.RefractiveIndex = refractiveIndex
-	m.Transparency = 1.0 // correct for test?
+	m.Transparency = 1.0
 	return m
 }
 func (m *Material) HasPattern() bool {

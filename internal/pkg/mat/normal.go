@@ -41,5 +41,4 @@ func ReflectPtr(vec Tuple4, normal Tuple4, out *Tuple4) {
 	dotScalar := Dot(vec, normal)
 	norm := MultiplyByScalar(MultiplyByScalar(normal, 2.0), dotScalar)
 	SubPtr(vec, norm, out)
-
 }

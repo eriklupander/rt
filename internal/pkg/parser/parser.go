@@ -8,6 +8,8 @@ import (
 	"sort"
 )
 
+// ParseYAML is a WiP parser for loading scenes given a custom YAML format. The format is similar to, but not compatible
+// with the yaml files the book sometimes uses.
 func ParseYAML(file string) *Scene {
 	data, err := ioutil.ReadFile(file)
 	if err != nil {
