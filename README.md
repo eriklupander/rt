@@ -7,6 +7,17 @@ _(image from a feature-branch with WiP multisampling and soft shadows)_
 ### Description
 This is my WiP implementation of the Ray tracer as described in the book "The Ray Tracer Challenge" by https://pragprog.com/book/jbtracer/the-ray-tracer-challenge
 
+### Changelog (performance fixes)
+Just to keep track of which fixes were done when, kind of...
+
+- 2020-02-20: Refactor to use arrays instead of slices for Matrices and Tuples.
+- 2020-02-19: Use sort.Sort instead of sort.Slice
+- 2020-02-15: Soft shadows and multisamling (feature-branch)
+- 2020-02-05: Pass job per line instead of pixel
+- 2020-01-10: Reduce allocations, cache stuff in render contexts
+- 2019-12-28: Cache inverse
+- 2019-12-25: Multi-threading
+
 ### Features, State etc
 I think I've got all the features from the book covered, including:
 
