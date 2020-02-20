@@ -2,6 +2,7 @@ package render
 
 import (
 	"fmt"
+	"github.com/eriklupander/rt/internal/pkg/constant"
 	"github.com/eriklupander/rt/internal/pkg/mat"
 	"github.com/inhies/go-bytesize"
 	"math"
@@ -82,10 +83,8 @@ func Threaded(c mat.Camera, worlds []mat.World) *mat.Canvas {
 	//wg.Add(canvas.W * canvas.H)
 	wg.Add(canvas.H)
 
-	// allocate GOMAXPROCS render Contexts
-	var GOMAXPROCS = 8
-	renderContexts := make([]Context, GOMAXPROCS)
-	for i := 0; i < GOMAXPROCS; i++ {
+	renderContexts := make([]Context, constant.RenderThreads)
+	for i := 0; i < constant.RenderThreads; i++ {
 		renderContexts[i] = NewContext(i, worlds[i], c, canvas, jobs, &wg)
 	}
 
@@ -93,7 +92,7 @@ func Threaded(c mat.Camera, worlds []mat.World) *mat.Canvas {
 	//for i := 0; i < GOMAXPROCS; i++ {
 	//	go renderContexts[i].workerFuncPerPixel()
 	//}
-	for i := 0; i < GOMAXPROCS; i++ {
+	for i := 0; i < constant.RenderThreads; i++ {
 		go renderContexts[i].workerFuncPerLine()
 	}
 
@@ -129,7 +128,7 @@ func (rc *Context) workerFuncPerPixel() {
 }
 func (rc *Context) workerFuncPerLine() {
 	for job := range rc.jobs {
-		for i:=0;i < rc.camera.Width;i++ {
+		for i := 0; i < rc.camera.Width; i++ {
 			job.col = i
 			rc.renderPixel(job)
 		}

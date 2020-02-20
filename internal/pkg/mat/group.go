@@ -16,7 +16,7 @@ type Group struct {
 	savedRay  Ray
 
 	innerRays []Ray
-	xsCache   []Intersection
+	xsCache   Intersections
 	bb        *BoundingBox
 	c         *Cube
 }
@@ -80,7 +80,6 @@ func (g *Group) IntersectLocal(ray Ray) []Intersection {
 
 	TransformRayPtr(ray, g.Inverse, &g.savedRay)
 
-	//xs := make([]Intersection, 0)
 	g.xsCache = g.xsCache[:0]
 	for idx := range g.Children {
 		TransformRayPtr(g.savedRay, g.Children[idx].GetInverse(), &g.innerRays[idx])
@@ -90,9 +89,7 @@ func (g *Group) IntersectLocal(ray Ray) []Intersection {
 		}
 	}
 
-	sort.Slice(g.xsCache, func(i, j int) bool {
-		return g.xsCache[i].T < g.xsCache[j].T
-	})
+	sort.Sort(g.xsCache)
 	return g.xsCache
 }
 

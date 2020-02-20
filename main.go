@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/eriklupander/rt/internal/pkg/constant"
 	"github.com/eriklupander/rt/internal/pkg/mat"
 	"github.com/eriklupander/rt/internal/pkg/obj"
 	"github.com/eriklupander/rt/internal/pkg/render"
@@ -11,18 +12,17 @@ import (
 	"log"
 	"math"
 	"net/http"
-	"runtime"
-
 	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"syscall"
 )
 
+// main contains a load of old junk I've added while I completed chapters in the Ray Tracer Challenge book.
 func main() {
-	runtime.SetBlockProfileRate(1)
+	//runtime.SetBlockProfileRate(1)
 	//runtime.SetMutexProfileFraction(1)
-	// we need a webserver to get the pprof webserver
+	// we need a webserver to get the pprof going
 	go func() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))
 	}()
@@ -132,7 +132,6 @@ func withModel() {
 		w.Light = append(w.Light, mat.NewLight(mat.NewPoint(-1.5, 2.5, -3), mat.NewColor(1, 1, 1)))
 		worlds = append(worlds, w)
 	}
-
 
 	//canvas := mat.RenderThreaded(camera, w)
 	canvas := render.Threaded(camera, worlds)
@@ -265,6 +264,7 @@ func refraction() {
 	}
 }
 
+// This is my "reference image", used to benchmark the impl. in either 640x480 or 1920x1080
 func worldWithPlane() {
 	camera := mat.NewCamera(1920, 1080, math.Pi/3)
 	viewTransform := mat.ViewTransform(mat.NewPoint(-2, 1.0, -4), mat.NewPoint(0, 0.5, 0), mat.NewVector(0, 1, 0))
@@ -273,8 +273,8 @@ func worldWithPlane() {
 
 	light := mat.NewLight(mat.NewPoint(-5, 2.5, -3), mat.NewColor(1, 1, 1))
 
-	worlds := make([]mat.World, 8)
-	for i := 0; i < 8; i++ {
+	worlds := make([]mat.World, constant.RenderThreads)
+	for i := 0; i < constant.RenderThreads; i++ {
 		w := mat.NewWorld()
 		w.Light = append(w.Light, light)
 
@@ -383,10 +383,13 @@ func worldWithPlane() {
 	}
 
 	canvas := render.Threaded(camera, worlds)
-	// 300x139
+
+	// This is a hack, useful for debugging the renderering of a single pixel
 	//color := render.RenderSinglePixel(camera, worlds, 300, 139)
 	//fmt.Printf("%v\n", color)
 	//canvas := mat.RenderThreaded(camera, w)
+
+	// One can use this to render a unit-length XYZ axises superimposed on the image
 	//mat.RenderReferenceAxises(canvas, camera)
 
 	// write
@@ -400,7 +403,7 @@ func worldWithPlane() {
 	}
 
 	// outputFile is a File type which satisfies Writer interface
-	outputFile, err := os.Create("test.png")
+	outputFile, err := os.Create("test-sort-slice.png")
 	if err != nil {
 		panic(err.Error())
 	}
@@ -411,12 +414,6 @@ func worldWithPlane() {
 
 	// Don't forget to close files
 	outputFile.Close()
-
-	data := canvas.ToPPM()
-	err = ioutil.WriteFile("world-transparency-new-threaded.ppm", []byte(data), os.FileMode(0755))
-	if err != nil {
-		fmt.Println(err.Error())
-	}
 }
 
 func clamp(clr float64) uint8 {
