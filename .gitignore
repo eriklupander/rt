@@ -15,3 +15,5 @@ pic*
 rt
 *.iml
 bin/
+
+.DS_Store
