@@ -54,14 +54,14 @@ func (t Tuple4) IsPoint() bool {
 func Add(t1, t2 Tuple4) Tuple4 {
 	t3 := [4]float64{}
 	for i := 0; i < 4; i++ {
-		t3[i] = t1.Get(i) + t2.Get(i)
+		t3[i] = t1[i] + t2[i]
 	}
 	return t3
 }
 
 func AddPtr(t1, t2 Tuple4, t3 *Tuple4) {
 	for i := 0; i < 4; i++ {
-		t3[i] = t1.Get(i) + t2.Get(i)
+		t3[i] = t1[i] + t2[i]
 	}
 }
 
@@ -71,66 +71,66 @@ func Add3(t1, t2, t3 Tuple4, out *Tuple4) {
 	}
 }
 
-func (t3 Tuple4) Add(t2 Tuple4) Tuple4 {
+func (t Tuple4) Add(t2 Tuple4) Tuple4 {
 	for i := 0; i < 4; i++ {
-		t3[i] = t3.Get(i) + t2.Get(i)
+		t[i] = t[i] + t2[i]
 	}
-	return t3
+	return t
 }
 
 func Sub(t1, t2 Tuple4) Tuple4 {
 	t3 := [4]float64{}
 	for i := 0; i < 4; i++ {
-		t3[i] = t1.Get(i) - t2.Get(i)
+		t3[i] = t1[i] - t2[i]
 	}
 	return t3
 }
 
 func SubPtr(t1, t2 Tuple4, out *Tuple4) {
 	for i := 0; i < 4; i++ {
-		out[i] = t1.Get(i) - t2.Get(i)
+		out[i] = t1[i] - t2[i]
 	}
 }
 
 func Negate(t1 Tuple4) Tuple4 {
 	t3 := [4]float64{}
 	for i := 0; i < 4; i++ {
-		t3[i] = 0 - t1.Get(i)
+		t3[i] = 0 - t1[i]
 	}
 	return t3
 }
 
 func NegatePtr(t1 Tuple4, out *Tuple4) {
 	for i := 0; i < 4; i++ {
-		out[i] = 0 - t1.Get(i)
+		out[i] = 0 - t1[i]
 	}
 }
 
 func MultiplyByScalar(t1 Tuple4, scalar float64) Tuple4 {
 	t3 := [4]float64{}
 	for i := 0; i < 4; i++ {
-		t3[i] = t1.Get(i) * scalar
+		t3[i] = t1[i] * scalar
 	}
 	return t3
 }
 
 func MultiplyByScalarPtr(t1 Tuple4, scalar float64, out *Tuple4) {
 	for i := 0; i < 4; i++ {
-		out[i] = t1.Get(i) * scalar
+		out[i] = t1[i] * scalar
 	}
 }
 
-func (t3 Tuple4) Multiply(scalar float64) Tuple4 {
+func (t Tuple4) Multiply(scalar float64) Tuple4 {
 	for i := 0; i < 4; i++ {
-		t3[i] = t3[i] * scalar
+		t[i] = t[i] * scalar
 	}
-	return t3
+	return t
 }
 
 func DivideByScalar(t1 Tuple4, scalar float64) Tuple4 {
 	t3 := [4]float64{}
 	for i := 0; i < 4; i++ {
-		t3[i] = t1.Get(i) / scalar
+		t3[i] = t1[i] / scalar
 	}
 	return t3
 }

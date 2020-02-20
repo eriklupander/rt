@@ -49,9 +49,9 @@ func Hit(intersections []Intersection) (Intersection, bool) {
 
 	// Filter out all negatives
 	//xs := make([]Intersection, 0)
-	for _, i := range intersections {
-		if i.T > 0.0 {
-			return i, true
+	for i := 0; i < len(intersections); i++ {
+		if intersections[i].T > 0.0 {
+			return intersections[i], true
 			//xs = append(xs, i)
 		}
 	}

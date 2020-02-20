@@ -74,8 +74,10 @@ func (s *Sphere) IntersectLocal(r Ray) []Intersection {
 	s.savedRay = r
 	//s.xsCache = s.xsCache[:0]
 	// this is a vector from the origin of the ray to the center of the sphere at 0,0,0
-
 	//SubPtr(r.Origin, s.originPoint, &s.savedVec)
+
+	// Note that doing the Subtraction inlined was much faster than letting SubPtr do it.
+	// Shouldn't the SubPtr be inlined by the compiler? Need to figure out what's going on here...
 	for i := 0; i < 4; i++ {
 		s.savedVec[i] = r.Origin[i] - s.originPoint[i]
 	}
