@@ -42,9 +42,9 @@ func (s *SmoothTriangle) GetTransform() Mat4x4 {
 }
 
 func (s *SmoothTriangle) GetInverse() Mat4x4 {
-	elems := make([]float64, 16)
-	copy(elems, IdentityMatrix.Elems)
-	return Mat4x4{Elems: elems}
+	//elems := IdentityMatrix //make([]float64, 16)
+	//copy(elems, IdentityMatrix.Elems)
+	return IdentityMatrix // NewIdentityMatrix()//Mat4x4{}
 }
 
 func (s *SmoothTriangle) SetTransform(transform Mat4x4) {

@@ -105,7 +105,8 @@ func TestTheReflectedColorAtMaxRecursiveDepth(t *testing.T) {
 
 func TestRayForPixelThroughCenterOfCanvas(t *testing.T) {
 	cam := mat.NewCamera(201, 101, math.Pi/2.0)
-	copy(cam.Inverse.Elems, mat.IdentityMatrix.Elems)
+	// copy(cam.Inverse.Elems, mat.IdentityMatrix.Elems)
+	cam.Inverse = mat.IdentityMatrix
 	rc := NewContext(0, mat.NewWorld(), cam, nil, nil, nil)
 	r := mat.NewRay(mat.NewPoint(0, 0, 0), mat.NewVector(0, 0, 0))
 	rc.rayForPixel(100, 50, &r)
@@ -193,9 +194,9 @@ func TestColorWhenRayMiss(t *testing.T) {
 	rc := New(w)
 	r := mat.NewRay(mat.NewPoint(0, 0, -5), mat.NewVector(0, 1, 0))
 	color := rc.colorAt(r, 1, 5)
-	assert.Equal(t, color.Elems[0], 0.0)
-	assert.Equal(t, color.Elems[1], 0.0)
-	assert.Equal(t, color.Elems[2], 0.0)
+	assert.Equal(t, color[0], 0.0)
+	assert.Equal(t, color[1], 0.0)
+	assert.Equal(t, color[2], 0.0)
 }
 
 func TestColorWhenRayHits(t *testing.T) {
@@ -263,7 +264,7 @@ func TestWorldWithShadowTest(t *testing.T) {
 	comps := mat.NewComputation()
 	mat.PrepareComputationForIntersectionPtr(i, r, &comps)
 	color := rc.shadeHit(comps, 1, 1)
-	color.Elems[3] = 1 // just a fix for me using Tuple4 to represent colors...
+	color[3] = 1 // just a fix for me using Tuple4 to represent colors...
 	assert.Equal(t, mat.NewColor(0.1, 0.1, 0.1), color)
 }
 

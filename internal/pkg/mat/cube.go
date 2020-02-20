@@ -6,10 +6,10 @@ import (
 )
 
 func NewCube() *Cube {
-	m1 := NewMat4x4(make([]float64, 16))
-	copy(m1.Elems, IdentityMatrix.Elems)
-	inv := NewMat4x4(make([]float64, 16))
-	copy(inv.Elems, IdentityMatrix.Elems)
+	m1 := New4x4() //NewMat4x4(make([]float64, 16))
+	//copy(m1.Elems, IdentityMatrix.Elems)
+	inv := New4x4() //NewMat4x4(make([]float64, 16))
+	//copy(inv.Elems, IdentityMatrix.Elems)
 
 	savedXs := make([]Intersection, 2)
 	for i := 0; i < 2; i++ {

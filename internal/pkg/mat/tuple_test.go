@@ -80,7 +80,7 @@ func TestSubtractVectorFromZeroVector(t *testing.T) {
 }
 
 func TestNegateTuple(t *testing.T) {
-	t1 := Tuple4{[]float64{1, -2, 3, -4}}
+	t1 := NewTupleOf(1, -2, 3, -4)
 	t3 := Negate(t1)
 	assert.Equal(t, -1.0, t3.Get(0))
 	assert.Equal(t, 2.0, t3.Get(1))
@@ -89,7 +89,7 @@ func TestNegateTuple(t *testing.T) {
 }
 
 func TestMultiplyByScalar(t *testing.T) {
-	t1 := Tuple4{[]float64{1, -2, 3, -4}}
+	t1 := NewTupleOf(1, -2, 3, -4)
 	t3 := MultiplyByScalar(t1, 3.5)
 	assert.Equal(t, 3.5, t3.Get(0))
 	assert.Equal(t, -7.0, t3.Get(1))
@@ -98,7 +98,7 @@ func TestMultiplyByScalar(t *testing.T) {
 }
 
 func TestMultiplyByScalarFraction(t *testing.T) {
-	t1 := Tuple4{[]float64{1, -2, 3, -4}}
+	t1 := NewTupleOf(1, -2, 3, -4)
 	t3 := MultiplyByScalar(t1, 0.5)
 	assert.Equal(t, 0.5, t3.Get(0))
 	assert.Equal(t, -1.0, t3.Get(1))
@@ -107,7 +107,7 @@ func TestMultiplyByScalarFraction(t *testing.T) {
 }
 
 func TestDivideByScalar(t *testing.T) {
-	t1 := Tuple4{[]float64{1, -2, 3, -4}}
+	t1 := NewTupleOf(1, -2, 3, -4)
 	t3 := DivideByScalar(t1, 2)
 	assert.Equal(t, 0.5, t3.Get(0))
 	assert.Equal(t, -1.0, t3.Get(1))

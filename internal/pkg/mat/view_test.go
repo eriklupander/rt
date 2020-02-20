@@ -34,10 +34,10 @@ func TestViewTransformMovesTheWorld(t *testing.T) {
 
 func TestConstructCamera(t *testing.T) {
 	cam := NewCamera(160, 120, math.Pi/2.0)
-	assert.Equal(t, cam.Width, 160)
-	assert.Equal(t, cam.Height, 120)
-	assert.Equal(t, cam.Fov, math.Pi/2)
-	assert.Equal(t, cam.Transform, IdentityMatrix)
+	assert.Equal(t, 160, cam.Width)
+	assert.Equal(t, 120, cam.Height)
+	assert.Equal(t, math.Pi/2, cam.Fov)
+	assert.Equal(t, Mat4x4(IdentityMatrix), cam.Transform)
 }
 
 func TestCalcLandscapeCanvasPixelSize(t *testing.T) {

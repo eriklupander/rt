@@ -15,10 +15,10 @@ type Pattern interface {
 }
 
 func NewStripePattern(colorA Tuple4, colorB Tuple4) *StripePattern {
-	m1 := NewMat4x4(make([]float64, 16))
-	copy(m1.Elems, IdentityMatrix.Elems)
-	inv := NewMat4x4(make([]float64, 16))
-	copy(inv.Elems, IdentityMatrix.Elems)
+	m1 := New4x4() // NewMat4x4(make([]float64, 16))
+	//copy(m1.Elems, IdentityMatrix.Elems)
+	inv := New4x4() //NewMat4x4(make([]float64, 16))
+	//copy(inv.Elems, IdentityMatrix.Elems)
 	return &StripePattern{A: colorA, B: colorB, Transform: m1, Inverse: inv}
 }
 
@@ -28,10 +28,10 @@ type TestPattern struct {
 }
 
 func NewTestPattern() *TestPattern {
-	m1 := NewMat4x4(make([]float64, 16))
-	copy(m1.Elems, IdentityMatrix.Elems)
-	inv := NewMat4x4(make([]float64, 16))
-	copy(inv.Elems, IdentityMatrix.Elems)
+	m1 := New4x4() //NewMat4x4(make([]float64, 16))
+	//copy(m1.Elems, IdentityMatrix.Elems)
+	inv := New4x4() //NewMat4x4(make([]float64, 16))
+	//copy(inv.Elems, IdentityMatrix.Elems)
 	return &TestPattern{Transform: m1, Inverse: inv}
 }
 
@@ -84,10 +84,10 @@ type GradientPattern struct {
 }
 
 func NewGradientPattern(from, to Tuple4) *GradientPattern {
-	m1 := NewMat4x4(make([]float64, 16))
-	copy(m1.Elems, IdentityMatrix.Elems)
-	inv := NewMat4x4(make([]float64, 16))
-	copy(inv.Elems, IdentityMatrix.Elems)
+	m1 := New4x4() //NewMat4x4(make([]float64, 16))
+	//copy(m1.Elems, IdentityMatrix.Elems)
+	inv := New4x4() //NewMat4x4(make([]float64, 16))
+	//copy(inv.Elems, IdentityMatrix.Elems)
 	return &GradientPattern{FromColor: from, ToColor: to, Transform: m1, Inverse: inv}
 }
 
@@ -118,10 +118,10 @@ type RingPattern struct {
 }
 
 func NewRingPattern(a Tuple4, b Tuple4) *RingPattern {
-	m1 := NewMat4x4(make([]float64, 16))
-	copy(m1.Elems, IdentityMatrix.Elems)
-	inv := NewMat4x4(make([]float64, 16))
-	copy(inv.Elems, IdentityMatrix.Elems)
+	m1 := New4x4() //NewMat4x4(make([]float64, 16))
+	// copy(m1.Elems, IdentityMatrix.Elems)
+	inv := New4x4() //NewMat4x4(make([]float64, 16))
+	// copy(inv.Elems, IdentityMatrix.Elems)
 	return &RingPattern{A: a, B: b, Transform: m1, Inverse: inv}
 }
 
@@ -160,10 +160,10 @@ func PatternAtShape(pattern Pattern, s Shape, worldPoint Tuple4) Tuple4 {
 //space.
 
 func NewCheckerPattern(colorA Tuple4, colorB Tuple4) *CheckerPattern {
-	m1 := NewMat4x4(make([]float64, 16))
-	copy(m1.Elems, IdentityMatrix.Elems)
-	inv := NewMat4x4(make([]float64, 16))
-	copy(inv.Elems, IdentityMatrix.Elems)
+	m1 := New4x4() //NewMat4x4(make([]float64, 16))
+	//copy(m1.Elems, IdentityMatrix.Elems)
+	inv := New4x4() //NewMat4x4(make([]float64, 16))
+	//copy(inv.Elems, IdentityMatrix.Elems)
 	return &CheckerPattern{ColorA: colorA, ColorB: colorB, Transform: m1, Inverse: inv}
 }
 

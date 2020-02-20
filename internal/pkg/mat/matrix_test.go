@@ -61,7 +61,7 @@ func TestMultiply4x4(t *testing.T) {
 func TestMultiply4x4ByTuple(t *testing.T) {
 	m1 := NewMat4x4([]float64{1, 2, 3, 4, 2, 4, 4, 2, 8, 6, 4, 1, 0, 0, 0, 1})
 
-	t1 := NewTuple4([]float64{1, 2, 3, 1})
+	t1 := [4]float64{1, 2, 3, 1} //NewTuple4([]float64{1, 2, 3, 1})
 
 	t2 := MultiplyByTuple(m1, t1)
 	assert.Equal(t, 18.0, t2.Get(0))
@@ -77,7 +77,7 @@ func TestMultiplyByIdentityMatrix(t *testing.T) {
 }
 
 func TestMultiplyTupleByIdentityMatrix(t *testing.T) {
-	t1 := NewTuple4([]float64{1, 2, 3, 4})
+	t1 := NewTupleOf(1, 2, 3, 4)
 	t3 := MultiplyByTuple(IdentityMatrix, t1)
 	assert.True(t, TupleEquals(t1, t3))
 }
@@ -201,7 +201,7 @@ func TestInverse(t *testing.T) {
 		-0.52256, -0.81391, -0.30075, 0.30639})
 
 	for i := 0; i < 16; i++ {
-		assert.InEpsilon(t, expected.Elems[i], m3.Elems[i], Epsilon, fmt.Sprintf("index %d failed: values: %v %v", i, expected.Elems[i], m3.Elems[i]))
+		assert.InEpsilon(t, expected[i], m3[i], Epsilon, fmt.Sprintf("index %d failed: values: %v %v", i, expected[i], m3[i]))
 	}
 }
 
@@ -214,7 +214,7 @@ func TestInverse2(t *testing.T) {
 		-0.69231, -0.69231, -0.76923, -1.92308})
 
 	for i := 0; i < 16; i++ {
-		assert.InEpsilon(t, expected.Elems[i], m3.Elems[i], Epsilon, fmt.Sprintf("index %d failed: values: %v %v", i, expected.Elems[i], m3.Elems[i]))
+		assert.InEpsilon(t, expected[i], m3[i], Epsilon, fmt.Sprintf("index %d failed: values: %v %v", i, expected[i], m3[i]))
 	}
 }
 func TestInverse3(t *testing.T) {
@@ -231,7 +231,7 @@ func TestInverse3(t *testing.T) {
 		0.17778, 0.06667, -0.26667, 0.33333})
 
 	for i := 0; i < 16; i++ {
-		assert.InEpsilon(t, expected.Elems[i], m3.Elems[i], Epsilon, fmt.Sprintf("index %d failed: values: %v %v", i, expected.Elems[i], m3.Elems[i]))
+		assert.InEpsilon(t, expected[i], m3[i], Epsilon, fmt.Sprintf("index %d failed: values: %v %v", i, expected[i], m3[i]))
 	}
 }
 
@@ -279,11 +279,11 @@ func TestInvertIdentity(t *testing.T) {
 	fmt.Printf("%+v\n", i3)
 	fmt.Printf("%+v\n", t3)
 
-	tuple := NewTuple4([]float64{1, 2, 3, 0})
+	tuple := NewTupleOf(1, 2, 3, 0)
 	id1 := NewIdentityMatrix()
 	firstTuple := MultiplyByTuple(id1, tuple)
 
-	id1.Elems[5] = 7.0
+	id1[5] = 7.0
 	secondTuple := MultiplyByTuple(id1, tuple)
 
 	fmt.Printf("%+v\n", firstTuple)

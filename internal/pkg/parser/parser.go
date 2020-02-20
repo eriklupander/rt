@@ -211,9 +211,9 @@ func parseVector(v []interface{}) mat.Tuple4 {
 	for i := range v {
 		switch val := v[i].(type) {
 		case float64:
-			vec.Elems[i] = val
+			vec[i] = val
 		case int:
-			vec.Elems[i] = float64(val)
+			vec[i] = float64(val)
 		}
 	}
 	return vec
@@ -224,9 +224,9 @@ func parsePoint(v []interface{}) mat.Tuple4 {
 	for i := range v {
 		switch val := v[i].(type) {
 		case float64:
-			p.Elems[i] = val
+			p[i] = val
 		case int:
-			p.Elems[i] = float64(val)
+			p[i] = float64(val)
 		}
 	}
 	return p

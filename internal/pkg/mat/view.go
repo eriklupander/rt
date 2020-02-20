@@ -1,6 +1,7 @@
 package mat
 
 import (
+	"github.com/eriklupander/rt/internal/pkg/identity"
 	"math"
 )
 
@@ -29,17 +30,17 @@ func NewCamera(width int, height int, fov float64) Camera {
 	}
 	pixelSize := (halfWidth * 2) / float64(width)
 
-	transform := make([]float64, 16)
-	copy(transform, IdentityMatrix.Elems)
+	//transform := IdentityMatrix //make([]float64, 16)
+	//copy(transform, IdentityMatrix.Elems)
 
-	inverse := make([]float64, 16)
-	copy(inverse, IdentityMatrix.Elems)
+	//inverse := IdentityMatrix //make([]float64, 16)
+	//copy(inverse, IdentityMatrix.Elems)
 	return Camera{
 		Width:      width,
 		Height:     height,
 		Fov:        fov,
-		Transform:  Mat4x4{Elems: transform},
-		Inverse:    Mat4x4{Elems: inverse},
+		Transform:  identity.Matrix,
+		Inverse:    identity.Matrix,
 		PixelSize:  pixelSize,
 		HalfWidth:  halfWidth,
 		HalfHeight: halfHeight,
@@ -48,8 +49,8 @@ func NewCamera(width int, height int, fov float64) Camera {
 
 func ViewTransform(from, to, up Tuple4) Mat4x4 {
 	// Create a new matrix from the identity matrix.
-	vt := Mat4x4{Elems: make([]float64, 16)}
-	copy(vt.Elems, IdentityMatrix.Elems)
+	vt := IdentityMatrix //Mat4x4{Elems: make([]float64, 16)}
+	//copy(vt.Elems, IdentityMatrix.Elems)
 
 	// Sub creates the initial vector between the eye and what we're looking at.
 	forward := Normalize(Sub(to, from))
@@ -64,17 +65,17 @@ func ViewTransform(from, to, up Tuple4) Mat4x4 {
 	trueUp := Cross(left, forward)
 
 	// copy each axis into the matrix
-	vt.Elems[0] = left.Get(0)
-	vt.Elems[1] = left.Get(1)
-	vt.Elems[2] = left.Get(2)
+	vt[0] = left.Get(0)
+	vt[1] = left.Get(1)
+	vt[2] = left.Get(2)
 
-	vt.Elems[4] = trueUp.Get(0)
-	vt.Elems[5] = trueUp.Get(1)
-	vt.Elems[6] = trueUp.Get(2)
+	vt[4] = trueUp.Get(0)
+	vt[5] = trueUp.Get(1)
+	vt[6] = trueUp.Get(2)
 
-	vt.Elems[8] = -forward.Get(0)
-	vt.Elems[9] = -forward.Get(1)
-	vt.Elems[10] = -forward.Get(2)
+	vt[8] = -forward.Get(0)
+	vt[9] = -forward.Get(1)
+	vt[10] = -forward.Get(2)
 
 	// finally, move the view matrix opposite the camera position to emulate that the camera has moved.
 	return Multiply(vt, Translate(-from.Get(0), -from.Get(1), -from.Get(2)))

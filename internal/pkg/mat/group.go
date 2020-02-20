@@ -29,10 +29,10 @@ func (g *Group) SetParent(shape Shape) {
 }
 
 func NewGroup() *Group {
-	m1 := NewMat4x4(make([]float64, 16))
-	copy(m1.Elems, IdentityMatrix.Elems)
-	inv := NewMat4x4(make([]float64, 16))
-	copy(inv.Elems, IdentityMatrix.Elems)
+	m1 := New4x4() //NewMat4x4(make([]float64, 16))
+	//copy(m1.Elems, IdentityMatrix.Elems)
+	inv := New4x4() //NewMat4x4(make([]float64, 16))
+	//copy(inv.Elems, IdentityMatrix.Elems)
 
 	cachedXs := make([]Intersection, 16)
 	innerRays := make([]Ray, 0)
@@ -58,7 +58,7 @@ func (g *Group) GetTransform() Mat4x4 {
 }
 
 func (g *Group) GetInverse() Mat4x4 {
-	return g.Inverse //Inverse(g.Transform)
+	return g.Inverse
 }
 
 func (g *Group) SetTransform(transform Mat4x4) {

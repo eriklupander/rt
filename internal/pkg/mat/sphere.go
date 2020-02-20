@@ -11,12 +11,12 @@ func init() {
 }
 
 func NewSphere() *Sphere {
-	m1 := NewMat4x4(make([]float64, 16))
-	inv := NewMat4x4(make([]float64, 16))
-	copy(m1.Elems, IdentityMatrix.Elems)
-	copy(inv.Elems, IdentityMatrix.Elems)
+	m1 := New4x4()  //NewMat4x4(make([]float64, 16))
+	inv := New4x4() //NewMat4x4(make([]float64, 16))
+	//	copy(m1.Elems, IdentityMatrix.Elems)
+	//	copy(inv.Elems, IdentityMatrix.Elems)
 
-	xsCache := make([]Intersection, 2)
+	xsCache := make([]Intersection, 2, 2)
 	xsEmpty := make([]Intersection, 0)
 	return &Sphere{
 		Id:          rand.Int63(),
@@ -75,7 +75,10 @@ func (s *Sphere) IntersectLocal(r Ray) []Intersection {
 	//s.xsCache = s.xsCache[:0]
 	// this is a vector from the origin of the ray to the center of the sphere at 0,0,0
 
-	SubPtr(r.Origin, s.originPoint, &s.savedVec)
+	//SubPtr(r.Origin, s.originPoint, &s.savedVec)
+	for i := 0; i < 4; i++ {
+		s.savedVec[i] = r.Origin[i] - s.originPoint[i]
+	}
 
 	// This dot product is
 	a := Dot(r.Direction, r.Direction)

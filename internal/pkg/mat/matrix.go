@@ -2,46 +2,18 @@ package mat
 
 import "github.com/eriklupander/rt/internal/pkg/identity"
 
-var IdentityMatrix = Mat4x4{identity.Matrix}
+var IdentityMatrix = identity.Matrix
 
 func NewIdentityMatrix() Mat4x4 {
 	m1 := NewMat4x4(make([]float64, 16))
-	copy(m1.Elems, IdentityMatrix.Elems)
+
+	// Does this really copy arrays
+	for i := 0; i < 16; i++ {
+		m1[i] = IdentityMatrix[i]
+	}
+
+	//copy(m1, IdentityMatrix.Elems)
 	return m1
-}
-
-type Mat2x2 struct {
-	Elems []float64
-}
-
-func NewMat2x2(elems []float64) Mat2x2 {
-	return Mat2x2{Elems: elems}
-}
-
-type Mat3x3 struct {
-	Elems []float64
-}
-
-func NewMat3x3(elems []float64) Mat3x3 {
-	return Mat3x3{Elems: elems}
-}
-
-type Mat4x4 struct {
-	Elems []float64
-}
-
-func NewMat4x4(elems []float64) Mat4x4 {
-	return Mat4x4{Elems: elems}
-}
-
-func (m Mat2x2) Get(row int, col int) float64 {
-	return m.Elems[(row*2)+col]
-}
-func (m Mat3x3) Get(row int, col int) float64 {
-	return m.Elems[(row*3)+col]
-}
-func (m Mat4x4) Get(row int, col int) float64 {
-	return m.Elems[(row*4)+col]
 }
 
 func Equals(m1, m2 Mat4x4) bool {
@@ -79,29 +51,33 @@ func Multiply(m1 Mat4x4, m2 Mat4x4) Mat4x4 {
 	m3 := NewMat4x4(make([]float64, 16))
 	for row := 0; row < 4; row++ {
 		for col := 0; col < 4; col++ {
-			m3.Elems[(row*4)+col] = multiply4x4(m1, m2, row, col)
+			m3[(row*4)+col] = multiply4x4(m1, m2, row, col)
 		}
 	}
 	return m3
 }
 
 func MultiplyByTuple(m1 Mat4x4, t Tuple4) Tuple4 {
-	t1 := NewTuple4(make([]float64, 4))
+	t1 := NewTuple()
 	for row := 0; row < 4; row++ {
-		t1.Elems[row] = (m1.Get(row, 0) * t.Get(0)) +
-			(m1.Get(row, 1) * t.Get(1)) +
-			(m1.Get(row, 2) * t.Get(2)) +
-			(m1.Get(row, 3) * t.Get(3))
+		t1[row] = (m1[(row*4)+0] * t[0]) +
+			(m1[(row*4)+1] * t[1]) +
+			(m1[(row*4)+2] * t[2]) +
+			(m1[(row*4)+3] * t[3])
+		//t1[row] = (m1.Get(row, 0) * t.Get(0)) +
+		//	(m1.Get(row, 1) * t.Get(1)) +
+		//	(m1.Get(row, 2) * t.Get(2)) +
+		//	(m1.Get(row, 3) * t.Get(3))
 	}
 	return t1
 }
 
 func MultiplyByTuplePtr(m1 Mat4x4, t Tuple4, out *Tuple4) {
 	for row := 0; row < 4; row++ {
-		out.Elems[row] = (m1.Get(row, 0) * t.Get(0)) +
-			(m1.Get(row, 1) * t.Get(1)) +
-			(m1.Get(row, 2) * t.Get(2)) +
-			(m1.Get(row, 3) * t.Get(3))
+		out[row] = (m1[(row*4)+0] * t[0]) +
+			(m1[(row*4)+1] * t[1]) +
+			(m1[(row*4)+2] * t[2]) +
+			(m1[(row*4)+3] * t[3])
 	}
 }
 
@@ -110,7 +86,7 @@ func Transpose(m1 Mat4x4) Mat4x4 {
 	m3 := NewMat4x4(make([]float64, 16))
 	for col := 0; col < 4; col++ {
 		for row := 0; row < 4; row++ {
-			m3.Elems[(row*4)+col] = m1.Get(col, row)
+			m3[(row*4)+col] = m1[(col*4)+row] //m1.Get(col, row)
 		}
 	}
 	return m3
@@ -121,14 +97,14 @@ func Transpose(m1 Mat4x4) Mat4x4 {
 // [C,D]
 // Matrix.
 func Determinant2x2(m1 Mat2x2) float64 {
-	return m1.Elems[0]*m1.Elems[3] - m1.Elems[1]*m1.Elems[2]
+	return m1[0]*m1[3] - m1[1]*m1[2]
 }
 
 // Determinant3x3 takes the first row of the passed matrix, summing the colvalue * Cofactor of the same col
 func Determinant3x3(m1 Mat3x3) float64 {
 	det := 0.0
 	for col := 0; col < 3; col++ {
-		det = det + m1.Elems[col]*Cofactor3x3(m1, 0, col)
+		det = det + m1[col]*Cofactor3x3(m1, 0, col)
 	}
 	return det
 }
@@ -137,14 +113,14 @@ func Determinant3x3(m1 Mat3x3) float64 {
 func Determinant4x4(m1 Mat4x4) float64 {
 	det := 0.0
 	for col := 0; col < 4; col++ {
-		det = det + m1.Elems[col]*Cofactor4x4(m1, 0, col)
+		det = det + m1[col]*Cofactor4x4(m1, 0, col)
 	}
 	return det
 }
 
 // Submatrix3x3 extracts the 2x2 submatrix after deleting row and col from the passed 3x3
 func Submatrix3x3(m1 Mat3x3, deleteRow, deleteCol int) Mat2x2 {
-	m3 := NewMat2x2(make([]float64, 4))
+	m3 := [4]float64{} //NewMat2x2(make([]float64, 4))
 	idx := 0
 	for row := 0; row < 3; row++ {
 		if row == deleteRow {
@@ -155,7 +131,7 @@ func Submatrix3x3(m1 Mat3x3, deleteRow, deleteCol int) Mat2x2 {
 				continue
 			}
 
-			m3.Elems[idx] = m1.Get(row, col)
+			m3[idx] = m1[(row*3)+col] //.Get(row, col)
 			idx++
 		}
 	}
@@ -174,7 +150,7 @@ func Submatrix4x4(m1 Mat4x4, deleteRow, deleteCol int) Mat3x3 {
 			if col == deleteCol {
 				continue
 			}
-			m3.Elems[idx] = m1.Get(row, col)
+			m3[idx] = m1[(row*4)+col] //.Get(row, col)
 			idx++
 		}
 	}
@@ -224,7 +200,7 @@ func Inverse(m1 Mat4x4) Mat4x4 {
 			c := Cofactor4x4(m1, row, col)
 			// note that "col, row" here, instead of "row, col",
 			// accomplishes the transpose operation!
-			m3.Elems[col*4+row] = c / d4
+			m3[col*4+row] = c / d4
 		}
 	}
 	return m3
@@ -232,9 +208,13 @@ func Inverse(m1 Mat4x4) Mat4x4 {
 
 func multiply4x4(m1 Mat4x4, m2 Mat4x4, row int, col int) float64 {
 	// always row from m1, col from m2
-	a0 := m1.Get(row, 0) * m2.Get(0, col)
-	a1 := m1.Get(row, 1) * m2.Get(1, col)
-	a2 := m1.Get(row, 2) * m2.Get(2, col)
-	a3 := m1.Get(row, 3) * m2.Get(3, col)
+	//a0 := m1.Get(row, 0) * m2.Get(0, col)
+	//a1 := m1.Get(row, 1) * m2.Get(1, col)
+	//a2 := m1.Get(row, 2) * m2.Get(2, col)
+	//a3 := m1.Get(row, 3) * m2.Get(3, col)
+	a0 := m1[(row*4)+0] * m2[0+col]
+	a1 := m1[(row*4)+1] * m2[4+col]  //m2.Get(1, col)
+	a2 := m1[(row*4)+2] * m2[8+col]  // m2.Get(2, col)
+	a3 := m1[(row*4)+3] * m2[12+col] //m2.Get(3, col)
 	return a0 + a1 + a2 + a3
 }

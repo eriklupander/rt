@@ -1,6 +1,6 @@
 package identity
 
-var Matrix = []float64{
+var Matrix = [16]float64{
 	1, 0, 0, 0,
 	0, 1, 0, 0,
 	0, 0, 1, 0,

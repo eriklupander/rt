@@ -44,27 +44,26 @@ func IntersectRayWithShapePtr(s Shape, r2 Ray, in *Ray) []Intersection {
 	return s.IntersectLocal(*in)
 }
 
+// Hit finds the first intersection with a positive T (the passed intersections are assumed to have been sorted already)
 func Hit(intersections []Intersection) (Intersection, bool) {
 
 	// Filter out all negatives
-	xs := make([]Intersection, 0)
+	//xs := make([]Intersection, 0)
 	for _, i := range intersections {
 		if i.T > 0.0 {
-			xs = append(xs, i)
+			return i, true
+			//xs = append(xs, i)
 		}
 	}
 
-	if len(xs) == 0 {
-		return Intersection{}, false
-	}
-	if len(xs) == 1 {
-		return xs[0], true
-	}
-	// original list should be sorted already
-	//sort.Slice(xs, func(i, j int) bool {
-	//	return xs[i].T < xs[j].T
-	//})
-	return xs[0], true
+	//if len(xs) == 0 {
+	return Intersection{}, false
+	//}
+	//if len(xs) == 1 {
+	//	return xs[0], true
+	//}
+
+	//return xs[0], true
 }
 
 func TransformRay(r Ray, m1 Mat4x4) Ray {

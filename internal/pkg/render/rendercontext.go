@@ -168,8 +168,8 @@ func (rc *Context) rayForPixel(x, y int, out *mat.Ray) {
 	worldX := rc.camera.HalfWidth - xOffset
 	worldY := rc.camera.HalfHeight - yOffset
 
-	rc.pointInView.Elems[0] = worldX
-	rc.pointInView.Elems[1] = worldY
+	rc.pointInView[0] = worldX
+	rc.pointInView[1] = worldY
 
 	mat.MultiplyByTuplePtr(rc.camera.Inverse, rc.pointInView, &rc.pixel)
 	mat.MultiplyByTuplePtr(rc.camera.Inverse, originPoint, &rc.origin)
@@ -192,7 +192,7 @@ func (rc *Context) colorAt(r mat.Ray, remainingReflections int, remainingRefract
 			mat.PrepareComputationForIntersectionPtr(hit, r, &rc.cStack[rc.total].Comps, rc.cStack[rc.total].WorldXS...)
 			clr := rc.shadeHit(rc.cStack[rc.total].Comps, remainingReflections, remainingRefractions)
 
-			if clr.Elems[0] < 0 || clr.Elems[1] < 0 || clr.Elems[2] < 0 {
+			if clr[0] < 0 || clr[1] < 0 || clr[2] < 0 {
 				panic("negative color!!")
 			}
 			return clr

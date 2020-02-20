@@ -266,7 +266,7 @@ func refraction() {
 
 // This is my "reference image", used to benchmark the impl. in either 640x480 or 1920x1080
 func worldWithPlane() {
-	camera := mat.NewCamera(1920, 1080, math.Pi/3)
+	camera := mat.NewCamera(640, 480, math.Pi/3)
 	viewTransform := mat.ViewTransform(mat.NewPoint(-2, 1.0, -4), mat.NewPoint(0, 0.5, 0), mat.NewVector(0, 1, 0))
 	camera.Transform = viewTransform
 	camera.Inverse = mat.Inverse(viewTransform)
@@ -396,9 +396,9 @@ func worldWithPlane() {
 	myImage := image.NewRGBA(image.Rect(0, 0, canvas.W, canvas.H))
 
 	for i := 0; i < len(canvas.Pixels); i++ {
-		myImage.Pix[i*4] = clamp(canvas.Pixels[i].Elems[0])
-		myImage.Pix[i*4+1] = clamp(canvas.Pixels[i].Elems[1])
-		myImage.Pix[i*4+2] = clamp(canvas.Pixels[i].Elems[2])
+		myImage.Pix[i*4] = clamp(canvas.Pixels[i][0])
+		myImage.Pix[i*4+1] = clamp(canvas.Pixels[i][1])
+		myImage.Pix[i*4+2] = clamp(canvas.Pixels[i][2])
 		myImage.Pix[i*4+3] = 255
 	}
 
