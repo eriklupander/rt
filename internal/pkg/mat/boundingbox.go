@@ -6,10 +6,11 @@ type BoundingBox struct {
 	Min Tuple4
 	Max Tuple4
 }
-func NewEmptyBoundingBox() BoundingBox {
-	return BoundingBox{
-		Min: Tuple4{math.Inf(1),math.Inf(1),math.Inf(1)},
-		Max: Tuple4{math.Inf(-1),math.Inf(-1),math.Inf(-1)},
+
+func NewEmptyBoundingBox() *BoundingBox {
+	return &BoundingBox{
+		Min: NewPoint(math.Inf(1), math.Inf(1), math.Inf(1)),
+		Max: NewPoint(math.Inf(-1), math.Inf(-1), math.Inf(-1)),
 	}
 }
 func NewBoundingBox(pointA Tuple4, pointB Tuple4) *BoundingBox {
@@ -19,8 +20,58 @@ func NewBoundingBoxF(x1, y1, z1, x2, y2, z2 float64) *BoundingBox {
 	return &BoundingBox{NewPoint(x1, y1, z1), NewPoint(x2, y2, z2)}
 }
 
-func FindBounds(shape Shape) *BoundingBox {
-	return nil
+func (b *BoundingBox) Add(p Tuple4) {
+	if b.Min[0] > p[0] {
+		b.Min[0] = p[0]
+	}
+	if b.Min[1] > p[1] {
+		b.Min[1] = p[1]
+	}
+	if b.Min[2] > p[2] {
+		b.Min[2] = p[2]
+	}
+
+	if b.Max[0] < p[0] {
+		b.Max[0] = p[0]
+	}
+	if b.Max[1] < p[1] {
+		b.Max[1] = p[1]
+	}
+	if b.Max[2] < p[2] {
+		b.Max[2] = p[2]
+	}
+}
+
+func BoundsOf(shape Shape) *BoundingBox {
+	switch val := shape.(type) {
+	case *Cube:
+		return NewBoundingBoxF(-1, -1, -1, 1, 1, 1)
+	case *Sphere:
+		return NewBoundingBoxF(-1, -1, -1, 1, 1, 1)
+	case *Plane:
+		return NewBoundingBoxF(math.Inf(-1), 0, math.Inf(-1), math.Inf(1), 0, math.Inf(1))
+	case *Cylinder:
+		return NewBoundingBoxF(-1, val.minY, -1, 1, val.maxY, 1)
+	case *Cone:
+		xzMin := math.Abs(val.minY)
+		xzMax := math.Abs(val.maxY)
+		limit := xzMin
+		if xzMax > limit {
+			limit = xzMax
+		}
+
+		return NewBoundingBoxF(-limit, val.minY, -limit, limit, val.maxY, limit)
+	case *Triangle:
+		bb := NewEmptyBoundingBox()
+		bb.Add(val.P1)
+		bb.Add(val.P2)
+		bb.Add(val.P3)
+		return bb
+
+	default:
+		return NewBoundingBoxF(-1, -1, -1, 1, 1, 1)
+	}
+
 }
 
 func FindGroupBounds(group Group) *BoundingBox {

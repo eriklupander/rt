@@ -14,8 +14,6 @@ type Shape interface {
 	SetParent(shape Shape)
 }
 
-var currentPoint = NewPoint(0, 0, 0)
-
 func WorldToObject(shape Shape, point Tuple4) Tuple4 {
 	if shape.GetParent() != nil {
 		point = WorldToObject(shape.GetParent(), point)
