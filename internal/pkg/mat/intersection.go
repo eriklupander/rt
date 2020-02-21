@@ -1,6 +1,7 @@
 package mat
 
 import (
+	"math"
 	"sort"
 )
 
@@ -58,6 +59,37 @@ func IntersectWithWorldPtr(w World, r Ray, xs Intersections, inRay *Ray) []Inter
 	}
 	sort.Sort(xs)
 	return xs
+}
+
+func IntersectRayWithBox(ray Ray, bb *BoundingBox) bool {
+	// There is supposed  to be a way to optimize this for fewer checks by looking at early values.
+	xtmin, xtmax := checkAxisForBB(ray.Origin.Get(0), ray.Direction.Get(0), bb.Min[0], bb.Max[0])
+	ytmin, ytmax := checkAxisForBB(ray.Origin.Get(1), ray.Direction.Get(1), bb.Min[1], bb.Max[1])
+	ztmin, ztmax := checkAxisForBB(ray.Origin.Get(2), ray.Direction.Get(2), bb.Min[2], bb.Max[2])
+
+	// Om det största av min-värdena är större än det minsta max-värdet.
+	tmin := max(xtmin, ytmin, ztmin)
+	tmax := min(xtmax, ytmax, ztmax)
+	return tmin < tmax
+}
+func checkAxisForBB(origin float64, direction float64, minBB, maxBB float64) (min float64, max float64) {
+	tminNumerator := minBB - origin
+	tmaxNumerator := maxBB - origin
+	var tmin, tmax float64
+	if math.Abs(direction) >= Epsilon {
+		tmin = tminNumerator / direction
+		tmax = tmaxNumerator / direction
+	} else {
+		tmin = tminNumerator * math.Inf(1)
+		tmax = tmaxNumerator * math.Inf(1)
+	}
+	if tmin > tmax {
+		// swap
+		temp := tmin
+		tmin = tmax
+		tmax = temp
+	}
+	return tmin, tmax
 }
 
 func IntersectionAllowed(op string, lhit, inl, inr bool) bool {

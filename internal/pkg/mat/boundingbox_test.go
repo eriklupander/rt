@@ -144,4 +144,116 @@ func TestBoxContainsBox(t *testing.T) {
 	}
 }
 
+func TestTransformBoundingBox(t *testing.T) {
+	box := NewBoundingBoxF(-1, -1, -1, 1, 1, 1)
+	m1 := Multiply(RotateX(math.Pi/4), RotateY(math.Pi/4))
+	box2 := TransformBoundingBox(box, m1)
 
+	assert.InEpsilon(t, -1.4142, box2.Min[0], Epsilon)
+	assert.InEpsilon(t, -1.7071, box2.Min[1], Epsilon)
+	assert.InEpsilon(t, -1.7071, box2.Min[2], Epsilon)
+	assert.InEpsilon(t, 1.4142, box2.Max[0], Epsilon)
+	assert.InEpsilon(t, 1.7071, box2.Max[1], Epsilon)
+	assert.InEpsilon(t, 1.7071, box2.Max[2], Epsilon)
+}
+
+func TestQueryBBTransformInParentSpace(t *testing.T) {
+	shape := NewSphere()
+	shape.SetTransform(Translate(1, -3, 5))
+	shape.SetTransform(Scale(0.5, 2, 4))
+	box := ParentSpaceBounds(shape)
+	assert.Equal(t, NewPoint(0.5, -5, 1), box.Min)
+	assert.Equal(t, NewPoint(1.5, -1, 9), box.Max)
+}
+
+func TestGroupBoundingBoxContainsAllItsChildren(t *testing.T) {
+
+	s := NewSphere()
+	s.SetTransform(Translate(2, 5, -3))
+	s.SetTransform(Scale(2, 2, 2))
+
+	c := NewCylinder()
+	c.minY = -2
+	c.maxY = 2
+	c.SetTransform(Translate(-4, -1, 4))
+	c.SetTransform(Scale(0.5, 1, 0.5))
+	g := NewGroup()
+	g.AddChild(s)
+	g.AddChild(c)
+	box := BoundsOf(g)
+	assert.Equal(t, NewPoint(-4.5, -3, -5), box.Min)
+	assert.Equal(t, NewPoint(4, 7, 4.5), box.Max)
+}
+
+func TestCSGBoundingBoxContainsAllItsChildren(t *testing.T) {
+
+	left := NewSphere()
+	right := NewSphere()
+	right.SetTransform(Translate(2, 3, 4))
+	csg := NewCSG("difference", left, right)
+	box := BoundsOf(csg)
+	assert.Equal(t, NewPoint(-1, -1, -1), box.Min)
+	assert.Equal(t, NewPoint(3, 4, 5), box.Max)
+}
+
+func TestIntersectBoundingBoxWithRayAtOrigin(t *testing.T) {
+
+	box := NewBoundingBoxF(-1, -1, -1, 1, 1, 1)
+
+	testcases := []struct {
+		origin    Tuple4
+		direction Tuple4
+		result    bool
+	}{
+		{NewPoint(5, 0.5, 0), NewVector(-1, 0, 0), true},
+		{NewPoint(-5, 0.5, 0), NewVector(1, 0, 0), true},
+		{NewPoint(0.5, 5, 0), NewVector(0, -1, 0), true},
+		{NewPoint(0.5, -5, 0), NewVector(0, 1, 0), true},
+		{NewPoint(0.5, 0, 5), NewVector(0, 0, -1), true},
+		{NewPoint(0.5, 0, -5), NewVector(0, 0, 1), true},
+		{NewPoint(0, 0.5, 0), NewVector(0, 0, 1), true},
+		{NewPoint(-2, 0, 0), NewVector(2, 4, 6), false},
+		{NewPoint(0, -2, 0), NewVector(6, 2, 4), false},
+		{NewPoint(0, 0, -2), NewVector(4, 6, 2), false},
+		{NewPoint(2, 0, 2), NewVector(0, 0, -1), false},
+		{NewPoint(0, 2, 2), NewVector(0, -1, 0), false},
+		{NewPoint(2, 2, 0), NewVector(-1, 0, 0), false},
+	}
+
+	for _, tc := range testcases {
+		direction := Normalize(tc.direction)
+		r := NewRay(tc.origin, direction)
+		assert.Equal(t, tc.result, IntersectRayWithBox(r, box))
+	}
+}
+
+func TestIntersectNonCubicBoundingBoxWithRay(t *testing.T) {
+
+	box := NewBoundingBoxF(5, -2, 0, 11, 4, 7)
+
+	testcases := []struct {
+		origin    Tuple4
+		direction Tuple4
+		result    bool
+	}{
+		{NewPoint(15, 1, 2), NewVector(-1, 0, 0), true},
+		{NewPoint(-5, -1, 4), NewVector(1, 0, 0), true},
+		{NewPoint(7, 6, 5), NewVector(0, -1, 0), true},
+		{NewPoint(9, -5, 6), NewVector(0, 1, 0), true},
+		{NewPoint(8, 2, 12), NewVector(0, 0, -1), true},
+		{NewPoint(6, 0, -5), NewVector(0, 0, 1), true},
+		{NewPoint(8, 1, 3.5), NewVector(0, 0, 1), true},
+		{NewPoint(9, -1, -8), NewVector(2, 4, 6), false},
+		{NewPoint(8, 3, -4), NewVector(6, 2, 4), false},
+		{NewPoint(9, -1, -2), NewVector(4, 6, 2), false},
+		{NewPoint(4, 0, 9), NewVector(0, 0, -1), false},
+		{NewPoint(8, 6, -1), NewVector(0, -1, 0), false},
+		{NewPoint(12, 5, 4), NewVector(-1, 0, 0), false},
+	}
+
+	for _, tc := range testcases {
+		direction := Normalize(tc.direction)
+		r := NewRay(tc.origin, direction)
+		assert.Equal(t, tc.result, IntersectRayWithBox(r, box))
+	}
+}

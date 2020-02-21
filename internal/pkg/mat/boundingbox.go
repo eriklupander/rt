@@ -56,8 +56,47 @@ func (b *BoundingBox) Add(p Tuple4) {
 	}
 }
 
+func ParentSpaceBounds(shape Shape) *BoundingBox {
+	bb := BoundsOf(shape)
+	return TransformBoundingBox(bb, shape.GetTransform())
+}
+
+func TransformBoundingBox(bbox *BoundingBox, m1 Mat4x4) *BoundingBox {
+	p1 := bbox.Min
+	p2 := NewPoint(bbox.Min[0], bbox.Min[1], bbox.Max[2])
+	p3 := NewPoint(bbox.Min[0], bbox.Max[1], bbox.Min[2])
+	p4 := NewPoint(bbox.Min[0], bbox.Max[1], bbox.Max[2])
+	p5 := NewPoint(bbox.Max[0], bbox.Min[1], bbox.Min[2])
+	p6 := NewPoint(bbox.Max[0], bbox.Min[1], bbox.Max[2])
+	p7 := NewPoint(bbox.Max[0], bbox.Max[1], bbox.Min[2])
+	p8 := bbox.Max
+
+	out := NewEmptyBoundingBox()
+	out.Add(MultiplyByTuple(m1, p1))
+	out.Add(MultiplyByTuple(m1, p2))
+	out.Add(MultiplyByTuple(m1, p3))
+	out.Add(MultiplyByTuple(m1, p4))
+	out.Add(MultiplyByTuple(m1, p5))
+	out.Add(MultiplyByTuple(m1, p6))
+	out.Add(MultiplyByTuple(m1, p7))
+	out.Add(MultiplyByTuple(m1, p8))
+	return out
+}
+
 func BoundsOf(shape Shape) *BoundingBox {
 	switch val := shape.(type) {
+	case *Group:
+		box := NewEmptyBoundingBox()
+		for i := 0; i < len(val.Children); i++ {
+			cbox := ParentSpaceBounds(val.Children[i])
+			box.MergeWith(cbox)
+		}
+		return box
+	case *CSG:
+		box := NewEmptyBoundingBox()
+		box.MergeWith(ParentSpaceBounds(val.Left))
+		box.MergeWith(ParentSpaceBounds(val.Right))
+		return box
 	case *Cube:
 		return NewBoundingBoxF(-1, -1, -1, 1, 1, 1)
 	case *Sphere:
