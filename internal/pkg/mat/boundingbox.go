@@ -20,6 +20,20 @@ func NewBoundingBoxF(x1, y1, z1, x2, y2, z2 float64) *BoundingBox {
 	return &BoundingBox{NewPoint(x1, y1, z1), NewPoint(x2, y2, z2)}
 }
 
+func (b *BoundingBox) ContainsPoint(p Tuple4) bool {
+	return b.Min[0] <= p[0] && b.Min[1] <= p[1] && b.Min[2] <= p[2] &&
+		b.Max[0] >= p[0] && b.Max[1] >= p[1] && b.Max[2] >= p[2]
+}
+
+func (b *BoundingBox) ContainsBox(b2 *BoundingBox) bool {
+	return b.ContainsPoint(b2.Min) && b.ContainsPoint(b2.Max)
+}
+
+func (b *BoundingBox) MergeWith(b2 *BoundingBox) {
+	b.Add(b2.Min)
+	b.Add(b2.Max)
+}
+
 func (b *BoundingBox) Add(p Tuple4) {
 	if b.Min[0] > p[0] {
 		b.Min[0] = p[0]
@@ -71,7 +85,6 @@ func BoundsOf(shape Shape) *BoundingBox {
 	default:
 		return NewBoundingBoxF(-1, -1, -1, 1, 1, 1)
 	}
-
 }
 
 func FindGroupBounds(group Group) *BoundingBox {

@@ -91,3 +91,57 @@ func TestBoundsOfTriangle(t *testing.T) {
 	assert.Equal(t, NewPoint(-3, -1, -4), box.Min)
 	assert.Equal(t, NewPoint(6, 7, 2), box.Max)
 }
+
+func TestBoundingBox_MergeWith(t *testing.T) {
+	b1 := NewBoundingBoxF(-5, -2, 0, 7, 4, 4)
+	b2 := NewBoundingBoxF(8, -7, -2, 14, 2, 8)
+	b1.MergeWith(b2)
+	assert.Equal(t, NewPoint(-5, -7, -2), b1.Min)
+	assert.Equal(t, NewPoint(14, 4, 8), b1.Max)
+}
+
+func TestBoundingBoxContainsPoint(t *testing.T) {
+
+	bb := NewBoundingBoxF(5, -2, 0, 11, 4, 7)
+	tests := []struct {
+		point  Tuple4
+		result bool
+	}{
+		{NewPoint(5, -2, 0), true},
+		{NewPoint(11, 4, 7), true},
+		{NewPoint(8, 1, 3), true},
+		{NewPoint(3, 0, 3), false},
+		{NewPoint(8, -4, 3), false},
+		{NewPoint(8, 1, -1), false},
+		{NewPoint(13, 1, 3), false},
+		{NewPoint(8, 5, 3), false},
+		{NewPoint(8, 1, 8), false},
+	}
+
+	for _, tc := range tests {
+		res := bb.ContainsPoint(tc.point)
+		assert.Equal(t, tc.result, res)
+	}
+}
+
+func TestBoxContainsBox(t *testing.T) {
+
+	bb := NewBoundingBoxF(5, -2, 0, 11, 4, 7)
+	tests := []struct {
+		min    Tuple4
+		max    Tuple4
+		result bool
+	}{
+		{NewPoint(5, -2, 0), NewPoint(11, 4, 7), true},
+		{NewPoint(6, -1, 1), NewPoint(10, 3, 6), true},
+		{NewPoint(4, -3, -1), NewPoint(10, 3, 6), false},
+		{NewPoint(6, -1, 1), NewPoint(12, 5, 8), false},
+	}
+
+	for _, tc := range tests {
+		res := bb.ContainsBox(NewBoundingBox(tc.min, tc.max))
+		assert.Equal(t, tc.result, res)
+	}
+}
+
+
