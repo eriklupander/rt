@@ -2,6 +2,7 @@ package render
 
 import (
 	"fmt"
+	"github.com/eriklupander/rt/internal/pkg/calcstats"
 	"github.com/eriklupander/rt/internal/pkg/constant"
 	"github.com/eriklupander/rt/internal/pkg/mat"
 	"github.com/inhies/go-bytesize"
@@ -117,7 +118,7 @@ func Threaded(c mat.Camera, worlds []mat.World) *mat.Canvas {
 	fmt.Printf("Mallocs: %v ", stats.Mallocs)
 	fmt.Printf("Total alloc: %v\n", bytesize.New(float64(stats.TotalAlloc)).String())
 	fmt.Printf("%v\n", time.Now().Sub(st))
-	//fmt.Printf("XS skipped in group: %v\n", calcstats.Cnt)
+	fmt.Printf("XS skipped in group: %v\n", calcstats.Cnt)
 	return canvas
 }
 

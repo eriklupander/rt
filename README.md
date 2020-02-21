@@ -10,6 +10,7 @@ This is my WiP implementation of the Ray tracer as described in the book "The Ra
 ### Changelog (performance fixes)
 Just to keep track of which fixes were done when, kind of...
 
+- 2020-02-21: Bounding boxes for groups and CSGs (based on bonus chapter from book)
 - 2020-02-20: Refactor to use arrays instead of slices for Matrices and Tuples.
 - 2020-02-19: Use sort.Sort instead of sort.Slice
 - 2020-02-15: Soft shadows and multisamling (feature-branch)

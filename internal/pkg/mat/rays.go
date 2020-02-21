@@ -36,7 +36,7 @@ func IntersectRayWithShape(s Shape, r2 Ray) []Intersection {
 }
 
 func IntersectRayWithShapePtr(s Shape, r2 Ray, in *Ray) []Intersection {
-
+	//calcstats.Incr()
 	// transform ray with inverse of shape transformation matrix to be able to intersect a translated/rotated/skewed shape
 	TransformRayPtr(r2, s.GetInverse(), in)
 
