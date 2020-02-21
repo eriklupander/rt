@@ -116,7 +116,8 @@ func Threaded(c mat.Camera, worlds []mat.World) *mat.Canvas {
 	fmt.Printf("Memory: %v ", bytesize.New(float64(stats.Alloc)).String())
 	fmt.Printf("Mallocs: %v ", stats.Mallocs)
 	fmt.Printf("Total alloc: %v\n", bytesize.New(float64(stats.TotalAlloc)).String())
-	fmt.Printf("%v", time.Now().Sub(st))
+	fmt.Printf("%v\n", time.Now().Sub(st))
+	//fmt.Printf("XS skipped in group: %v\n", calcstats.Cnt)
 	return canvas
 }
 

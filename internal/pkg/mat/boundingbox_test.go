@@ -257,3 +257,66 @@ func TestIntersectNonCubicBoundingBoxWithRay(t *testing.T) {
 		assert.Equal(t, tc.result, IntersectRayWithBox(r, box))
 	}
 }
+
+func TestIntersectRayGroupWithMiss(t *testing.T) {
+	s := NewSphere()
+	g := NewGroup()
+	g.AddChild(s)
+	g.Bounds()
+	r := NewRay(NewPoint(0, 0, -5), NewVector(0, 1, 0))
+	in := NewRay(NewPoint(0, 0, 0), NewVector(0, 0, 0)) // Pass this as pointer for intermediate calc
+	IntersectRayWithShapePtr(g, r, &in)
+
+	// savedRay should have default values if the sphere's intersect was not called
+	assert.Equal(t, 0.0, s.savedRay.Origin[0])
+	assert.Equal(t, 0.0, s.savedRay.Origin[1])
+	assert.Equal(t, 0.0, s.savedRay.Origin[2])
+	assert.Equal(t, 0.0, s.savedRay.Direction[0])
+	assert.Equal(t, 0.0, s.savedRay.Direction[1])
+	assert.Equal(t, 0.0, s.savedRay.Direction[2])
+
+}
+
+func TestIntersectRayGroupWithHit(t *testing.T) {
+	s := NewSphere()
+	g := NewGroup()
+	g.AddChild(s)
+	g.Bounds()
+	r := NewRay(NewPoint(0, 0, -5), NewVector(0, 0, 1))
+	in := NewRay(NewPoint(0, 0, 0), NewVector(0, 0, 0)) // Pass this as pointer for intermediate calc
+	IntersectRayWithShapePtr(g, r, &in)
+
+	// savedRay should have val form ray if the sphere's intersect was called
+	assert.Equal(t, 0.0, s.savedRay.Direction[0])
+	assert.Equal(t, 0.0, s.savedRay.Direction[1])
+	assert.Equal(t, 1.0, s.savedRay.Direction[2])
+
+}
+
+func TestIntersectRayWithCSGMissesBox(t *testing.T) {
+	left := NewSphere()
+	right := NewSphere()
+	csg := NewCSG("difference", left, right)
+	csg.Bounds()
+	r := NewRay(NewPoint(0, 0, -5), NewVector(0, 1, 0))
+	in := NewRay(NewPoint(0, 0, 0), NewVector(0, 0, 0)) // Pass this as pointer for intermediate calc
+	IntersectRayWithShapePtr(csg, r, &in)
+	assert.Equal(t, 0.0, left.savedRay.Direction[0])
+	assert.Equal(t, 0.0, right.savedRay.Direction[0])
+	assert.Equal(t, 0.0, left.savedRay.Direction[1])
+	assert.Equal(t, 0.0, right.savedRay.Direction[1])
+	assert.Equal(t, 0.0, left.savedRay.Direction[2])
+	assert.Equal(t, 0.0, right.savedRay.Direction[2])
+}
+
+func TestIntersectRayWithCSGHitsBox(t *testing.T) {
+	left := NewSphere()
+	right := NewSphere()
+	csg := NewCSG("difference", left, right)
+	csg.Bounds()
+	r := NewRay(NewPoint(0, 0, -5), NewVector(0, 0, 1))
+	in := NewRay(NewPoint(0, 0, 0), NewVector(0, 0, 0)) // Pass this as pointer for intermediate calc
+	IntersectRayWithShapePtr(csg, r, &in)
+	assert.Equal(t, 1.0, left.savedRay.Direction[2])
+	assert.Equal(t, 1.0, right.savedRay.Direction[2])
+}

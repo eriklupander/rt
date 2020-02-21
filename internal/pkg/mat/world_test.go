@@ -23,7 +23,9 @@ func TestIntersectWorldWithRay(t *testing.T) {
 	// this ray goes from 5 units in front of origo and points directly at the origo.
 	r := NewRay(NewPoint(0, 0, -5), NewVector(0, 0, 1))
 
-	intersections := IntersectWithWorld(w, r)
+	savedRay := NewRay(NewPoint(0, 0, 0), NewVector(0, 0, 0))
+	intersections := make([]Intersection, 0)
+	intersections = IntersectWithWorldPtr(w, r, intersections, &savedRay)
 	assert.Equal(t, intersections[0].T, 4.0)
 	assert.Equal(t, intersections[1].T, 4.5)
 	assert.Equal(t, intersections[2].T, 5.5)

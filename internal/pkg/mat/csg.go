@@ -1,6 +1,7 @@
 package mat
 
 import (
+	"github.com/eriklupander/rt/internal/pkg/calcstats"
 	"math/rand"
 	"sort"
 )
@@ -8,7 +9,16 @@ import (
 func NewCSG(operation string, left, right Shape) *CSG {
 	m1 := New4x4()
 	inv := New4x4()
-	c := &CSG{Id: rand.Int63(), Transform: m1, Inverse: inv, Left: left, Right: right, Operation: operation}
+	c := &CSG{Id: rand.Int63(),
+		Transform:     m1,
+		Inverse:       inv,
+		Left:          left,
+		Right:         right,
+		Operation:     operation,
+		savedLeftRay:  NewRay(NewPoint(0, 0, 0), NewVector(0, 0, 0)),
+		savedRightRay: NewRay(NewPoint(0, 0, 0), NewVector(0, 0, 0)),
+		bb:            NewEmptyBoundingBox(),
+	}
 	left.SetParent(c)
 	right.SetParent(c)
 	return c
@@ -23,6 +33,11 @@ type CSG struct {
 	Operation string
 	Parent    Shape
 	Material  Material
+
+	savedLeftRay  Ray
+	savedRightRay Ray
+
+	bb *BoundingBox
 }
 
 func (c *CSG) ID() int64 {
@@ -51,12 +66,14 @@ func (c *CSG) SetMaterial(material Material) {
 }
 
 func (c *CSG) IntersectLocal(ray Ray) []Intersection {
-	leftXs := IntersectRayWithShape(c.Left, ray)
-	rightXs := IntersectRayWithShape(c.Right, ray)
+	if !IntersectRayWithBox(ray, c.bb) {
+		calcstats.Incr()
+		return nil
+	}
+	leftXs := IntersectRayWithShapePtr(c.Left, ray, &c.savedLeftRay)
+	rightXs := IntersectRayWithShapePtr(c.Right, ray, &c.savedRightRay)
 	xs := append(leftXs, rightXs...)
-	sort.Slice(xs, func(i, j int) bool {
-		return xs[i].T < xs[j].T
-	})
+	sort.Sort(Intersections(xs))
 	return FilterIntersections(c, xs)
 }
 
@@ -74,4 +91,8 @@ func (c *CSG) GetParent() Shape {
 
 func (c *CSG) SetParent(shape Shape) {
 	c.Parent = shape
+}
+
+func (c *CSG) Bounds() {
+	c.bb = BoundsOf(c)
 }

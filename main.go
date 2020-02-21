@@ -376,6 +376,7 @@ func worldWithPlane() {
 		mat4.Color = mat.NewColor(0, 0, 0)
 		s4.SetMaterial(mat4)
 		//gr.AddChild(s4)
+		gr.Bounds()
 
 		w.Objects = append(w.Objects, gr)
 

@@ -29,28 +29,29 @@ func IntersectionEqual(i1, i2 Intersection) bool {
 	return i1.T == i2.T && i1.S.ID() == i2.S.ID()
 }
 
-func IntersectWithWorld(w World, r Ray) []Intersection {
-
-	xs := make([]Intersection, 0)
-	for idx, _ := range w.Objects {
-		intersections := IntersectRayWithShape(w.Objects[idx], r)
-		if len(intersections) > 0 {
-			for innerIdx := range intersections {
-				if intersections[innerIdx].T >= 0.0 {
-					xs = append(xs, intersections[innerIdx])
-				}
-			}
-		}
-	}
-	// Remember that we must sort away negative ones?
-	sort.Slice(xs, func(i, j int) bool {
-		return xs[i].T < xs[j].T
-	})
-	return xs
-}
+//
+//func IntersectWithWorld(w World, r Ray) []Intersection {
+//
+//	xs := make([]Intersection, 0)
+//	for idx, _ := range w.Objects {
+//		intersections := IntersectRayWithShape(w.Objects[idx], r)
+//		if len(intersections) > 0 {
+//			for innerIdx := range intersections {
+//				if intersections[innerIdx].T >= 0.0 {
+//					xs = append(xs, intersections[innerIdx])
+//				}
+//			}
+//		}
+//	}
+//	// Remember that we must sort away negative ones?
+//	sort.Slice(xs, func(i, j int) bool {
+//		return xs[i].T < xs[j].T
+//	})
+//	return xs
+//}
 
 func IntersectWithWorldPtr(w World, r Ray, xs Intersections, inRay *Ray) []Intersection {
-	for idx, _ := range w.Objects {
+	for idx := range w.Objects {
 		intersections := IntersectRayWithShapePtr(w.Objects[idx], r, inRay)
 
 		for innerIdx := range intersections {
