@@ -120,6 +120,12 @@ func BoundsOf(shape Shape) *BoundingBox {
 		bb.Add(val.P2)
 		bb.Add(val.P3)
 		return bb
+	case *SmoothTriangle:
+		bb := NewEmptyBoundingBox()
+		bb.Add(val.P1)
+		bb.Add(val.P2)
+		bb.Add(val.P3)
+		return bb
 
 	default:
 		return NewBoundingBoxF(-1, -1, -1, 1, 1, 1)

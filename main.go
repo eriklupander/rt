@@ -28,10 +28,10 @@ func main() {
 	}()
 	//parse()
 	//csg()
-	//withModel()
+	withModel()
 	//groups()
 	//refraction()
-	worldWithPlane() // REFERENCE IMAGE!!
+	//worldWithPlane() // REFERENCE IMAGE!!
 	//renderworld()
 	//shadedSphereDemo()
 	//circleDemo()
@@ -64,84 +64,116 @@ var black = mat.NewColor(0, 0, 0)
 //	}
 //}
 //
-//func csg() {
-//	w := mat.NewWorld()
-//	w.Light = append(w.Light, mat.NewLight(mat.NewPoint(0, 2, -2), mat.NewColor(1, 1, 1)))
-//	w.Light = append(w.Light, mat.NewLight(mat.NewPoint(0, 3, 0), mat.NewColor(1, 1, 1)))
-//
-//	camera := mat.NewCamera(640, 480, math.Pi/3)
-//	viewTransform := mat.ViewTransform(mat.NewPoint(-4, 2, -5), mat.NewPoint(0, 0, 0), mat.NewVector(0, 1, 0))
-//	camera.Transform = viewTransform
-//
-//	s1 := mat.NewSphere()
-//	m1 := mat.NewDefaultReflectiveMaterial(0.5)
-//	m1.Color = mat.NewColor(1, 0.1, 0.1)
-//	s1.SetMaterial(m1)
-//	c1 := mat.NewCube()
-//	m2 := mat.NewDefaultReflectiveMaterial(0.5)
-//	m2.Color = mat.NewColor(0.1, 0.1, 1.0)
-//	c1.SetMaterial(m1)
-//	c1.SetTransform(mat.Translate(-0.5, 0, 0))
-//	c1.SetTransform(mat.Scale(0.75, 0.5, 0.5))
-//	csg := mat.NewCSG("difference", s1, c1)
-//	csg.SetTransform(mat.Translate(0, 1, 0))
-//	csg.SetTransform(mat.RotateY(-math.Pi / 2))
-//	w.Objects = append(w.Objects, csg)
-//
-//	floor := mat.NewPlane()
-//	floor.SetMaterial(mat.NewMaterialWithReflectivity(mat.NewColor(0.2, 0.2, 1.0), 0.1, 0.9, 0.7, 200, 0.0))
-//	//floor.Material.Pattern = mat.NewCheckerPattern(white, black)
-//	w.Objects = append(w.Objects, floor)
-//
-//	canvas := mat.RenderThreaded(camera, w)
-//	// writec
-//	data := canvas.ToPPM()
-//	err := ioutil.WriteFile("csg1.ppm", []byte(data), os.FileMode(0755))
-//	if err != nil {
-//		fmt.Println(err.Error())
-//	}
-//}
-//
-func withModel() {
+func csg() {
 
-	bytes, err := ioutil.ReadFile("Toilet.1.obj")
+	camera := mat.NewCamera(640, 480, math.Pi/3)
+	viewTransform := mat.ViewTransform(mat.NewPoint(-4, 2, -5), mat.NewPoint(0, 0, 0), mat.NewVector(0, 1, 0))
+	camera.Transform = viewTransform
+	camera.Inverse = mat.Inverse(camera.Transform)
+	worlds := make([]mat.World, constant.RenderThreads)
+	for i := 0; i < constant.RenderThreads; i++ {
+		w := mat.NewWorld()
+		w.Light = append(w.Light, mat.NewLight(mat.NewPoint(0, 2, -2), mat.NewColor(1, 1, 1)))
+		w.Light = append(w.Light, mat.NewLight(mat.NewPoint(0, 3, 0), mat.NewColor(1, 1, 1)))
+
+		s1 := mat.NewSphere()
+		m1 := mat.NewDefaultReflectiveMaterial(0.5)
+		m1.Color = mat.NewColor(1, 0.1, 0.1)
+		s1.SetMaterial(m1)
+		c1 := mat.NewCube()
+		m2 := mat.NewDefaultReflectiveMaterial(0.5)
+		m2.Color = mat.NewColor(0.1, 0.1, 1.0)
+		c1.SetMaterial(m1)
+		c1.SetTransform(mat.Translate(-0.5, 0, 0))
+		c1.SetTransform(mat.Scale(0.75, 0.5, 0.5))
+		csg := mat.NewCSG("difference", s1, c1)
+		csg.SetTransform(mat.Translate(0, 1, 0))
+		csg.SetTransform(mat.RotateY(-math.Pi / 2))
+		w.Objects = append(w.Objects, csg)
+
+		floor := mat.NewPlane()
+		floor.SetMaterial(mat.NewMaterialWithReflectivity(mat.NewColor(0.2, 0.2, 1.0), 0.1, 0.9, 0.7, 200, 0.0))
+		//floor.Material.Pattern = mat.NewCheckerPattern(white, black)
+		w.Objects = append(w.Objects, floor)
+
+		worlds[i] = w
+	}
+
+	canvas := render.Threaded(camera, worlds)
+	// write
+	myImage := image.NewRGBA(image.Rect(0, 0, canvas.W, canvas.H))
+	writeDataToPNG(canvas, myImage)
+
+	// outputFile is a File type which satisfies Writer interface
+	outputFile, err := os.Create("csg.png")
 	if err != nil {
 		panic(err.Error())
 	}
-	camera := mat.NewCamera(96, 72, math.Pi/3)
-	viewTransform := mat.ViewTransform(mat.NewPoint(-4.3, 5, -8), mat.NewPoint(0, 2.5, 0), mat.NewVector(0, 1, 0))
+	png.Encode(outputFile, myImage)
+}
+
+func withModel() {
+
+	bytes, err := ioutil.ReadFile("assets/models/Toilet.1.obj")
+	if err != nil {
+		panic(err.Error())
+	}
+	camera := mat.NewCamera(1280, 768, math.Pi/3)
+	viewTransform := mat.ViewTransform(mat.NewPoint(5, 4.5, -5.5), mat.NewPoint(0, 1.8, 0), mat.NewVector(0, 1, 0))
 	camera.Transform = viewTransform
+	camera.Inverse = mat.Inverse(camera.Transform)
 
-	worlds := make([]mat.World, 0)
+	worlds := make([]mat.World, constant.RenderThreads)
 
-	for i := 0; i < 8; i++ {
+	for i := 0; i < constant.RenderThreads; i++ {
 		parseObj := obj.ParseObj(string(bytes))
 
 		w := mat.NewWorld()
-		w.Objects = append(w.Objects, parseObj.ToGroup())
-		//w.Objects[0].SetTransform(mat.Scale(0.6, 0.6, 0.6))
+		w.Light = append(w.Light, mat.NewLight(mat.NewPoint(-1.5, 2.5, -3), mat.NewColor(1, 1, 1)))
+
+		// Model
+		model := parseObj.ToGroup()
 		m := mat.NewDefaultMaterial()
 		m.Ambient = 0.3
-		m.Reflectivity = 0.5
-		w.Objects[0].SetMaterial(m)
+		m.Reflectivity = 0.05
+		model.SetMaterial(m)
+		w.Objects = append(w.Objects, model)
 
 		floor := mat.NewPlane()
-		floor.SetMaterial(mat.NewMaterialWithReflectivity(mat.NewColor(1, 0.5, 0.5), 0.1, 0.9, 0.7, 200, 0.1))
+		floor.SetMaterial(mat.NewMaterialWithReflectivity(mat.NewColor(1, 0.5, 0.5), 0.1, 0.9, 0.7, 200, 0))
 		floor.Material.Pattern = mat.NewCheckerPattern(white, black)
 		w.Objects = append(w.Objects, floor)
-		w.Light = append(w.Light, mat.NewLight(mat.NewPoint(-1.5, 2.5, -3), mat.NewColor(1, 1, 1)))
-		worlds = append(worlds, w)
+
+		northWall := mat.NewPlane()
+		northWall.SetTransform(mat.Translate(0, 0, 10))
+		northWall.SetTransform(mat.RotateX(1.5708))
+		northWall.SetMaterial(mat.NewMaterialWithReflectivity(mat.NewColor(1, 0.5, 0.5), 0.1, 0.9, 0.7, 200, 0))
+		northWall.Material.Pattern = mat.NewCheckerPattern(white, black)
+		w.Objects = append(w.Objects, northWall)
+		worlds[i] = w
 	}
 
-	//canvas := mat.RenderThreaded(camera, w)
 	canvas := render.Threaded(camera, worlds)
 	//mat.RenderReferenceAxises(canvas, camera)
 
-	// writec
-	data := canvas.ToPPM()
-	err = ioutil.WriteFile("toilet.ppm", []byte(data), os.FileMode(0755))
+	// write
+	myImage := image.NewRGBA(image.Rect(0, 0, canvas.W, canvas.H))
+	writeDataToPNG(canvas, myImage)
+
+	// outputFile is a File type which satisfies Writer interface
+	outputFile, err := os.Create("toilet.png")
 	if err != nil {
-		fmt.Println(err.Error())
+		panic(err.Error())
+	}
+	png.Encode(outputFile, myImage)
+}
+
+func writeDataToPNG(canvas *mat.Canvas, myImage *image.RGBA) {
+	for i := 0; i < len(canvas.Pixels); i++ {
+		myImage.Pix[i*4] = clamp(canvas.Pixels[i][0])
+		myImage.Pix[i*4+1] = clamp(canvas.Pixels[i][1])
+		myImage.Pix[i*4+2] = clamp(canvas.Pixels[i][2])
+		myImage.Pix[i*4+3] = 255
 	}
 }
 
@@ -396,12 +428,7 @@ func worldWithPlane() {
 	// write
 	myImage := image.NewRGBA(image.Rect(0, 0, canvas.W, canvas.H))
 
-	for i := 0; i < len(canvas.Pixels); i++ {
-		myImage.Pix[i*4] = clamp(canvas.Pixels[i][0])
-		myImage.Pix[i*4+1] = clamp(canvas.Pixels[i][1])
-		myImage.Pix[i*4+2] = clamp(canvas.Pixels[i][2])
-		myImage.Pix[i*4+3] = 255
-	}
+	writeDataToPNG(canvas, myImage)
 
 	// outputFile is a File type which satisfies Writer interface
 	outputFile, err := os.Create("test-sort-slice.png")
