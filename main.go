@@ -28,10 +28,10 @@ func main() {
 	}()
 	//parse()
 	//csg()
-	withModel()
+	//withModel()
 	//groups()
 	//refraction()
-	//worldWithPlane() // REFERENCE IMAGE!!
+	worldWithPlane() // REFERENCE IMAGE!!
 	//renderworld()
 	//shadedSphereDemo()
 	//circleDemo()
@@ -118,7 +118,7 @@ func withModel() {
 	if err != nil {
 		panic(err.Error())
 	}
-	camera := mat.NewCamera(1280, 768, math.Pi/3)
+	camera := mat.NewCamera(160, 120, math.Pi/3)
 	viewTransform := mat.ViewTransform(mat.NewPoint(5, 4.5, -5.5), mat.NewPoint(0, 1.8, 0), mat.NewVector(0, 1, 0))
 	camera.Transform = viewTransform
 	camera.Inverse = mat.Inverse(camera.Transform)
@@ -133,6 +133,7 @@ func withModel() {
 
 		// Model
 		model := parseObj.ToGroup()
+		mat.Divide(model, 100)
 		m := mat.NewDefaultMaterial()
 		m.Ambient = 0.3
 		m.Reflectivity = 0.05
@@ -408,7 +409,8 @@ func worldWithPlane() {
 		mat4.Color = mat.NewColor(0, 0, 0)
 		s4.SetMaterial(mat4)
 		//gr.AddChild(s4)
-		gr.Bounds()
+		//gr.Bounds()
+		//mat.Divide(gr, 1)
 
 		w.Objects = append(w.Objects, gr)
 

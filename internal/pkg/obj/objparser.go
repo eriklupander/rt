@@ -107,7 +107,6 @@ func (o *Obj) ToGroup() *mat.Group {
 	g := mat.NewGroup()
 	for _, v := range o.Groups {
 		g.AddChild(v)
-		g.Bounds()
 	}
 	return g
 }

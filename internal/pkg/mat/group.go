@@ -1,6 +1,7 @@
 package mat
 
 import (
+	"github.com/eriklupander/rt/internal/pkg/calcstats"
 	"math/rand"
 	"sort"
 )
@@ -80,7 +81,7 @@ func (g *Group) SetMaterial(material Material) {
 
 func (g *Group) IntersectLocal(ray Ray) []Intersection {
 	if !IntersectRayWithBox(ray, g.bb) {
-		//calcstats.Incr()
+		calcstats.Incr()
 		return nil
 	}
 
@@ -105,6 +106,12 @@ func (g *Group) NormalAtLocal(point Tuple4, intersection *Intersection) Tuple4 {
 
 func (g *Group) GetLocalRay() Ray {
 	panic("not applicable to a group")
+}
+
+func (g *Group) AddChildren(shapes ...Shape) {
+	for i := 0; i < len(shapes); i++ {
+		g.AddChild(shapes[i])
+	}
 }
 
 func (g *Group) AddChild(s Shape) {
