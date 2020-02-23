@@ -1,6 +1,8 @@
 package mat
 
-import "math"
+import (
+	"math"
+)
 
 func DefaultSmoothTriangle() *SmoothTriangle {
 	return NewSmoothTriangle(
@@ -21,6 +23,7 @@ func NewSmoothTriangle(p1 Tuple4, p2 Tuple4, p3 Tuple4, n1 Tuple4, n2 Tuple4, n3
 }
 
 type SmoothTriangle struct {
+	//Id       int64 // just used for debugging, remove for real...
 	P1       Tuple4
 	P2       Tuple4
 	P3       Tuple4

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/eriklupander/rt/internal/pkg/constant"
+	"github.com/eriklupander/rt/internal/pkg/helper"
 	"github.com/eriklupander/rt/internal/pkg/mat"
 	"github.com/eriklupander/rt/internal/pkg/obj"
 	"github.com/eriklupander/rt/internal/pkg/render"
@@ -28,10 +29,10 @@ func main() {
 	}()
 	//parse()
 	//csg()
-	//withModel()
+	withModel()
 	//groups()
 	//refraction()
-	worldWithPlane() // REFERENCE IMAGE!!
+	//worldWithPlane() // REFERENCE IMAGE!!
 	//renderworld()
 	//shadedSphereDemo()
 	//circleDemo()
@@ -114,12 +115,12 @@ func csg() {
 
 func withModel() {
 
-	bytes, err := ioutil.ReadFile("assets/models/Toilet.1.obj")
+	bytes, err := ioutil.ReadFile("assets/models/teapot.obj")
 	if err != nil {
 		panic(err.Error())
 	}
-	camera := mat.NewCamera(160, 120, math.Pi/3)
-	viewTransform := mat.ViewTransform(mat.NewPoint(5, 4.5, -5.5), mat.NewPoint(0, 1.8, 0), mat.NewVector(0, 1, 0))
+	camera := mat.NewCamera(640, 480, math.Pi/3)
+	viewTransform := mat.ViewTransform(mat.NewPoint(0, 0.1, -5.5), mat.NewPoint(0, 0.1, 0), mat.NewVector(0, 1, 0))
 	camera.Transform = viewTransform
 	camera.Inverse = mat.Inverse(camera.Transform)
 
@@ -129,16 +130,28 @@ func withModel() {
 		parseObj := obj.ParseObj(string(bytes))
 
 		w := mat.NewWorld()
-		w.Light = append(w.Light, mat.NewLight(mat.NewPoint(-1.5, 2.5, -3), mat.NewColor(1, 1, 1)))
+		w.Light = append(w.Light, mat.NewLight(mat.NewPoint(-2.5, 2.5, -5), mat.NewColor(1, 1, 1)))
 
 		// Model
 		model := parseObj.ToGroup()
-		mat.Divide(model, 100)
+		//model.SetTransform(mat.Scale(1.2,1.2,1.2))
+		//model.SetTransform(mat.RotateY(-math.Pi / 2))
+		model.SetTransform(mat.Translate(1, 0, 0))
 		m := mat.NewDefaultMaterial()
-		m.Ambient = 0.3
+		m.Color = mat.NewColor(0.92, 0.92, 0.9)
+		m.Ambient = 0.5
 		m.Reflectivity = 0.05
 		model.SetMaterial(m)
+		mat.Divide(model, 100)
+		model.Bounds()
+
 		w.Objects = append(w.Objects, model)
+
+		//box := mat.NewCube()
+		//cm := mat.NewDefaultMaterial()
+		//cm.Transparency = 0.9
+		//box.SetMaterial(cm)
+		//box.
 
 		floor := mat.NewPlane()
 		floor.SetMaterial(mat.NewMaterialWithReflectivity(mat.NewColor(1, 0.5, 0.5), 0.1, 0.9, 0.7, 200, 0))
@@ -151,18 +164,22 @@ func withModel() {
 		northWall.SetMaterial(mat.NewMaterialWithReflectivity(mat.NewColor(1, 0.5, 0.5), 0.1, 0.9, 0.7, 200, 0))
 		northWall.Material.Pattern = mat.NewCheckerPattern(white, black)
 		w.Objects = append(w.Objects, northWall)
+
+		s := mat.NewSphere()
+		s.SetTransform(mat.Translate(-1, 0, 0))
+		w.Objects = append(w.Objects, s)
 		worlds[i] = w
 	}
 
 	canvas := render.Threaded(camera, worlds)
-	//mat.RenderReferenceAxises(canvas, camera)
+	helper.RenderReferenceAxises(canvas, camera)
 
 	// write
 	myImage := image.NewRGBA(image.Rect(0, 0, canvas.W, canvas.H))
 	writeDataToPNG(canvas, myImage)
 
 	// outputFile is a File type which satisfies Writer interface
-	outputFile, err := os.Create("toilet.png")
+	outputFile, err := os.Create("teapot.png")
 	if err != nil {
 		panic(err.Error())
 	}

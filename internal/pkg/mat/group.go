@@ -19,7 +19,6 @@ type Group struct {
 	innerRays []Ray
 	xsCache   Intersections
 	bb        *BoundingBox
-	//c         *Cube
 }
 
 func (g *Group) GetParent() Shape {
@@ -80,11 +79,11 @@ func (g *Group) SetMaterial(material Material) {
 }
 
 func (g *Group) IntersectLocal(ray Ray) []Intersection {
-	if !IntersectRayWithBox(ray, g.bb) {
+
+	if g.bb != nil && !IntersectRayWithBox(ray, g.bb) {
 		calcstats.Incr()
 		return nil
 	}
-
 	TransformRayPtr(ray, g.Inverse, &g.savedRay)
 
 	g.xsCache = g.xsCache[:0]
@@ -96,7 +95,9 @@ func (g *Group) IntersectLocal(ray Ray) []Intersection {
 		}
 	}
 
-	sort.Sort(g.xsCache)
+	if len(g.xsCache) > 1 {
+		sort.Sort(g.xsCache)
+	}
 	return g.xsCache
 }
 
@@ -122,7 +123,7 @@ func (g *Group) AddChild(s Shape) {
 	g.innerRays = append(g.innerRays, NewRay(NewPoint(0, 0, 0), NewVector(0, 0, 0)))
 
 	// recalculate bounds
-	//g.bb.MergeWith(BoundsOf(s))
+	g.bb.MergeWith(BoundsOf(s))
 }
 
 func (g *Group) Bounds() {

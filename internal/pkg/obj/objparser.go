@@ -19,8 +19,9 @@ func ParseObj(data string) *Obj {
 	var currentGroup = "DefaultGroup"
 	out.Groups[currentGroup] = mat.NewGroup()
 	for _, row := range rows {
-		if row != "" {
+		if strings.TrimSpace(row) != "" {
 			parts := strings.Fields(strings.TrimSpace(row))
+			fmt.Printf("%v\n", row)
 			switch parts[0] {
 			case "v":
 

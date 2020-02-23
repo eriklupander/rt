@@ -13,7 +13,7 @@ type Triangle struct {
 }
 
 func (t *Triangle) ID() int64 {
-	panic("implement me")
+	return -1
 }
 
 func (t *Triangle) GetTransform() Mat4x4 {
@@ -21,7 +21,7 @@ func (t *Triangle) GetTransform() Mat4x4 {
 }
 
 func (t *Triangle) GetInverse() Mat4x4 {
-	panic("implement me")
+	return IdentityMatrix
 }
 
 func (t *Triangle) SetTransform(transform Mat4x4) {
@@ -33,7 +33,7 @@ func (t *Triangle) GetMaterial() Material {
 }
 
 func (t *Triangle) SetMaterial(material Material) {
-	panic("implement me")
+	t.Material = material
 }
 
 func (t *Triangle) IntersectLocal(ray Ray) []Intersection {
