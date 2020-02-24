@@ -70,21 +70,10 @@ func TestGroupTransform(t *testing.T) {
 	s.SetTransform(Translate(5, 0, 0))
 	gr.AddChild(s)
 	gr.Bounds()
-	//gr.bb.Min = NewPoint(8, -2, -2)
-	//gr.bb.Max = NewPoint(12, 2, 2)
+
 	r := NewRay(NewPoint(10, 0, -10), NewVector(0, 0, 1))
 
-	xs := gr.IntersectLocal(r)
+	r2 := TransformRay(r, gr.Inverse) // New, transform ray by inverse first.
+	xs := gr.IntersectLocal(r2)
 	assert.Len(t, xs, 2)
-	/*
-		 Intersecting a transformed group
-		Given g ← group()
-		And set_transform(g, scaling(2, 2, 2))
-		And s ← sphere()
-		And set_transform(s, translation(5, 0, 0))
-		And add_child(g, s)
-		When r ← ray(point(10, 0, -10), vector(0, 0, 1))
-		And xs ← intersect(g, r)
-		Then xs.count = 2
-	*/
 }

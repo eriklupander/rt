@@ -26,6 +26,7 @@ func PositionPtr(r Ray, distance float64, out *Tuple4) {
 	AddPtr(r.Origin, add, out)
 }
 
+// TODO only used by unit tests, fix so tests use IntersectRayWithShapePtr and remove
 func IntersectRayWithShape(s Shape, r2 Ray) []Intersection {
 
 	// transform ray with inverse of shape transformation matrix to be able to intersect a translated/rotated/skewed shape

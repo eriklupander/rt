@@ -80,11 +80,11 @@ func (g *Group) IntersectLocal(ray Ray) []Intersection {
 		calcstats.Incr()
 		return nil
 	}
-	TransformRayPtr(ray, g.Inverse, &g.savedRay)
+	//TransformRayPtr(ray, g.Inverse, &g.savedRay)
 
 	g.xsCache = g.xsCache[:0]
 	for idx := range g.Children {
-		TransformRayPtr(g.savedRay, g.Children[idx].GetInverse(), &g.innerRays[idx])
+		TransformRayPtr(ray, g.Children[idx].GetInverse(), &g.innerRays[idx])
 		lxs := g.Children[idx].IntersectLocal(g.innerRays[idx])
 		if len(lxs) > 0 {
 			g.xsCache = append(g.xsCache, lxs...)
@@ -124,7 +124,7 @@ func (g *Group) AddChild(s Shape) {
 
 func (g *Group) Bounds() {
 	g.bb = BoundsOf(g)
-	g.bb = TransformBoundingBox(g.bb, g.GetTransform()) // transform by the group's own transform too
+	//g.bb = TransformBoundingBox(g.bb, g.GetTransform()) // transform by the group's own transform too
 }
 
 func (g *Group) CastsShadow() bool {
@@ -136,4 +136,27 @@ func (g *Group) GetParent() Shape {
 }
 func (g *Group) SetParent(shape Shape) {
 	g.Parent = shape
+}
+func (g *Group) BoundsToCube() *Cube {
+	//v := Sub(g.bb.Max, g.bb.Min)
+	//length := Magnitude(v)
+	//centre := Position(NewRay(g.bb.Max, v), length / 2)
+	TransformBoundingBox(g.bb, g.Transform)
+	xscale := (g.bb.Max[0] - g.bb.Min[0]) / 2
+	yscale := (g.bb.Max[1] - g.bb.Min[1]) / 2
+	zscale := (g.bb.Max[2] - g.bb.Min[2]) / 2
+	x := g.bb.Min[0] + xscale
+	y := g.bb.Min[1] + yscale
+	z := g.bb.Min[2] + zscale
+
+	c := NewCube()
+	//c.SetTransform(Translate(-1, 0.25, -1)) //g.bb.Max[0] - g.bb.Min))
+	c.SetTransform(g.Transform)
+	c.SetTransform(Translate(x, y, z))
+	c.SetTransform(Scale(xscale, yscale, zscale))
+	m := NewDefaultMaterial()
+	m.Transparency = 0.8
+	m.Color = NewColor(0.8, 0.7, 0.9)
+	c.SetMaterial(m)
+	return c
 }

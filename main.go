@@ -30,6 +30,7 @@ func main() {
 	//parse()
 	//csg()
 	//withModel()
+	triangles()
 	//groups()
 	//refraction()
 	worldWithPlane() // REFERENCE IMAGE!!
@@ -112,6 +113,53 @@ func csg() {
 	png.Encode(outputFile, myImage)
 }
 
+func triangles() {
+	camera := mat.NewCamera(640, 480, math.Pi/3)
+	viewTransform := mat.ViewTransform(mat.NewPoint(0, 2, -3), mat.NewPoint(0, 1, 0), mat.NewVector(0, 1, 0))
+	camera.Transform = viewTransform
+	camera.Inverse = mat.Inverse(camera.Transform)
+
+	worlds := make([]mat.World, constant.RenderThreads)
+
+	for i := 0; i < constant.RenderThreads; i++ {
+		w := mat.NewWorld()
+		w.Light = append(w.Light, mat.NewLight(mat.NewPoint(-5, 5, -5), mat.NewColor(1, 1, 1)))
+
+		s := mat.NewSphere()
+		s.SetTransform(mat.Translate(-2, 0, 0))
+
+		s2 := mat.NewSphere()
+		s2.SetTransform(mat.Translate(1, 0, 0))
+		s2.SetTransform(mat.Scale(0.5, 0.5, 0.5))
+
+		t1 := mat.DefaultSmoothTriangle()
+		gr := mat.NewGroup()
+		gr.SetTransform(mat.Translate(0, 0.5, 0))
+		gr.SetTransform(mat.Scale(0.25, 0.25, 0.25))
+		gr.AddChild(t1)
+		gr.AddChild(s)
+		gr.Bounds()
+		//mat.Divide(gr, 1)
+		w.Objects = append(w.Objects, gr)
+		w.Objects = append(w.Objects, s2)
+		worlds[i] = w
+	}
+
+	canvas := render.Threaded(camera, worlds)
+	helper.RenderReferenceAxises(canvas, camera)
+
+	// write
+	myImage := image.NewRGBA(image.Rect(0, 0, canvas.W, canvas.H))
+	writeDataToPNG(canvas, myImage)
+
+	// outputFile is a File type which satisfies Writer interface
+	outputFile, err := os.Create("tri1.png")
+	if err != nil {
+		panic(err.Error())
+	}
+	png.Encode(outputFile, myImage)
+}
+
 func withModel() {
 
 	bytes, err := ioutil.ReadFile("assets/models/dragon.obj")
@@ -119,7 +167,7 @@ func withModel() {
 		panic(err.Error())
 	}
 	camera := mat.NewCamera(640, 480, math.Pi/3)
-	viewTransform := mat.ViewTransform(mat.NewPoint(-5, 4.1, -5.5), mat.NewPoint(0, 2.5, 0), mat.NewVector(0, 1, 0))
+	viewTransform := mat.ViewTransform(mat.NewPoint(-8, 5.1, -8.5), mat.NewPoint(0, 2.5, 0), mat.NewVector(0, 1, 0))
 	camera.Transform = viewTransform
 	camera.Inverse = mat.Inverse(camera.Transform)
 
@@ -135,9 +183,9 @@ func withModel() {
 
 		// Model
 		model := parseObj.ToGroup()
-		//model.SetTransform(mat.Scale(1.2,1.2,1.2))
 		//model.SetTransform(mat.RotateY(-math.Pi / 2))
-		model.SetTransform(mat.Translate(1, 0, 0))
+		model.SetTransform(mat.Translate(-2, 0, 0))
+		model.SetTransform(mat.Scale(0.5, 0.5, 0.5))
 		m := mat.NewDefaultMaterial()
 		m.Color = mat.NewColor(0.92, 0.92, 0.9)
 		m.Ambient = 0.1
@@ -150,6 +198,7 @@ func withModel() {
 		model.Bounds()
 
 		w.Objects = append(w.Objects, model)
+		w.Objects = append(w.Objects, model.BoundsToCube())
 
 		//box := mat.NewCube()
 		//cm := mat.NewDefaultMaterial()
@@ -183,7 +232,7 @@ func withModel() {
 	writeDataToPNG(canvas, myImage)
 
 	// outputFile is a File type which satisfies Writer interface
-	outputFile, err := os.Create("dragon.png")
+	outputFile, err := os.Create("dragon05.png")
 	if err != nil {
 		panic(err.Error())
 	}
@@ -320,8 +369,8 @@ func refraction() {
 
 // This is my "reference image", used to benchmark the impl. in either 640x480 or 1920x1080
 func worldWithPlane() {
-	camera := mat.NewCamera(640, 480, math.Pi/3)
-	viewTransform := mat.ViewTransform(mat.NewPoint(-2, 1.0, -4), mat.NewPoint(0, 0.5, 0), mat.NewVector(0, 1, 0))
+	camera := mat.NewCamera(640, 480, math.Pi/3) // -4 är referens!
+	viewTransform := mat.ViewTransform(mat.NewPoint(-2, 2.0, -4), mat.NewPoint(0, 0.5, 0), mat.NewVector(0, 1, 0))
 	camera.Transform = viewTransform
 	camera.Inverse = mat.Inverse(viewTransform)
 
@@ -426,10 +475,15 @@ func worldWithPlane() {
 		s3.SetMaterial(mat3)
 		gr.AddChild(s3)
 
+		gr.SetTransform(mat.RotateY(0.67))
 		gr.Bounds() // For now, important to always call Bounds on Group once set up.
 		mat.Divide(gr, 1)
 
 		w.Objects = append(w.Objects, gr)
+		w.Objects = append(w.Objects, gr.BoundsToCube())
+
+		//cb := mat.NewCube()
+		//w.Objects = append(w.Objects, cb)
 
 		worlds[i] = w
 	}
@@ -442,7 +496,7 @@ func worldWithPlane() {
 	//canvas := mat.RenderThreaded(camera, w)
 
 	// One can use this to render a unit-length XYZ axises superimposed on the image
-	//mat.RenderReferenceAxises(canvas, camera)
+	helper.RenderReferenceAxises(canvas, camera)
 
 	// write
 	myImage := image.NewRGBA(image.Rect(0, 0, canvas.W, canvas.H))

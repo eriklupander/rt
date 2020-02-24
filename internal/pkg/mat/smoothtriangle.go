@@ -53,9 +53,7 @@ func (s *SmoothTriangle) GetTransform() Mat4x4 {
 }
 
 func (s *SmoothTriangle) GetInverse() Mat4x4 {
-	//elems := IdentityMatrix //make([]float64, 16)
-	//copy(elems, IdentityMatrix.Elems)
-	return IdentityMatrix // NewIdentityMatrix()//Mat4x4{}
+	return IdentityMatrix
 }
 
 func (s *SmoothTriangle) SetTransform(transform Mat4x4) {
@@ -74,7 +72,7 @@ func (s *SmoothTriangle) IntersectLocal(ray Ray) []Intersection {
 	dirCrossE2 := Cross(ray.Direction, s.E2)
 	determinant := Dot(s.E1, dirCrossE2)
 	if math.Abs(determinant) < Epsilon {
-		return []Intersection{}
+		return nil
 	}
 
 	// Triangle misses over P1-P3 edge
@@ -82,13 +80,13 @@ func (s *SmoothTriangle) IntersectLocal(ray Ray) []Intersection {
 	p1ToOrigin := Sub(ray.Origin, s.P1)
 	u := f * Dot(p1ToOrigin, dirCrossE2)
 	if u < 0 || u > 1 {
-		return []Intersection{}
+		return nil
 	}
 
 	originCrossE1 := Cross(p1ToOrigin, s.E1)
 	v := f * Dot(ray.Direction, originCrossE1)
 	if v < 0 || (u+v) > 1 {
-		return []Intersection{}
+		return nil
 	}
 	tdist := f * Dot(s.E2, originCrossE1)
 	return []Intersection{NewIntersectionUV(tdist, s, u, v)}

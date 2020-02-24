@@ -3,7 +3,8 @@ package mat
 type Mat4x4 [16]float64
 
 func New4x4() Mat4x4 {
-	return Mat4x4{1, 0, 0, 0,
+	return Mat4x4{
+		1, 0, 0, 0,
 		0, 1, 0, 0,
 		0, 0, 1, 0,
 		0, 0, 0, 1}
