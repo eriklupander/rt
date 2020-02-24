@@ -69,6 +69,9 @@ func TestGroupTransform(t *testing.T) {
 	s := NewSphere()
 	s.SetTransform(Translate(5, 0, 0))
 	gr.AddChild(s)
+	gr.Bounds()
+	//gr.bb.Min = NewPoint(8, -2, -2)
+	//gr.bb.Max = NewPoint(12, 2, 2)
 	r := NewRay(NewPoint(10, 0, -10), NewVector(0, 0, 1))
 
 	xs := gr.IntersectLocal(r)

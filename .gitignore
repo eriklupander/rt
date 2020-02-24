@@ -17,3 +17,5 @@ rt
 bin/
 
 .DS_Store
+
+assets/models

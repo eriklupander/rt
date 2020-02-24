@@ -94,7 +94,6 @@ func csg() {
 
 		floor := mat.NewPlane()
 		floor.SetMaterial(mat.NewMaterialWithReflectivity(mat.NewColor(0.2, 0.2, 1.0), 0.1, 0.9, 0.7, 200, 0.0))
-		//floor.Material.Pattern = mat.NewCheckerPattern(white, black)
 		w.Objects = append(w.Objects, floor)
 
 		worlds[i] = w
@@ -115,12 +114,12 @@ func csg() {
 
 func withModel() {
 
-	bytes, err := ioutil.ReadFile("assets/models/teapot.obj")
+	bytes, err := ioutil.ReadFile("assets/models/dragon.obj")
 	if err != nil {
 		panic(err.Error())
 	}
 	camera := mat.NewCamera(640, 480, math.Pi/3)
-	viewTransform := mat.ViewTransform(mat.NewPoint(0, 0.1, -5.5), mat.NewPoint(0, 0.1, 0), mat.NewVector(0, 1, 0))
+	viewTransform := mat.ViewTransform(mat.NewPoint(-5, 4.1, -5.5), mat.NewPoint(0, 2.5, 0), mat.NewVector(0, 1, 0))
 	camera.Transform = viewTransform
 	camera.Inverse = mat.Inverse(camera.Transform)
 
@@ -130,7 +129,9 @@ func withModel() {
 		parseObj := obj.ParseObj(string(bytes))
 
 		w := mat.NewWorld()
-		w.Light = append(w.Light, mat.NewLight(mat.NewPoint(-2.5, 2.5, -5), mat.NewColor(1, 1, 1)))
+		w.Light = append(w.Light, mat.NewLight(mat.NewPoint(-4.5, 10, -6), mat.NewColor(1, 1, 1)))
+		w.Light = append(w.Light, mat.NewLight(mat.NewPoint(-10, 10, 0), mat.NewColor(0.3, 0.3, 0.3)))
+		w.Light = append(w.Light, mat.NewLight(mat.NewPoint(10, 10, 0), mat.NewColor(0.3, 0.3, 0.3)))
 
 		// Model
 		model := parseObj.ToGroup()
@@ -139,8 +140,11 @@ func withModel() {
 		model.SetTransform(mat.Translate(1, 0, 0))
 		m := mat.NewDefaultMaterial()
 		m.Color = mat.NewColor(0.92, 0.92, 0.9)
-		m.Ambient = 0.5
-		m.Reflectivity = 0.05
+		m.Ambient = 0.1
+		m.Diffuse = 0.6
+		m.Specular = 0.3
+		m.Shininess = 15
+		//m.Reflectivity = 0.05
 		model.SetMaterial(m)
 		mat.Divide(model, 100)
 		model.Bounds()
@@ -165,9 +169,9 @@ func withModel() {
 		northWall.Material.Pattern = mat.NewCheckerPattern(white, black)
 		w.Objects = append(w.Objects, northWall)
 
-		s := mat.NewSphere()
-		s.SetTransform(mat.Translate(-1, 0, 0))
-		w.Objects = append(w.Objects, s)
+		//s := mat.NewSphere()
+		//s.SetTransform(mat.Translate(-1, 0, 0))
+		//w.Objects = append(w.Objects, s)
 		worlds[i] = w
 	}
 
@@ -179,7 +183,7 @@ func withModel() {
 	writeDataToPNG(canvas, myImage)
 
 	// outputFile is a File type which satisfies Writer interface
-	outputFile, err := os.Create("teapot.png")
+	outputFile, err := os.Create("dragon.png")
 	if err != nil {
 		panic(err.Error())
 	}

@@ -128,4 +128,5 @@ func (g *Group) AddChild(s Shape) {
 
 func (g *Group) Bounds() {
 	g.bb = BoundsOf(g)
+	g.bb = TransformBoundingBox(g.bb, g.GetTransform()) // transform by the group's own transform too
 }
