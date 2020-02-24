@@ -3,13 +3,18 @@ package mat
 import "math"
 
 type Triangle struct {
-	P1       Tuple4
-	P2       Tuple4
-	P3       Tuple4
-	E1       Tuple4
-	E2       Tuple4
-	N        Tuple4
-	Material Material
+	P1         Tuple4
+	P2         Tuple4
+	P3         Tuple4
+	E1         Tuple4
+	E2         Tuple4
+	N          Tuple4
+	Material   Material
+	CastShadow bool
+}
+
+func (t *Triangle) CastsShadow() bool {
+	return t.CastShadow
 }
 
 func (t *Triangle) ID() int64 {
@@ -81,5 +86,8 @@ func NewTriangle(p1 Tuple4, p2 Tuple4, p3 Tuple4) *Triangle {
 	e1 := Sub(p2, p1)
 	e2 := Sub(p3, p1)
 	n := Normalize(Cross(e2, e1))
-	return &Triangle{P1: p1, P2: p2, P3: p3, E1: e1, E2: e2, N: n, Material: NewDefaultMaterial()}
+	return &Triangle{P1: p1, P2: p2, P3: p3, E1: e1, E2: e2, N: n,
+		Material:   NewDefaultMaterial(),
+		CastShadow: true,
+	}
 }

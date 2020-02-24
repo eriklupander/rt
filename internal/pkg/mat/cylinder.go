@@ -14,13 +14,14 @@ func NewCylinder() *Cylinder {
 	savedXs := make([]Intersection, 4)
 
 	return &Cylinder{
-		Id:        rand.Int63(),
-		Transform: m1,
-		Inverse:   inv,
-		Material:  NewDefaultMaterial(),
-		minY:      math.Inf(-1),
-		maxY:      math.Inf(1),
-		savedXs:   savedXs,
+		Id:         rand.Int63(),
+		Transform:  m1,
+		Inverse:    inv,
+		Material:   NewDefaultMaterial(),
+		minY:       math.Inf(-1),
+		maxY:       math.Inf(1),
+		savedXs:    savedXs,
+		CastShadow: true,
 	}
 }
 
@@ -40,18 +41,23 @@ func NewCylinderMMC(min, max float64, closed bool) *Cylinder {
 }
 
 type Cylinder struct {
-	Id        int64
-	Transform Mat4x4
-	Inverse   Mat4x4
-	Material  Material
-	Label     string
-	Parent    Shape
-	savedRay  Ray
-	minY      float64
-	maxY      float64
-	closed    bool
+	Id         int64
+	Transform  Mat4x4
+	Inverse    Mat4x4
+	Material   Material
+	Label      string
+	Parent     Shape
+	savedRay   Ray
+	minY       float64
+	maxY       float64
+	closed     bool
+	CastShadow bool
 
 	savedXs []Intersection
+}
+
+func (c *Cylinder) CastsShadow() bool {
+	return c.CastShadow
 }
 
 func (c *Cylinder) ID() int64 {

@@ -10,7 +10,15 @@ func NewCone() *Cone {
 	//copy(m1.Elems, IdentityMatrix.Elems)
 	inv := New4x4() //NewMat4x4(make([]float64, 16))
 	//copy(inv.Elems, IdentityMatrix.Elems)
-	return &Cone{Id: rand.Int63(), Transform: m1, Inverse: inv, Material: NewDefaultMaterial(), minY: math.Inf(-1), maxY: math.Inf(1)}
+	return &Cone{
+		Id:         rand.Int63(),
+		Transform:  m1,
+		Inverse:    inv,
+		Material:   NewDefaultMaterial(),
+		minY:       math.Inf(-1),
+		maxY:       math.Inf(1),
+		CastShadow: true,
+	}
 }
 
 func NewConeMM(min, max float64) *Cone {
@@ -29,16 +37,21 @@ func NewConeMMC(min, max float64, closed bool) *Cone {
 }
 
 type Cone struct {
-	Id        int64
-	Transform Mat4x4
-	Inverse   Mat4x4
-	Material  Material
-	Label     string
-	Parent    Shape
-	savedRay  Ray
-	minY      float64
-	maxY      float64
-	closed    bool
+	Id         int64
+	Transform  Mat4x4
+	Inverse    Mat4x4
+	Material   Material
+	Label      string
+	Parent     Shape
+	savedRay   Ray
+	minY       float64
+	maxY       float64
+	closed     bool
+	CastShadow bool
+}
+
+func (c *Cone) CastsShadow() bool {
+	return c.CastShadow
 }
 
 func (c *Cone) ID() int64 {

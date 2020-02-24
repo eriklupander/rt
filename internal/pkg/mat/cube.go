@@ -17,11 +17,13 @@ func NewCube() *Cube {
 	}
 
 	return &Cube{
-		Id:        rand.Int63(),
-		Transform: m1,
-		Inverse:   inv,
-		Material:  NewDefaultMaterial(),
-		savedXs:   savedXs}
+		Id:         rand.Int63(),
+		Transform:  m1,
+		Inverse:    inv,
+		Material:   NewDefaultMaterial(),
+		savedXs:    savedXs,
+		CastShadow: true,
+	}
 }
 
 type Cube struct {
@@ -33,6 +35,12 @@ type Cube struct {
 	Parent    Shape
 	savedRay  Ray
 	savedXs   []Intersection
+
+	CastShadow bool
+}
+
+func (c *Cube) CastsShadow() bool {
+	return c.CastShadow
 }
 
 func (c *Cube) ID() int64 {

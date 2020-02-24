@@ -12,6 +12,7 @@ type Shape interface {
 	GetLocalRay() Ray
 	GetParent() Shape
 	SetParent(shape Shape)
+	CastsShadow() bool
 }
 
 func WorldToObject(shape Shape, point Tuple4) Tuple4 {

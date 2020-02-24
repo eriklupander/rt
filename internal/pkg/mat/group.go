@@ -19,13 +19,8 @@ type Group struct {
 	innerRays []Ray
 	xsCache   Intersections
 	bb        *BoundingBox
-}
 
-func (g *Group) GetParent() Shape {
-	return g.Parent
-}
-func (g *Group) SetParent(shape Shape) {
-	g.Parent = shape
+	CastShadow bool
 }
 
 func NewGroup() *Group {
@@ -47,7 +42,8 @@ func NewGroup() *Group {
 		xsCache:   cachedXs,
 		innerRays: innerRays,
 
-		bb: NewEmptyBoundingBox(),
+		bb:         NewEmptyBoundingBox(),
+		CastShadow: true,
 	}
 }
 
@@ -129,4 +125,15 @@ func (g *Group) AddChild(s Shape) {
 func (g *Group) Bounds() {
 	g.bb = BoundsOf(g)
 	g.bb = TransformBoundingBox(g.bb, g.GetTransform()) // transform by the group's own transform too
+}
+
+func (g *Group) CastsShadow() bool {
+	return g.CastShadow
+}
+
+func (g *Group) GetParent() Shape {
+	return g.Parent
+}
+func (g *Group) SetParent(shape Shape) {
+	g.Parent = shape
 }

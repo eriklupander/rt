@@ -18,6 +18,7 @@ func NewCSG(operation string, left, right Shape) *CSG {
 		savedLeftRay:  NewRay(NewPoint(0, 0, 0), NewVector(0, 0, 0)),
 		savedRightRay: NewRay(NewPoint(0, 0, 0), NewVector(0, 0, 0)),
 		bb:            NewEmptyBoundingBox(),
+		CastShadow:    true,
 	}
 	left.SetParent(c)
 	right.SetParent(c)
@@ -38,6 +39,12 @@ type CSG struct {
 	savedRightRay Ray
 
 	bb *BoundingBox
+
+	CastShadow bool
+}
+
+func (c *CSG) CastsShadow() bool {
+	return c.CastShadow
 }
 
 func (c *CSG) ID() int64 {

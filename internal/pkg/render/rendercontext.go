@@ -282,7 +282,7 @@ func (rc *Context) pointInShadow(light mat.Light, p mat.Tuple4) bool {
 	ray := mat.NewRay(p, mat.Normalize(vecToLight))
 
 	// use stack...
-	rc.cStack[rc.total].ShadowXS = mat.IntersectWithWorldPtr(rc.world, ray, rc.cStack[rc.total].ShadowXS, &rc.cStack[rc.total].InRay)
+	rc.cStack[rc.total].ShadowXS = mat.IntersectWithWorldPtrForShadow(rc.world, ray, rc.cStack[rc.total].ShadowXS, &rc.cStack[rc.total].InRay)
 	if len(rc.cStack[rc.total].ShadowXS) > 0 {
 		for _, x := range rc.cStack[rc.total].ShadowXS {
 			if x.T > 0.0 && x.T < distance {

@@ -19,21 +19,29 @@ func NewSmoothTriangle(p1 Tuple4, p2 Tuple4, p3 Tuple4, n1 Tuple4, n2 Tuple4, n3
 	e1 := Sub(p2, p1)
 	e2 := Sub(p3, p1)
 	n := Normalize(Cross(e2, e1))
-	return &SmoothTriangle{P1: p1, P2: p2, P3: p3, E1: e1, E2: e2, N: n, N1: n1, N2: n2, N3: n3, Material: NewDefaultMaterial()}
+	return &SmoothTriangle{P1: p1, P2: p2, P3: p3, E1: e1, E2: e2, N: n, N1: n1, N2: n2, N3: n3,
+		Material:   NewDefaultMaterial(),
+		CastShadow: true,
+	}
 }
 
 type SmoothTriangle struct {
 	//Id       int64 // just used for debugging, remove for real...
-	P1       Tuple4
-	P2       Tuple4
-	P3       Tuple4
-	E1       Tuple4
-	E2       Tuple4
-	N        Tuple4
-	N1       Tuple4
-	N2       Tuple4
-	N3       Tuple4
-	Material Material
+	P1         Tuple4
+	P2         Tuple4
+	P3         Tuple4
+	E1         Tuple4
+	E2         Tuple4
+	N          Tuple4
+	N1         Tuple4
+	N2         Tuple4
+	N3         Tuple4
+	Material   Material
+	CastShadow bool
+}
+
+func (s *SmoothTriangle) CastsShadow() bool {
+	return s.CastShadow
 }
 
 func (s *SmoothTriangle) ID() int64 {

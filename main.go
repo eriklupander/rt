@@ -410,9 +410,11 @@ func worldWithPlane() {
 		s1.SetTransform(mat.Multiply(mat.Translate(-2, 0.25, -1), mat.Scale(0.25, 0.25, 0.25)))
 		mat1 := mat.NewMaterialWithReflectivity(mat.NewColor(1, 0.1, 0.1), 0.1, 0.5, 0.8, 220.0, 0.4)
 		s1.SetMaterial(mat1)
+
 		gr.AddChild(s1)
 
 		s2 := mat.NewSphere()
+		s2.CastShadow = false
 		s2.SetTransform(mat.Multiply(mat.Translate(-1, 0.25, -1), mat.Scale(0.25, 0.25, 0.25)))
 		mat2 := mat.NewMaterialWithReflectivity(mat.NewColor(0.1, 1.0, 0.1), 0.1, 0.5, 0.8, 220.0, 0.4)
 		s2.SetMaterial(mat2)

@@ -41,6 +41,21 @@ func IntersectWithWorldPtr(w World, r Ray, xs Intersections, inRay *Ray) []Inter
 	return xs
 }
 
+func IntersectWithWorldPtrForShadow(w World, r Ray, xs Intersections, inRay *Ray) []Intersection {
+	for idx := range w.Objects {
+		if !w.Objects[idx].CastsShadow() {
+			continue
+		}
+		intersections := IntersectRayWithShapePtr(w.Objects[idx], r, inRay)
+
+		for innerIdx := range intersections {
+			xs = append(xs, intersections[innerIdx])
+		}
+	}
+	sort.Sort(xs)
+	return xs
+}
+
 func IntersectRayWithBox(ray Ray, bb *BoundingBox) bool {
 	// There is supposed  to be a way to optimize this for fewer checks by looking at early values.
 	xtmin, xtmax := checkAxisForBB(ray.Origin.Get(0), ray.Direction.Get(0), bb.Min[0], bb.Max[0])

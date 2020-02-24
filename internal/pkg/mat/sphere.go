@@ -28,6 +28,7 @@ func NewSphere() *Sphere {
 		savedNormal: NewVector(0, 0, 0),
 		xsCache:     xsCache,
 		xsEmpty:     xsEmpty,
+		CastShadow:  true,
 	}
 }
 
@@ -54,6 +55,12 @@ type Sphere struct {
 	xsEmpty     []Intersection
 
 	savedNormal Tuple4
+
+	CastShadow bool
+}
+
+func (s *Sphere) CastsShadow() bool {
+	return s.CastShadow
 }
 
 func (s *Sphere) GetParent() Shape {

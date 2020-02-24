@@ -14,25 +14,31 @@ func NewPlane() *Plane {
 	savedXs := make([]Intersection, 1)
 
 	return &Plane{
-		Id:        rand.Int63(),
-		Transform: m1,
-		Inverse:   inv,
-		Material:  NewDefaultMaterial(),
-		Label:     "Plane",
-		savedXs:   savedXs,
+		Id:         rand.Int63(),
+		Transform:  m1,
+		Inverse:    inv,
+		Material:   NewDefaultMaterial(),
+		Label:      "Plane",
+		savedXs:    savedXs,
+		CastShadow: true,
 	}
 }
 
 type Plane struct {
-	Id        int64
-	Transform Mat4x4
-	Inverse   Mat4x4
-	Material  Material
-	Label     string
-	Parent    Shape
-	savedRay  Ray
+	Id         int64
+	Transform  Mat4x4
+	Inverse    Mat4x4
+	Material   Material
+	Label      string
+	Parent     Shape
+	savedRay   Ray
+	CastShadow bool
 
 	savedXs []Intersection
+}
+
+func (p *Plane) CastsShadow() bool {
+	return p.CastShadow
 }
 
 func (p *Plane) ID() int64 {
