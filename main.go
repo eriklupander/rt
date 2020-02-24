@@ -29,10 +29,10 @@ func main() {
 	}()
 	//parse()
 	//csg()
-	withModel()
+	//withModel()
 	//groups()
 	//refraction()
-	//worldWithPlane() // REFERENCE IMAGE!!
+	worldWithPlane() // REFERENCE IMAGE!!
 	//renderworld()
 	//shadedSphereDemo()
 	//circleDemo()
@@ -424,14 +424,8 @@ func worldWithPlane() {
 		s3.SetMaterial(mat3)
 		gr.AddChild(s3)
 
-		s4 := mat.NewSphere()
-		s4.SetTransform(mat.Multiply(mat.Translate(1, 0.25, -1), mat.Scale(0.25, 0.25, 0.25)))
-		mat4 := mat.NewDefaultReflectiveMaterial(1.0)
-		mat4.Color = mat.NewColor(0, 0, 0)
-		s4.SetMaterial(mat4)
-		//gr.AddChild(s4)
-		//gr.Bounds()
-		//mat.Divide(gr, 1)
+		gr.Bounds() // For now, important to always call Bounds on Group once set up.
+		mat.Divide(gr, 1)
 
 		w.Objects = append(w.Objects, gr)
 
