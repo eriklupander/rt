@@ -10,13 +10,9 @@ import (
 	"image"
 	"image/png"
 	"io/ioutil"
-	"log"
 	"math"
-	"net/http"
-	_ "net/http/pprof"
+	//_ "net/http/pprof"
 	"os"
-	"os/signal"
-	"syscall"
 )
 
 // main contains a load of old junk I've added while I completed chapters in the Ray Tracer Challenge book.
@@ -24,25 +20,25 @@ func main() {
 	//runtime.SetBlockProfileRate(1)
 	//runtime.SetMutexProfileFraction(1)
 	// we need a webserver to get the pprof going
-	go func() {
-		log.Println(http.ListenAndServe("localhost:6060", nil))
-	}()
+	//go func() {
+	//	log.Println(http.ListenAndServe("localhost:6060", nil))
+	//}()
 	//parse()
 	//csg()
-	//withModel()
-	triangles()
+	withModel()
+	//triangles()
 	//groups()
 	//refraction()
-	worldWithPlane() // REFERENCE IMAGE!!
+	//worldWithPlane() // REFERENCE IMAGE!!
 	//renderworld()
 	//shadedSphereDemo()
 	//circleDemo()
 	//clockDemo()
 	//projectileDemo()
 
-	termChan := make(chan os.Signal)
-	signal.Notify(termChan, syscall.SIGINT, syscall.SIGTERM)
-	<-termChan // Blocks here!!
+	//termChan := make(chan os.Signal)
+	//signal.Notify(termChan, syscall.SIGINT, syscall.SIGTERM)
+	//<-termChan // Blocks here!!
 	fmt.Println("shutting down!")
 }
 
@@ -184,8 +180,8 @@ func withModel() {
 		// Model
 		model := parseObj.ToGroup()
 		//model.SetTransform(mat.RotateY(-math.Pi / 2))
-		model.SetTransform(mat.Translate(-2, 0, 0))
-		model.SetTransform(mat.Scale(0.5, 0.5, 0.5))
+		model.SetTransform(mat.Translate(1, 0, 0))
+		//model.SetTransform(mat.Scale(0.5, 0.5, 0.5))
 		m := mat.NewDefaultMaterial()
 		m.Color = mat.NewColor(0.92, 0.92, 0.9)
 		m.Ambient = 0.1
@@ -198,13 +194,7 @@ func withModel() {
 		model.Bounds()
 
 		w.Objects = append(w.Objects, model)
-		w.Objects = append(w.Objects, model.BoundsToCube())
-
-		//box := mat.NewCube()
-		//cm := mat.NewDefaultMaterial()
-		//cm.Transparency = 0.9
-		//box.SetMaterial(cm)
-		//box.
+	//	w.Objects = append(w.Objects, model.BoundsToCube())
 
 		floor := mat.NewPlane()
 		floor.SetMaterial(mat.NewMaterialWithReflectivity(mat.NewColor(1, 0.5, 0.5), 0.1, 0.9, 0.7, 200, 0))
@@ -232,7 +222,7 @@ func withModel() {
 	writeDataToPNG(canvas, myImage)
 
 	// outputFile is a File type which satisfies Writer interface
-	outputFile, err := os.Create("dragon05.png")
+	outputFile, err := os.Create("dragon05-1.png")
 	if err != nil {
 		panic(err.Error())
 	}

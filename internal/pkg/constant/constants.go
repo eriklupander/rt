@@ -1,3 +1,3 @@
 package constant
 
-const RenderThreads = 1
+const RenderThreads = 8
