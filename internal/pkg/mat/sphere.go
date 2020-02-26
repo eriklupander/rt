@@ -11,23 +11,18 @@ func init() {
 }
 
 func NewSphere() *Sphere {
-	m1 := New4x4()  //NewMat4x4(make([]float64, 16))
-	inv := New4x4() //NewMat4x4(make([]float64, 16))
-	//	copy(m1.Elems, IdentityMatrix.Elems)
-	//	copy(inv.Elems, IdentityMatrix.Elems)
 
-	xsCache := make([]Intersection, 2, 2)
-	xsEmpty := make([]Intersection, 0)
 	return &Sphere{
 		Id:          rand.Int63(),
-		Transform:   m1,
-		Inverse:     inv,
+		Transform:   New4x4(),
+		Inverse:     New4x4(),
 		Material:    NewDefaultMaterial(),
-		originPoint: NewPoint(0, 0, 0),
 		savedVec:    NewVector(0, 0, 0),
 		savedNormal: NewVector(0, 0, 0),
-		xsCache:     xsCache,
-		xsEmpty:     xsEmpty,
+		savedRay:    NewRay(NewPoint(0, 0, 0), NewVector(0, 0, 0)),
+		xsCache:     make([]Intersection, 2),
+		xsEmpty:     make([]Intersection, 0),
+		originPoint: NewPoint(0, 0, 0),
 		CastShadow:  true,
 	}
 }
@@ -45,7 +40,7 @@ type Sphere struct {
 	Inverse   Mat4x4
 	Material  Material
 	Label     string
-	Parent    Shape
+	parent    Shape
 	savedRay  Ray
 
 	// cached stuff
@@ -64,7 +59,7 @@ func (s *Sphere) CastsShadow() bool {
 }
 
 func (s *Sphere) GetParent() Shape {
-	return s.Parent
+	return s.parent
 }
 
 func (s *Sphere) NormalAtLocal(point Tuple4, intersection *Intersection) Tuple4 {
@@ -79,7 +74,7 @@ func (s *Sphere) GetLocalRay() Ray {
 // IntersectLocal implements Sphere-ray intersection
 func (s *Sphere) IntersectLocal(r Ray) []Intersection {
 	s.savedRay = r
-	//s.xsCache = s.xsCache[:0]
+	//s.XsCache = s.XsCache[:0]
 	// this is a vector from the origin of the ray to the center of the sphere at 0,0,0
 	//SubPtr(r.Origin, s.originPoint, &s.savedVec)
 
@@ -112,10 +107,6 @@ func (s *Sphere) IntersectLocal(r Ray) []Intersection {
 	s.xsCache[0].S = s
 	s.xsCache[1].S = s
 	return s.xsCache
-	//return []Intersection{
-	//	{T: t1, S: s},
-	//	{T: t2, S: s},
-	//}
 }
 
 func (s *Sphere) ID() int64 {
@@ -144,5 +135,9 @@ func (s *Sphere) SetMaterial(m Material) {
 }
 
 func (s *Sphere) SetParent(shape Shape) {
-	s.Parent = shape
+	s.parent = shape
+}
+
+func (s *Sphere) Init() {
+
 }

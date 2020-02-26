@@ -60,8 +60,8 @@ func (b *BoundingBox) Add(p Tuple4) {
 }
 
 func ParentSpaceBounds(shape Shape) *BoundingBox {
-	bb := BoundsOf(shape)
-	return TransformBoundingBox(bb, shape.GetTransform())
+	BoundingBox := BoundsOf(shape)
+	return TransformBoundingBox(BoundingBox, shape.GetTransform())
 }
 
 func TransformBoundingBox(bbox *BoundingBox, m1 Mat4x4) *BoundingBox {
@@ -107,28 +107,28 @@ func BoundsOf(shape Shape) *BoundingBox {
 	case *Plane:
 		return NewBoundingBoxF(math.Inf(-1), 0, math.Inf(-1), math.Inf(1), 0, math.Inf(1))
 	case *Cylinder:
-		return NewBoundingBoxF(-1, val.minY, -1, 1, val.maxY, 1)
+		return NewBoundingBoxF(-1, val.MinY, -1, 1, val.MaxY, 1)
 	case *Cone:
-		xzMin := math.Abs(val.minY)
-		xzMax := math.Abs(val.maxY)
+		xzMin := math.Abs(val.MinY)
+		xzMax := math.Abs(val.MaxY)
 		limit := xzMin
 		if xzMax > limit {
 			limit = xzMax
 		}
 
-		return NewBoundingBoxF(-limit, val.minY, -limit, limit, val.maxY, limit)
+		return NewBoundingBoxF(-limit, val.MinY, -limit, limit, val.MaxY, limit)
 	case *Triangle:
-		bb := NewEmptyBoundingBox()
-		bb.Add(val.P1)
-		bb.Add(val.P2)
-		bb.Add(val.P3)
-		return bb
+		BoundingBox := NewEmptyBoundingBox()
+		BoundingBox.Add(val.P1)
+		BoundingBox.Add(val.P2)
+		BoundingBox.Add(val.P3)
+		return BoundingBox
 	case *SmoothTriangle:
-		bb := NewEmptyBoundingBox()
-		bb.Add(val.P1)
-		bb.Add(val.P2)
-		bb.Add(val.P3)
-		return bb
+		BoundingBox := NewEmptyBoundingBox()
+		BoundingBox.Add(val.P1)
+		BoundingBox.Add(val.P2)
+		BoundingBox.Add(val.P3)
+		return BoundingBox
 
 	default:
 		return NewBoundingBoxF(-1, -1, -1, 1, 1, 1)

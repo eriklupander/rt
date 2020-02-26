@@ -6,20 +6,15 @@ import (
 )
 
 func NewPlane() *Plane {
-	m1 := New4x4() //NewMat4x4(make([]float64, 16))
-	// copy(m1.Elems, IdentityMatrix.Elems)
+	m1 := New4x4()  //NewMat4x4(make([]float64, 16))
 	inv := New4x4() //NewMat4x4(make([]float64, 16))
-	// copy(inv.Elems, IdentityMatrix.Elems)
-
-	savedXs := make([]Intersection, 1)
-
 	return &Plane{
 		Id:         rand.Int63(),
 		Transform:  m1,
 		Inverse:    inv,
 		Material:   NewDefaultMaterial(),
 		Label:      "Plane",
-		savedXs:    savedXs,
+		savedXs:    make([]Intersection, 1),
 		CastShadow: true,
 	}
 }
@@ -30,7 +25,7 @@ type Plane struct {
 	Inverse    Mat4x4
 	Material   Material
 	Label      string
-	Parent     Shape
+	parent     Shape
 	savedRay   Ray
 	CastShadow bool
 
@@ -84,8 +79,8 @@ func (p *Plane) GetLocalRay() Ray {
 	panic("implement me")
 }
 func (p *Plane) GetParent() Shape {
-	return p.Parent
+	return p.parent
 }
 func (p *Plane) SetParent(shape Shape) {
-	p.Parent = shape
+	p.parent = shape
 }

@@ -6,10 +6,8 @@ import (
 )
 
 func NewCylinder() *Cylinder {
-	m1 := New4x4() //NewMat4x4(make([]float64, 16))
-	//copy(m1.Elems, IdentityMatrix.Elems)
+	m1 := New4x4()  //NewMat4x4(make([]float64, 16))
 	inv := New4x4() //NewMat4x4(make([]float64, 16))
-	//copy(inv.Elems, IdentityMatrix.Elems)
 
 	savedXs := make([]Intersection, 4)
 
@@ -18,8 +16,8 @@ func NewCylinder() *Cylinder {
 		Transform:  m1,
 		Inverse:    inv,
 		Material:   NewDefaultMaterial(),
-		minY:       math.Inf(-1),
-		maxY:       math.Inf(1),
+		MinY:       math.Inf(-1),
+		MaxY:       math.Inf(1),
 		savedXs:    savedXs,
 		CastShadow: true,
 	}
@@ -27,15 +25,15 @@ func NewCylinder() *Cylinder {
 
 func NewCylinderMM(min, max float64) *Cylinder {
 	c := NewCylinder()
-	c.minY = min
-	c.maxY = max
+	c.MinY = min
+	c.MaxY = max
 	return c
 }
 
 func NewCylinderMMC(min, max float64, closed bool) *Cylinder {
 	c := NewCylinder()
-	c.minY = min
-	c.maxY = max
+	c.MinY = min
+	c.MaxY = max
 	c.closed = closed
 	return c
 }
@@ -46,10 +44,10 @@ type Cylinder struct {
 	Inverse    Mat4x4
 	Material   Material
 	Label      string
-	Parent     Shape
+	parent     Shape
 	savedRay   Ray
-	minY       float64
-	maxY       float64
+	MinY       float64
+	MaxY       float64
 	closed     bool
 	CastShadow bool
 
@@ -108,19 +106,19 @@ func (c *Cylinder) IntersectLocal(ray Ray) []Intersection {
 
 	// ray does not intersect the cylinder
 	if disc < 0 {
-		return c.savedXs //return c.intercectCaps(ray, xs)
+		return c.savedXs
 	}
 
 	t0 := (-b - math.Sqrt(disc)) / (2 * a)
 	t1 := (-b + math.Sqrt(disc)) / (2 * a)
 
 	y0 := ray.Origin.Get(1) + t0*ray.Direction.Get(1)
-	if y0 > c.minY && y0 < c.maxY {
+	if y0 > c.MinY && y0 < c.MaxY {
 		c.savedXs = append(c.savedXs, NewIntersection(t0, c))
 	}
 
 	y1 := ray.Origin.Get(1) + t1*ray.Direction.Get(1)
-	if y1 > c.minY && y1 < c.maxY {
+	if y1 > c.MinY && y1 < c.MaxY {
 		c.savedXs = append(c.savedXs, NewIntersection(t1, c))
 	}
 
@@ -128,12 +126,12 @@ func (c *Cylinder) IntersectLocal(ray Ray) []Intersection {
 }
 
 func (c *Cylinder) NormalAtLocal(point Tuple4, intersection *Intersection) Tuple4 {
-	//return NewVector(point.Get(0), 0.0, point.Get(2))
+
 	// compute the square of the distance from the y axis
 	dist := math.Pow(point.Get(0), 2) + math.Pow(point.Get(2), 2)
-	if dist < 1 && point.Get(1) >= c.maxY-Epsilon {
+	if dist < 1 && point.Get(1) >= c.MaxY-Epsilon {
 		return NewVector(0, 1, 0)
-	} else if dist < 1 && point.Get(1) <= c.minY+Epsilon {
+	} else if dist < 1 && point.Get(1) <= c.MinY+Epsilon {
 		return NewVector(0, -1, 0)
 	} else {
 		return NewVector(point.Get(0), 0, point.Get(2))
@@ -144,10 +142,14 @@ func (c *Cylinder) GetLocalRay() Ray {
 	return c.savedRay
 }
 func (c *Cylinder) GetParent() Shape {
-	return c.Parent
+	return c.parent
 }
 func (c *Cylinder) SetParent(shape Shape) {
-	c.Parent = shape
+	c.parent = shape
+}
+
+func (c *Cylinder) Init() {
+	c.savedXs = make([]Intersection, 4)
 }
 
 func checkCap(ray Ray, t float64) bool {
@@ -163,14 +165,14 @@ func (c *Cylinder) intercectCaps(ray Ray, xs []Intersection) []Intersection {
 
 	// check for an intersection with the lower end cap by intersecting
 	// the ray with the plane at y=cyl.minimum
-	t := (c.minY - ray.Origin.Get(1)) / ray.Direction.Get(1)
+	t := (c.MinY - ray.Origin.Get(1)) / ray.Direction.Get(1)
 	if checkCap(ray, t) {
 		xs = append(xs, NewIntersection(t, c))
 	}
 
 	// check for an intersection with the upper end cap by intersecting
 	// the ray with the plane at y=cyl.maximum
-	t = (c.maxY - ray.Origin.Get(1)) / ray.Direction.Get(1)
+	t = (c.MaxY - ray.Origin.Get(1)) / ray.Direction.Get(1)
 	if checkCap(ray, t) {
 		xs = append(xs, NewIntersection(t, c))
 	}

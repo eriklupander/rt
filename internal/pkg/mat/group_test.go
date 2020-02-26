@@ -18,7 +18,7 @@ func TestGroup_AddChild(t *testing.T) {
 
 	assert.Equal(t, 1, len(gr.Children))
 	assert.Equal(t, p, gr.Children[0])
-	assert.Equal(t, gr, p.Parent)
+	assert.Equal(t, gr, p.parent)
 }
 
 func TestIntersectEmptyGroup(t *testing.T) {

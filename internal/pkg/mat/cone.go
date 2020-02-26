@@ -6,33 +6,24 @@ import (
 )
 
 func NewCone() *Cone {
-	m1 := New4x4() //NewMat4x4(make([]float64, 16))
-	//copy(m1.Elems, IdentityMatrix.Elems)
+	m1 := New4x4()  //NewMat4x4(make([]float64, 16))
 	inv := New4x4() //NewMat4x4(make([]float64, 16))
-	//copy(inv.Elems, IdentityMatrix.Elems)
 	return &Cone{
 		Id:         rand.Int63(),
 		Transform:  m1,
 		Inverse:    inv,
 		Material:   NewDefaultMaterial(),
-		minY:       math.Inf(-1),
-		maxY:       math.Inf(1),
+		MinY:       math.Inf(-1),
+		MaxY:       math.Inf(1),
 		CastShadow: true,
 	}
 }
 
-func NewConeMM(min, max float64) *Cone {
-	c := NewCone()
-	c.minY = min
-	c.maxY = max
-	return c
-}
-
 func NewConeMMC(min, max float64, closed bool) *Cone {
 	c := NewCone()
-	c.minY = min
-	c.maxY = max
-	c.closed = closed
+	c.MinY = min
+	c.MaxY = max
+	c.Closed = closed
 	return c
 }
 
@@ -42,11 +33,11 @@ type Cone struct {
 	Inverse    Mat4x4
 	Material   Material
 	Label      string
-	Parent     Shape
+	parent     Shape
 	savedRay   Ray
-	minY       float64
-	maxY       float64
-	closed     bool
+	MinY       float64
+	MaxY       float64
+	Closed     bool
 	CastShadow bool
 }
 
@@ -116,7 +107,7 @@ func (c *Cone) IntersectLocal(ray Ray) []Intersection {
 	if absA < Epsilon && absB > Epsilon {
 		t0 = -c1 / (2.0 * b)
 		y0 := ray.Origin.Get(1) + t0*ray.Direction.Get(1)
-		if y0 > c.minY && y0 < c.maxY {
+		if y0 > c.MinY && y0 < c.MaxY {
 			xs = append(xs, NewIntersection(t0, c))
 		}
 		//t1 = -c1 / (2.0 * b)
@@ -126,12 +117,12 @@ func (c *Cone) IntersectLocal(ray Ray) []Intersection {
 
 		// Capping check
 		y0 := ray.Origin.Get(1) + t0*ray.Direction.Get(1)
-		if y0 > c.minY && y0 < c.maxY {
+		if y0 > c.MinY && y0 < c.MaxY {
 			xs = append(xs, NewIntersection(t0, c))
 		}
 
 		y1 := ray.Origin.Get(1) + t1*ray.Direction.Get(1)
-		if y1 > c.minY && y1 < c.maxY {
+		if y1 > c.MinY && y1 < c.MaxY {
 			xs = append(xs, NewIntersection(t1, c))
 		}
 	}
@@ -144,9 +135,9 @@ func (c *Cone) NormalAtLocal(point Tuple4, intersection *Intersection) Tuple4 {
 
 	// compute the square of the distance from the y axis
 	dist := math.Pow(point.Get(0), 2) + math.Pow(point.Get(2), 2)
-	if dist < 1 && point.Get(1) >= c.maxY-Epsilon {
+	if dist < 1 && point.Get(1) >= c.MaxY-Epsilon {
 		return NewVector(0, 1, 0)
-	} else if dist < 1 && point.Get(1) <= c.minY+Epsilon {
+	} else if dist < 1 && point.Get(1) <= c.MinY+Epsilon {
 		return NewVector(0, -1, 0)
 	} else {
 		y := math.Sqrt(math.Pow(point.Get(0), 2) + math.Pow(point.Get(2), 2))
@@ -161,7 +152,7 @@ func (c *Cone) GetLocalRay() Ray {
 	return c.savedRay
 }
 
-// checkCap for cones changes so the minY / maxY is used instead of 1.0 since the cone narrows down.
+// checkCap for cones changes so the MinY / MaxY is used instead of 1.0 since the cone narrows down.
 // (remember, we're in unit space)
 func (c *Cone) checkCap(ray Ray, t float64, minMaxY float64) bool {
 	x := ray.Origin.Get(0) + t*ray.Direction.Get(0)
@@ -170,29 +161,29 @@ func (c *Cone) checkCap(ray Ray, t float64, minMaxY float64) bool {
 }
 
 func (c *Cone) intercectCaps(ray Ray, xs []Intersection) []Intersection {
-	if !c.closed || math.Abs(ray.Direction.Get(1)) < Epsilon {
+	if !c.Closed || math.Abs(ray.Direction.Get(1)) < Epsilon {
 		return xs
 	}
 
 	// check for an intersection with the lower end cap by intersecting
 	// the ray with the plane at y=cyl.minimum
-	t := (c.minY - ray.Origin.Get(1)) / ray.Direction.Get(1)
-	if c.checkCap(ray, t, c.minY) {
+	t := (c.MinY - ray.Origin.Get(1)) / ray.Direction.Get(1)
+	if c.checkCap(ray, t, c.MinY) {
 		xs = append(xs, NewIntersection(t, c))
 	}
 
 	// check for an intersection with the upper end cap by intersecting
 	// the ray with the plane at y=cyl.maximum
-	t = (c.maxY - ray.Origin.Get(1)) / ray.Direction.Get(1)
-	if c.checkCap(ray, t, c.maxY) {
+	t = (c.MaxY - ray.Origin.Get(1)) / ray.Direction.Get(1)
+	if c.checkCap(ray, t, c.MaxY) {
 		xs = append(xs, NewIntersection(t, c))
 	}
 	return xs
 }
 
 func (c *Cone) GetParent() Shape {
-	return c.Parent
+	return c.parent
 }
 func (c *Cone) SetParent(shape Shape) {
-	c.Parent = shape
+	c.parent = shape
 }

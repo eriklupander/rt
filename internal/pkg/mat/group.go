@@ -12,22 +12,20 @@ type Group struct {
 	Inverse   Mat4x4
 	Material  Material
 	Label     string
-	Parent    Shape
+	parent    Shape
 	Children  []Shape
 	savedRay  Ray
 
-	innerRays []Ray
-	xsCache   Intersections
-	bb        *BoundingBox
+	InnerRays   []Ray
+	XsCache     Intersections
+	BoundingBox *BoundingBox
 
 	CastShadow bool
 }
 
 func NewGroup() *Group {
-	m1 := New4x4() //NewMat4x4(make([]float64, 16))
-	//copy(m1.Elems, IdentityMatrix.Elems)
+	m1 := New4x4()  //NewMat4x4(make([]float64, 16))
 	inv := New4x4() //NewMat4x4(make([]float64, 16))
-	//copy(inv.Elems, IdentityMatrix.Elems)
 
 	cachedXs := make([]Intersection, 16)
 	innerRays := make([]Ray, 0)
@@ -39,11 +37,11 @@ func NewGroup() *Group {
 		Children:  make([]Shape, 0),
 		savedRay:  NewRay(NewPoint(0, 0, 0), NewVector(0, 0, 0)),
 
-		xsCache:   cachedXs,
-		innerRays: innerRays,
+		XsCache:   cachedXs,
+		InnerRays: innerRays,
 
-		bb:         NewEmptyBoundingBox(),
-		CastShadow: true,
+		BoundingBox: NewEmptyBoundingBox(),
+		CastShadow:  true,
 	}
 }
 
@@ -76,25 +74,24 @@ func (g *Group) SetMaterial(material Material) {
 
 func (g *Group) IntersectLocal(ray Ray) []Intersection {
 
-	if g.bb != nil && !IntersectRayWithBox(ray, g.bb) {
+	if g.BoundingBox != nil && !IntersectRayWithBox(ray, g.BoundingBox) {
 		calcstats.Incr()
 		return nil
 	}
-	//TransformRayPtr(ray, g.Inverse, &g.savedRay)
 
-	g.xsCache = g.xsCache[:0]
+	g.XsCache = g.XsCache[:0]
 	for idx := range g.Children {
-		TransformRayPtr(ray, g.Children[idx].GetInverse(), &g.innerRays[idx])
-		lxs := g.Children[idx].IntersectLocal(g.innerRays[idx])
+		TransformRayPtr(ray, g.Children[idx].GetInverse(), &g.InnerRays[idx])
+		lxs := g.Children[idx].IntersectLocal(g.InnerRays[idx])
 		if len(lxs) > 0 {
-			g.xsCache = append(g.xsCache, lxs...)
+			g.XsCache = append(g.XsCache, lxs...)
 		}
 	}
 
-	if len(g.xsCache) > 1 {
-		sort.Sort(g.xsCache)
+	if len(g.XsCache) > 1 {
+		sort.Sort(g.XsCache)
 	}
-	return g.xsCache
+	return g.XsCache
 }
 
 func (g *Group) NormalAtLocal(point Tuple4, intersection *Intersection) Tuple4 {
@@ -116,15 +113,14 @@ func (g *Group) AddChild(s Shape) {
 	s.SetParent(g)
 
 	// allocate memory for inner rays each time a child is added.
-	g.innerRays = append(g.innerRays, NewRay(NewPoint(0, 0, 0), NewVector(0, 0, 0)))
+	g.InnerRays = append(g.InnerRays, NewRay(NewPoint(0, 0, 0), NewVector(0, 0, 0)))
 
 	// recalculate bounds
-	g.bb.MergeWith(BoundsOf(s))
+	g.BoundingBox.MergeWith(BoundsOf(s))
 }
 
 func (g *Group) Bounds() {
-	g.bb = BoundsOf(g)
-	//g.bb = TransformBoundingBox(g.bb, g.GetTransform()) // transform by the group's own transform too
+	g.BoundingBox = BoundsOf(g)
 }
 
 func (g *Group) CastsShadow() bool {
@@ -132,28 +128,25 @@ func (g *Group) CastsShadow() bool {
 }
 
 func (g *Group) GetParent() Shape {
-	return g.Parent
+	return g.parent
 }
 func (g *Group) SetParent(shape Shape) {
-	g.Parent = shape
+	g.parent = shape
 }
 func (g *Group) BoundsToCube() *Cube {
-	//v := Sub(g.bb.Max, g.bb.Min)
-	//length := Magnitude(v)
-	//centre := Position(NewRay(g.bb.Max, v), length / 2)
-	TransformBoundingBox(g.bb, g.Transform)
-	xscale := (g.bb.Max[0] - g.bb.Min[0]) / 2
-	yscale := (g.bb.Max[1] - g.bb.Min[1]) / 2
-	zscale := (g.bb.Max[2] - g.bb.Min[2]) / 2
-	x := g.bb.Min[0] + xscale
-	y := g.bb.Min[1] + yscale
-	z := g.bb.Min[2] + zscale
+	TransformBoundingBox(g.BoundingBox, g.Transform)
+	xscale := (g.BoundingBox.Max[0] - g.BoundingBox.Min[0]) / 2
+	yscale := (g.BoundingBox.Max[1] - g.BoundingBox.Min[1]) / 2
+	zscale := (g.BoundingBox.Max[2] - g.BoundingBox.Min[2]) / 2
+	x := g.BoundingBox.Min[0] + xscale
+	y := g.BoundingBox.Min[1] + yscale
+	z := g.BoundingBox.Min[2] + zscale
 
 	c := NewCube()
-	//c.SetTransform(Translate(-1, 0.25, -1)) //g.bb.Max[0] - g.bb.Min))
 	c.SetTransform(g.Transform)
 	c.SetTransform(Translate(x, y, z))
 	c.SetTransform(Scale(xscale, yscale, zscale))
+
 	m := NewDefaultMaterial()
 	m.Transparency = 0.8
 	m.Color = NewColor(0.8, 0.7, 0.9)

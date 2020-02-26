@@ -17,7 +17,7 @@ func NewCSG(operation string, left, right Shape) *CSG {
 		Operation:     operation,
 		savedLeftRay:  NewRay(NewPoint(0, 0, 0), NewVector(0, 0, 0)),
 		savedRightRay: NewRay(NewPoint(0, 0, 0), NewVector(0, 0, 0)),
-		bb:            NewEmptyBoundingBox(),
+		BoundingBox:   NewEmptyBoundingBox(),
 		CastShadow:    true,
 	}
 	left.SetParent(c)
@@ -32,13 +32,13 @@ type CSG struct {
 	Left      Shape
 	Right     Shape
 	Operation string
-	Parent    Shape
+	parent    Shape
 	Material  Material
 
 	savedLeftRay  Ray
 	savedRightRay Ray
 
-	bb *BoundingBox
+	BoundingBox *BoundingBox
 
 	CastShadow bool
 }
@@ -73,7 +73,7 @@ func (c *CSG) SetMaterial(material Material) {
 }
 
 func (c *CSG) IntersectLocal(ray Ray) []Intersection {
-	if !IntersectRayWithBox(ray, c.bb) {
+	if !IntersectRayWithBox(ray, c.BoundingBox) {
 		calcstats.Incr()
 		return nil
 	}
@@ -93,13 +93,13 @@ func (c *CSG) GetLocalRay() Ray {
 }
 
 func (c *CSG) GetParent() Shape {
-	return c.Parent
+	return c.parent
 }
 
 func (c *CSG) SetParent(shape Shape) {
-	c.Parent = shape
+	c.parent = shape
 }
 
 func (c *CSG) Bounds() {
-	c.bb = BoundsOf(c)
+	c.BoundingBox = BoundsOf(c)
 }

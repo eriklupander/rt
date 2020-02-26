@@ -13,6 +13,8 @@ type Shape interface {
 	GetParent() Shape
 	SetParent(shape Shape)
 	CastsShadow() bool
+
+	// Init()
 }
 
 func WorldToObject(shape Shape, point Tuple4) Tuple4 {

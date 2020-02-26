@@ -6,10 +6,8 @@ import (
 )
 
 func NewCube() *Cube {
-	m1 := New4x4() //NewMat4x4(make([]float64, 16))
-	//copy(m1.Elems, IdentityMatrix.Elems)
+	m1 := New4x4()  //NewMat4x4(make([]float64, 16))
 	inv := New4x4() //NewMat4x4(make([]float64, 16))
-	//copy(inv.Elems, IdentityMatrix.Elems)
 
 	savedXs := make([]Intersection, 2)
 	for i := 0; i < 2; i++ {
@@ -32,7 +30,7 @@ type Cube struct {
 	Inverse   Mat4x4
 	Material  Material
 	Label     string
-	Parent    Shape
+	parent    Shape
 	savedRay  Ray
 	savedXs   []Intersection
 
@@ -106,12 +104,14 @@ func (c *Cube) GetLocalRay() Ray {
 	return c.savedRay
 }
 func (c *Cube) GetParent() Shape {
-	return c.Parent
+	return c.parent
 }
 func (c *Cube) SetParent(shape Shape) {
-	c.Parent = shape
+	c.parent = shape
 }
-
+func (c *Cube) Init() {
+	c.savedXs = make([]Intersection, 2)
+}
 func checkAxis(origin float64, direction float64) (min float64, max float64) {
 	tminNumerator := -1 - origin
 	tmaxNumerator := 1 - origin

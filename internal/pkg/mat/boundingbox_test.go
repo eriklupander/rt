@@ -59,8 +59,8 @@ func TestBoundsOfInfiniteCylinder(t *testing.T) {
 
 func TestBoundsOfFiniteCylinder(t *testing.T) {
 	c := NewCylinder()
-	c.minY = -5
-	c.maxY = 3
+	c.MinY = -5
+	c.MaxY = 3
 	box := BoundsOf(c)
 	assert.Equal(t, NewPoint(-1, -5, -1), box.Min)
 	assert.Equal(t, NewPoint(1, 3, 1), box.Max)
@@ -75,8 +75,8 @@ func TestBoundsOfInfiniteCone(t *testing.T) {
 
 func TestBoundsOfFiniteCone(t *testing.T) {
 	c := NewCone()
-	c.minY = -5
-	c.maxY = 3
+	c.MinY = -5
+	c.MaxY = 3
 	box := BoundsOf(c)
 	assert.Equal(t, NewPoint(-5, -5, -5), box.Min)
 	assert.Equal(t, NewPoint(5, 3, 5), box.Max)
@@ -102,7 +102,7 @@ func TestBoundingBox_MergeWith(t *testing.T) {
 
 func TestBoundingBoxContainsPoint(t *testing.T) {
 
-	bb := NewBoundingBoxF(5, -2, 0, 11, 4, 7)
+	BoundingBox := NewBoundingBoxF(5, -2, 0, 11, 4, 7)
 	tests := []struct {
 		point  Tuple4
 		result bool
@@ -119,14 +119,14 @@ func TestBoundingBoxContainsPoint(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		res := bb.ContainsPoint(tc.point)
+		res := BoundingBox.ContainsPoint(tc.point)
 		assert.Equal(t, tc.result, res)
 	}
 }
 
 func TestBoxContainsBox(t *testing.T) {
 
-	bb := NewBoundingBoxF(5, -2, 0, 11, 4, 7)
+	BoundingBox := NewBoundingBoxF(5, -2, 0, 11, 4, 7)
 	tests := []struct {
 		min    Tuple4
 		max    Tuple4
@@ -139,7 +139,7 @@ func TestBoxContainsBox(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		res := bb.ContainsBox(NewBoundingBox(tc.min, tc.max))
+		res := BoundingBox.ContainsBox(NewBoundingBox(tc.min, tc.max))
 		assert.Equal(t, tc.result, res)
 	}
 }
@@ -173,8 +173,8 @@ func TestGroupBoundingBoxContainsAllItsChildren(t *testing.T) {
 	s.SetTransform(Scale(2, 2, 2))
 
 	c := NewCylinder()
-	c.minY = -2
-	c.maxY = 2
+	c.MinY = -2
+	c.MaxY = 2
 	c.SetTransform(Translate(-4, -1, 4))
 	c.SetTransform(Scale(0.5, 1, 0.5))
 	g := NewGroup()

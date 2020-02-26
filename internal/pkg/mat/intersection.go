@@ -56,11 +56,11 @@ func IntersectWithWorldPtrForShadow(w World, r Ray, xs Intersections, inRay *Ray
 	return xs
 }
 
-func IntersectRayWithBox(ray Ray, bb *BoundingBox) bool {
+func IntersectRayWithBox(ray Ray, BoundingBox *BoundingBox) bool {
 	// There is supposed  to be a way to optimize this for fewer checks by looking at early values.
-	xtmin, xtmax := checkAxisForBB(ray.Origin.Get(0), ray.Direction.Get(0), bb.Min[0], bb.Max[0])
-	ytmin, ytmax := checkAxisForBB(ray.Origin.Get(1), ray.Direction.Get(1), bb.Min[1], bb.Max[1])
-	ztmin, ztmax := checkAxisForBB(ray.Origin.Get(2), ray.Direction.Get(2), bb.Min[2], bb.Max[2])
+	xtmin, xtmax := checkAxisForBB(ray.Origin.Get(0), ray.Direction.Get(0), BoundingBox.Min[0], BoundingBox.Max[0])
+	ytmin, ytmax := checkAxisForBB(ray.Origin.Get(1), ray.Direction.Get(1), BoundingBox.Min[1], BoundingBox.Max[1])
+	ztmin, ztmax := checkAxisForBB(ray.Origin.Get(2), ray.Direction.Get(2), BoundingBox.Min[2], BoundingBox.Max[2])
 
 	// Om det största av min-värdena är större än det minsta max-värdet.
 	tmin := max(xtmin, ytmin, ztmin)
