@@ -27,10 +27,10 @@ func main() {
 	//}()
 	//parse()
 	//csg()
-	//withModel()
+	withModel()
 	//groups()
 
-	refraction()
+	//refraction()
 	//worldWithPlane() // REFERENCE IMAGE!!
 
 	//termChan := make(chan os.Signal)
@@ -106,8 +106,8 @@ func withModel() {
 	model := parseObj.ToGroup()
 	model.SetTransform(mat.Translate(1, 0, 0))
 	m := mat.NewDefaultMaterial()
-	m.Color = mat.NewColor(0.92, 0.92, 0.9)
-	m.Ambient = 0.1
+	m.Color = mat.NewColor(0.92, 0.32, 0.3)
+	m.Ambient = 0.3
 	m.Diffuse = 0.6
 	m.Specular = 0.3
 	m.Shininess = 15
@@ -118,7 +118,7 @@ func withModel() {
 	if err != nil {
 		panic(err.Error())
 	}
-	camera := mat.NewCamera(640, 480, math.Pi/3)
+	camera := mat.NewCamera(1280, 720, math.Pi/3)
 	camera.Transform = mat.ViewTransform(mat.NewPoint(-8, 5.1, -8.5), mat.NewPoint(0, 2.5, 0), mat.NewVector(0, 1, 0))
 	camera.Inverse = mat.Inverse(camera.Transform)
 
