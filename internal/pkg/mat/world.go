@@ -1,8 +1,9 @@
 package mat
 
 type World struct {
-	Light   []Light
-	Objects []Shape `yaml:"objects,flow"`
+	Light     []Light
+	AreaLight []AreaLight
+	Objects   []Shape `yaml:"objects,flow"`
 }
 
 func NewDefaultWorld() World {

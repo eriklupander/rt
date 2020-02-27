@@ -8,7 +8,6 @@ import (
 	"github.com/eriklupander/rt/internal/pkg/obj"
 	"github.com/eriklupander/rt/internal/pkg/render"
 	"github.com/eriklupander/rt/scene"
-	"github.com/jinzhu/copier"
 	"image"
 	"image/png"
 	"io/ioutil"
@@ -27,8 +26,9 @@ func main() {
 	//}()
 	//parse()
 	//csg()
-	withModel()
+	//withModel()
 	//groups()
+	softshadows()
 
 	//refraction()
 	//worldWithPlane() // REFERENCE IMAGE!!
@@ -59,6 +59,22 @@ var black = mat.NewColor(0, 0, 0)
 //	}
 //}
 //
+
+func softshadows() {
+
+	worlds := make([]mat.World, constant.RenderThreads, constant.RenderThreads)
+	sc := scene.Softshadows()
+	for i := 0; i < constant.RenderThreads; i++ {
+		w := mat.NewWorld()
+		sc := scene.Softshadows()
+		w.Light = sc.Lights
+		w.AreaLight = sc.AreaLights
+		w.Objects = sc.Objects
+		worlds[i] = w
+	}
+	canvas := render.Threaded(sc.Camera, worlds)
+	writeImagePNG(canvas, "softshadows-small.png")
+}
 
 func csg() {
 
@@ -99,60 +115,55 @@ func csg() {
 
 func withModel() {
 
-	bytes, err := ioutil.ReadFile("assets/models/dragon.obj")
-	parseObj := obj.ParseObj(string(bytes))
-
-	// Model
-	model := parseObj.ToGroup()
-	model.SetTransform(mat.Translate(1, 0, 0))
-	m := mat.NewDefaultMaterial()
-	m.Color = mat.NewColor(0.92, 0.32, 0.3)
-	m.Ambient = 0.3
-	m.Diffuse = 0.6
-	m.Specular = 0.3
-	m.Shininess = 15
-	model.SetMaterial(m)
-	mat.Divide(model, 100)
-	model.Bounds()
-
-	if err != nil {
-		panic(err.Error())
-	}
-	camera := mat.NewCamera(1280, 720, math.Pi/3)
-	camera.Transform = mat.ViewTransform(mat.NewPoint(-8, 5.1, -8.5), mat.NewPoint(0, 2.5, 0), mat.NewVector(0, 1, 0))
+	camera := mat.NewCamera(320, 240, math.Pi/3)
+	camera.Transform = mat.ViewTransform(mat.NewPoint(-2, 4.1, -6.5), mat.NewPoint(0, 2.5, 0), mat.NewVector(0, 1, 0))
 	camera.Inverse = mat.Inverse(camera.Transform)
 
-	worlds := setupModelScene(model, constant.RenderThreads)
+	worlds := setupModelScene(constant.RenderThreads)
 	canvas := render.Threaded(camera, worlds)
 
 	// write
-	writeImagePNG(canvas, "dragon05-1.png")
+	writeImagePNG(canvas, "dragon-other-perspective-1-light.png")
 }
 
-func setupModelScene(model *mat.Group, instances int) []mat.World {
+func setupModelScene(instances int) []mat.World {
 	worlds := make([]mat.World, instances, instances)
+	bytes, _ := ioutil.ReadFile("assets/models/dragon.obj")
 	for i := 0; i < instances; i++ {
 
-		w := mat.NewWorld()
-		w.Light = append(w.Light, mat.NewLight(mat.NewPoint(-4.5, 10, -6), mat.NewColor(1, 1, 1)))
-		w.Light = append(w.Light, mat.NewLight(mat.NewPoint(-10, 10, 0), mat.NewColor(0.3, 0.3, 0.3)))
-		w.Light = append(w.Light, mat.NewLight(mat.NewPoint(10, 10, 0), mat.NewColor(0.3, 0.3, 0.3)))
+		// Model
+		obj := obj.ParseObj(string(bytes))
+		model := obj.ToGroup()
+		model.SetTransform(mat.Translate(1, 0, 0))
+		m := mat.NewMaterial(mat.NewColor(1, 0, 0), 0.1, 0.6, 0, 200)
+		m.Reflectivity = 0.2
+		model.SetMaterial(m)
+		mat.Divide(model, 100)
+		model.Bounds()
 
-		dragon := mat.Group{}
-		copier.Copy(&dragon, model)
-		w.Objects = append(w.Objects, &dragon)
+		w := mat.NewWorld()
+		w.Light = append(w.Light, mat.NewLight(mat.NewPoint(-2.5, 8, -6), mat.NewColor(1.5, 1.5, 1.5)))
+		//w.Light = append(w.Light, mat.NewLight(mat.NewPoint(-10, 10, 0), mat.NewColor(0.3, 0.3, 0.3)))
+		//w.Light = append(w.Light, mat.NewLight(mat.NewPoint(10, 10, 0), mat.NewColor(0.3, 0.3, 0.3)))
+
+		w.Objects = append(w.Objects, model)
 
 		floor := mat.NewPlane()
-		floor.SetMaterial(mat.NewMaterialWithReflectivity(mat.NewColor(1, 0.5, 0.5), 0.1, 0.9, 0.7, 200, 0))
-		floor.Material.Pattern = mat.NewCheckerPattern(white, black)
+		pm := mat.NewMaterial(mat.NewColor(1, 1, 1), 0.025, 0.67, 0, 200)
+		floor.SetMaterial(pm)
 		w.Objects = append(w.Objects, floor)
 
 		northWall := mat.NewPlane()
 		northWall.SetTransform(mat.Translate(0, 0, 10))
 		northWall.SetTransform(mat.RotateX(1.5708))
-		northWall.SetMaterial(mat.NewMaterialWithReflectivity(mat.NewColor(1, 0.5, 0.5), 0.1, 0.9, 0.7, 200, 0))
-		northWall.Material.Pattern = mat.NewCheckerPattern(white, black)
+		northWall.SetMaterial(pm)
 		w.Objects = append(w.Objects, northWall)
+
+		eastWall := mat.NewPlane()
+		eastWall.SetTransform(mat.Translate(7, 0, 0))
+		eastWall.SetTransform(mat.RotateZ(1.5708))
+		eastWall.SetMaterial(pm)
+		w.Objects = append(w.Objects, eastWall)
 		worlds[i] = w
 	}
 	return worlds

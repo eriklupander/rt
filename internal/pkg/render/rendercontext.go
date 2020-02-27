@@ -174,10 +174,10 @@ func (rc *Context) renderSinglePixel(col, row int) mat.Tuple4 {
 
 func (rc *Context) renderPixel(job *job) {
 
-	// experiment: run rayForPixel + colorAt 10 times, with random offset within the pixel
+	// experiment: run rayForPixel + colorAt N times, with random offset within the pixel
 	// Then compute the average color of all
 	rc.samples = rc.samples[:0]
-	for i := 0; i < 16; i++ {
+	for i := 0; i < constant.Samples; i++ {
 		for i := 0; i < 256; i++ {
 			rc.cStack[i].WorldXS = rc.cStack[i].WorldXS[:0]
 			rc.cStack[i].ShadowXS = rc.cStack[i].ShadowXS[:0]
@@ -185,7 +185,7 @@ func (rc *Context) renderPixel(job *job) {
 		rc.total = 0
 		rc.depth = 0
 
-		rc.rayForPixel(job.col, job.row, &rc.firstRay)
+		rc.rayForPixelRand(job.col, job.row, &rc.firstRay)
 		rc.samples = append(rc.samples, rc.colorAt(rc.firstRay, 5, 5))
 	}
 
@@ -194,34 +194,31 @@ func (rc *Context) renderPixel(job *job) {
 
 }
 
-//
-//func (rc *Context) intensityAt(light mat.AreaLight, point mat.Tuple4) float64 {
-//	total := 0.0
-//
-//	for v := 0; v < light.VSteps; v++ {
-//		for u := 0; u < light.USteps; u++ {
-//			lightPos := mat.PointOnLight(light, float64(u), float64(v))
-//			if !rc.isShadowed(lightPos, point) {
-//				total = total + 1.0
-//			}
-//		}
-//	}
-//	return total / light.Samples
-//	/*
-//		if rc.isShadowed(light.Position, point) {
-//			return 0.0
-//		} else {
-//			return 1.0
-//		}
-//	*/
-//}
-
 func (rc *Context) rayForPixel(x, y int, out *mat.Ray) {
+
+	xOffset := rc.camera.PixelSize * (float64(x) + 0.5) // 0.5
+	yOffset := rc.camera.PixelSize * (float64(y) + 0.5) // 0.5
+
+	// this feels a little hacky but actually works.
+	worldX := rc.camera.HalfWidth - xOffset
+	worldY := rc.camera.HalfHeight - yOffset
+
+	// mat.NewPoint(worldX, worldY, -1.0)
+	rc.pointInView[0] = worldX
+	rc.pointInView[1] = worldY
+
+	mat.MultiplyByTuplePtr(rc.camera.Inverse, rc.pointInView, &rc.pixel)
+	mat.MultiplyByTuplePtr(rc.camera.Inverse, originPoint, &rc.origin)
+	mat.SubPtr(rc.pixel, rc.origin, &rc.subVec)
+	mat.NormalizePtr(rc.subVec, &rc.direction)
+
+	out.Direction = rc.direction
+	out.Origin = rc.origin
+}
+func (rc *Context) rayForPixelRand(x, y int, out *mat.Ray) {
 
 	xOffset := rc.camera.PixelSize * (float64(x) + rand.Float64()) // 0.5
 	yOffset := rc.camera.PixelSize * (float64(y) + rand.Float64()) // 0.5
-	// xOffset := rc.camera.PixelSize * (float64(x) + 0.5) // 0.5
-	//yOffset := rc.camera.PixelSize * (float64(y) + 0.5) // 0.5
 
 	// this feels a little hacky but actually works.
 	worldX := rc.camera.HalfWidth - xOffset
@@ -240,28 +237,36 @@ func (rc *Context) rayForPixel(x, y int, out *mat.Ray) {
 	out.Origin = rc.origin
 }
 
-//
-//func (rc *Context) rayForPixel(x, y int, out *mat.Ray) {
-//
-//	xOffset := rc.camera.PixelSize * (float64(x) + 0.5)
-//	yOffset := rc.camera.PixelSize * (float64(y) + 0.5)
-//
-//	// this feels a little hacky but actually works.
-//	worldX := rc.camera.HalfWidth - xOffset
-//	worldY := rc.camera.HalfHeight - yOffset
-//
-//	rc.pointInView[0] = worldX
-//	rc.pointInView[1] = worldY
-//
-//	mat.MultiplyByTuplePtr(rc.camera.Inverse, rc.pointInView, &rc.pixel)
-//	mat.MultiplyByTuplePtr(rc.camera.Inverse, originPoint, &rc.origin)
-//	mat.SubPtr(rc.pixel, rc.origin, &rc.subVec)
-//	mat.NormalizePtr(rc.subVec, &rc.direction)
-//
-//	out.Direction = rc.direction
-//	out.Origin = rc.origin
-//}
+func (rc *Context) intensityAt(light mat.AreaLight, point mat.Tuple4) float64 {
+	total := 0.0
 
+	for v := 0; v < light.VSteps; v++ {
+		for u := 0; u < light.USteps; u++ {
+			lightPos := mat.PointOnLight(light, float64(u), float64(v))
+			if !rc.isShadowed(lightPos, point) {
+				total = total + 1.0
+			}
+		}
+	}
+	return total / light.Samples
+}
+func (rc *Context) isShadowed(lightPosition mat.Tuple4, p mat.Tuple4) bool {
+	vecToLight := mat.Sub(lightPosition, p)
+	distance := mat.Magnitude(vecToLight)
+
+	ray := mat.NewRay(p, mat.Normalize(vecToLight))
+
+	// use stack...
+	rc.cStack[rc.total].ShadowXS = mat.IntersectWithWorldPtrForShadow(rc.world, ray, rc.cStack[rc.total].ShadowXS, &rc.cStack[rc.total].InRay)
+	if len(rc.cStack[rc.total].ShadowXS) > 0 {
+		for _, x := range rc.cStack[rc.total].ShadowXS {
+			if x.T > 0.0 && x.T < distance {
+				return true
+			}
+		}
+	}
+	return false
+}
 func (rc *Context) sumColors() mat.Tuple4 {
 	var r, g, b float64
 	for i := range rc.samples {
@@ -348,9 +353,26 @@ func (rc *Context) refractedColor(comps mat.Computation, remainingReflections, r
 
 func (rc *Context) shadeHit(comps mat.Computation, remainingReflections, remainingRefractions int) mat.Tuple4 {
 	var surfaceColor = mat.NewColor(0, 0, 0)
+	//for _, light := range rc.world.Light {
+	//	inShadow := rc.pointInShadow(light, comps.OverPoint)
+	//	color := mat.Lighting(comps.Object.GetMaterial(), comps.Object, light, comps.OverPoint, comps.EyeVec, comps.NormalVec, inShadow, rc.cStack[rc.total].LightData)
+	//	surfaceColor = mat.Add(surfaceColor, color)
+	//}
+	// Light for point lights
 	for _, light := range rc.world.Light {
-		inShadow := rc.pointInShadow(light, comps.OverPoint)
-		color := mat.Lighting(comps.Object.GetMaterial(), comps.Object, light, comps.OverPoint, comps.EyeVec, comps.NormalVec, inShadow, rc.cStack[rc.total].LightData)
+		isShadowed := rc.isShadowed(light.Position, comps.OverPoint)
+		intensity := 1.0
+		if isShadowed {
+			intensity = 0.0
+		}
+		color := mat.LightingPointLight(comps.Object.GetMaterial(), comps.Object, light, comps.OverPoint, comps.EyeVec, comps.NormalVec, intensity == 0.0, rc.cStack[rc.total].LightData)
+		surfaceColor = mat.Add(surfaceColor, color)
+	}
+
+	// Light for area lights
+	for i := range rc.world.AreaLight {
+		intensity := rc.intensityAt(rc.world.AreaLight[i], comps.OverPoint)
+		color := mat.Lighting(comps.Object.GetMaterial(), comps.Object, rc.world.AreaLight[i], comps.OverPoint, comps.EyeVec, comps.NormalVec, intensity, rc.cStack[rc.total].LightData)
 		surfaceColor = mat.Add(surfaceColor, color)
 	}
 	reflectedColor := rc.reflectedColor(comps, remainingReflections, remainingRefractions)
@@ -384,59 +406,60 @@ func (rc *Context) pointInShadow(light mat.Light, p mat.Tuple4) bool {
 	return false
 }
 
-// lighting computes the color of a given pixel given phong shading
-func (rc *Context) lighting(material mat.Material, object mat.Shape, light mat.Light, position, eyeVec, normalVec mat.Tuple4, inShadow bool) mat.Tuple4 {
-	var color mat.Tuple4
-	if material.HasPattern() {
-		color = mat.PatternAtShape(material.Pattern, object, position)
-	} else {
-		color = material.Color
-	}
-	if inShadow {
-		return mat.MultiplyByScalar(color, material.Ambient)
-	}
-	effectiveColor := mat.Hadamard(color, light.Intensity)
-
-	// get vector from point on sphere to light source by subtracting, normalized into unit space.
-	lightVec := mat.Normalize(mat.Sub(light.Position, position))
-
-	// Add the ambient portion
-	ambient := mat.MultiplyByScalar(effectiveColor, material.Ambient)
-
-	// get dot product (angle) between the light and normal  vectors. If negative, it means the light source is
-	// on the backside
-	lightDotNormal := mat.Dot(lightVec, normalVec)
-	specular := mat.NewColor(0, 0, 0)
-	diffuse := mat.NewColor(0, 0, 0)
-	if lightDotNormal < 0 {
-		diffuse = black
-		specular = black
-	} else {
-		// Diffuse contribution Precedense here??
-		diffuse = mat.MultiplyByScalar(effectiveColor, material.Diffuse*lightDotNormal)
-
-		// reflect_dot_eye represents the cosine of the angle between the
-		// reflection vector and the eye vector. A negative number means the
-		// light reflects away from the eye.
-		// Note that we negate the light vector since we want to angle of the bounce
-		// of the light rather than the incoming light vector.
-		reflectVec := mat.Reflect(mat.Negate(lightVec), normalVec)
-		reflectDotEye := mat.Dot(reflectVec, eyeVec)
-
-		if reflectDotEye <= 0.0 {
-			specular = black
-		} else {
-			// compute the specular contribution
-			factor := math.Pow(reflectDotEye, material.Shininess)
-
-			// again, check precedense here
-			specular = mat.MultiplyByScalar(light.Intensity, material.Specular*factor)
-		}
-	}
-	// Add the three contributions together to get the final shading
-	// Uses standard Tuple addition
-	return ambient.Add(diffuse.Add(specular))
-}
+//
+//// lighting computes the color of a given pixel given phong shading
+//func (rc *Context) lighting(material mat.Material, object mat.Shape, light mat.Light, position, eyeVec, normalVec mat.Tuple4, inShadow bool) mat.Tuple4 {
+//	var color mat.Tuple4
+//	if material.HasPattern() {
+//		color = mat.PatternAtShape(material.Pattern, object, position)
+//	} else {
+//		color = material.Color
+//	}
+//	if inShadow {
+//		return mat.MultiplyByScalar(color, material.Ambient)
+//	}
+//	effectiveColor := mat.Hadamard(color, light.Intensity)
+//
+//	// get vector from point on sphere to light source by subtracting, normalized into unit space.
+//	lightVec := mat.Normalize(mat.Sub(light.Position, position))
+//
+//	// Add the ambient portion
+//	ambient := mat.MultiplyByScalar(effectiveColor, material.Ambient)
+//
+//	// get dot product (angle) between the light and normal  vectors. If negative, it means the light source is
+//	// on the backside
+//	lightDotNormal := mat.Dot(lightVec, normalVec)
+//	specular := mat.NewColor(0, 0, 0)
+//	diffuse := mat.NewColor(0, 0, 0)
+//	if lightDotNormal < 0 {
+//		diffuse = black
+//		specular = black
+//	} else {
+//		// Diffuse contribution Precedense here??
+//		diffuse = mat.MultiplyByScalar(effectiveColor, material.Diffuse*lightDotNormal)
+//
+//		// reflect_dot_eye represents the cosine of the angle between the
+//		// reflection vector and the eye vector. A negative number means the
+//		// light reflects away from the eye.
+//		// Note that we negate the light vector since we want to angle of the bounce
+//		// of the light rather than the incoming light vector.
+//		reflectVec := mat.Reflect(mat.Negate(lightVec), normalVec)
+//		reflectDotEye := mat.Dot(reflectVec, eyeVec)
+//
+//		if reflectDotEye <= 0.0 {
+//			specular = black
+//		} else {
+//			// compute the specular contribution
+//			factor := math.Pow(reflectDotEye, material.Shininess)
+//
+//			// again, check precedense here
+//			specular = mat.MultiplyByScalar(light.Intensity, material.Specular*factor)
+//		}
+//	}
+//	// Add the three contributions together to get the final shading
+//	// Uses standard Tuple addition
+//	return ambient.Add(diffuse.Add(specular))
+//}
 
 type job struct {
 	row int

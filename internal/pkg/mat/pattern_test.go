@@ -46,8 +46,8 @@ func TestLightingWithPattern(t *testing.T) {
 	normalVec := NewVector(0, 0, -1)
 	light := NewLight(NewPoint(0, 0, -10), NewColor(1, 1, 1))
 
-	c1 := Lighting(material, s, light, NewPoint(0.9, 0, 0), eyeVec, normalVec, false, NewLightData())
-	c2 := Lighting(material, s, light, NewPoint(1.1, 0, 0), eyeVec, normalVec, false, NewLightData())
+	c1 := LightingPointLight(material, s, light, NewPoint(0.9, 0, 0), eyeVec, normalVec, false, NewLightData())
+	c2 := LightingPointLight(material, s, light, NewPoint(1.1, 0, 0), eyeVec, normalVec, false, NewLightData())
 	assert.True(t, TupleXYZEq(white, c1))
 	assert.True(t, TupleXYZEq(black, c2))
 }

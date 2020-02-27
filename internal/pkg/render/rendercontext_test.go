@@ -1,6 +1,7 @@
 package render
 
 import (
+	"github.com/eriklupander/rt/internal/pkg/constant"
 	"github.com/eriklupander/rt/internal/pkg/mat"
 	"github.com/stretchr/testify/assert"
 	"math"
@@ -140,7 +141,7 @@ func TestRayForPixelWhenCamIsTransformed(t *testing.T) {
 // Page 104
 func TestRender(t *testing.T) {
 	worlds := make([]mat.World, 0)
-	for i := 0; i < 8; i++ {
+	for i := 0; i < constant.RenderThreads; i++ {
 		w := mat.NewDefaultWorld()
 		worlds = append(worlds, w)
 	}
@@ -153,9 +154,10 @@ func TestRender(t *testing.T) {
 
 	canvas := Threaded(c, worlds)
 
-	assert.InEpsilon(t, 0.38066, canvas.ColorAt(5, 5).Get(0), mat.Epsilon)
-	assert.InEpsilon(t, 0.47583, canvas.ColorAt(5, 5).Get(1), mat.Epsilon)
-	assert.InEpsilon(t, 0.2855, canvas.ColorAt(5, 5).Get(2), mat.Epsilon)
+	// Note use of very high epsilon, is due to random multisampling being used.F
+	assert.InEpsilon(t, 0.38066, canvas.ColorAt(5, 5).Get(0), 0.3)
+	assert.InEpsilon(t, 0.47583, canvas.ColorAt(5, 5).Get(1), 0.3)
+	assert.InEpsilon(t, 0.2855, canvas.ColorAt(5, 5).Get(2), 0.3)
 }
 
 // Page 95
