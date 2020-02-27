@@ -21,7 +21,7 @@ func ParseObj(data string) *Obj {
 	for _, row := range rows {
 		if strings.TrimSpace(row) != "" {
 			parts := strings.Fields(strings.TrimSpace(row))
-			fmt.Printf("%v\n", row)
+			//fmt.Printf("%v\n", row)
 			switch parts[0] {
 			case "v":
 
