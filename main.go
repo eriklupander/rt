@@ -28,7 +28,8 @@ func main() {
 	//csg()
 	//withModel()
 	//groups()
-	softshadows()
+	//softshadows()
+	depthOfField()
 
 	//refraction()
 	//worldWithPlane() // REFERENCE IMAGE!!
@@ -59,6 +60,21 @@ var black = mat.NewColor(0, 0, 0)
 //	}
 //}
 //
+func depthOfField() {
+
+	worlds := make([]mat.World, constant.RenderThreads, constant.RenderThreads)
+	sc := scene.DoF()
+	for i := 0; i < constant.RenderThreads; i++ {
+		w := mat.NewWorld()
+		sc := scene.DoF()
+		w.Light = sc.Lights
+		w.AreaLight = sc.AreaLights
+		w.Objects = sc.Objects
+		worlds[i] = w
+	}
+	canvas := render.Threaded(sc.Camera, worlds)
+	writeImagePNG(canvas, "dof-smaller-aperture-128.png")
+}
 
 func softshadows() {
 

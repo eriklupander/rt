@@ -22,8 +22,8 @@ func New(world mat.World) Context {
 
 	// allocate a "stack" of 256 ShadeData instances, e.g. meaning that the render of a single pixel may recurse and
 	// spawn up to 256 additonal rays/intersection tests without having to allocate new memory.
-	cStack := make([]ShadeData, 256)
-	for i := 0; i < 256; i++ {
+	cStack := make([]ShadeData, 1024)
+	for i := 0; i < 1024; i++ {
 		cStack[i] = NewShadeData()
 	}
 
@@ -135,21 +135,25 @@ func Threaded(c mat.Camera, worlds []mat.World) *mat.Canvas {
 
 func (rc *Context) workerFuncPerPixel() {
 	for job := range rc.jobs {
-		rc.renderPixel(job)
+		rc.renderPixelPinhole(job)
 	}
 }
 func (rc *Context) workerFuncPerLine() {
 	for job := range rc.jobs {
 		for i := 0; i < rc.camera.Width; i++ {
 			job.col = i
-			rc.renderPixel(job)
+			if rc.camera.Aperture == 0.0 {
+				rc.renderPixelPinhole(job)
+			} else {
+				rc.renderPixelWithAperture(job)
+			}
 		}
 		rc.wg.Done()
 	}
 }
 
 func (rc *Context) renderSinglePixel(col, row int) mat.Tuple4 {
-	for i := 0; i < 256; i++ {
+	for i := 0; i < 1024; i++ {
 		rc.cStack[i].WorldXS = rc.cStack[i].WorldXS[:0]
 		rc.cStack[i].ShadowXS = rc.cStack[i].ShadowXS[:0]
 	}
@@ -160,38 +164,59 @@ func (rc *Context) renderSinglePixel(col, row int) mat.Tuple4 {
 	return color
 }
 
-//func (rc *Context) renderPixel(job *job) {
-//	for i := 0; i < 256; i++ {
-//		rc.cStack[i].WorldXS = rc.cStack[i].WorldXS[:0]
-//		rc.cStack[i].ShadowXS = rc.cStack[i].ShadowXS[:0]
-//	}
-//	rc.total = 0
-//	rc.depth = 0
-//	rc.rayForPixel(job.col, job.row, &rc.firstRay)
-//	color := rc.colorAt(rc.firstRay, 5, 5)
-//	rc.canvas.WritePixelMutex(job.col, job.row, color)
-//}
+func (rc *Context) renderPixelPinhole(job *job) {
+	for i := 0; i < 256; i++ {
+		rc.cStack[i].WorldXS = rc.cStack[i].WorldXS[:0]
+		rc.cStack[i].ShadowXS = rc.cStack[i].ShadowXS[:0]
+	}
+	rc.samples = rc.samples[:0]
+	for i := 0; i < constant.Samples; i++ {
+		rc.total = 0
+		rc.depth = 0
+		rc.rayForPixel(job.col, job.row, &rc.firstRay)
+		rc.samples = append(rc.samples, rc.colorAt(rc.firstRay, 5, 5))
+	}
 
-func (rc *Context) renderPixel(job *job) {
+	// calc avg color
+	rc.canvas.WritePixelMutex(job.col, job.row, rc.sumColors())
+}
 
+func (rc *Context) renderPixelWithAperture(job *job) {
+	tempPos := mat.Tuple4{}
+	newVec := mat.Tuple4{}
+	var pos = mat.Tuple4{}
 	// experiment: run rayForPixel + colorAt N times, with random offset within the pixel
 	// Then compute the average color of all
 	rc.samples = rc.samples[:0]
 	for i := 0; i < constant.Samples; i++ {
-		for i := 0; i < 256; i++ {
+		for i := 0; i < 1024; i++ {
 			rc.cStack[i].WorldXS = rc.cStack[i].WorldXS[:0]
 			rc.cStack[i].ShadowXS = rc.cStack[i].ShadowXS[:0]
 		}
 		rc.total = 0
 		rc.depth = 0
 
-		rc.rayForPixelRand(job.col, job.row, &rc.firstRay)
-		rc.samples = append(rc.samples, rc.colorAt(rc.firstRay, 5, 5))
+		rc.rayForPixel(job.col, job.row, &rc.firstRay)
+		// DoF experiment starts here!
+		// get focal point on this ray, which is distance on ray
+
+		mat.PositionPtr(rc.firstRay, rc.camera.FocalLength, &pos)
+
+		// now, move camera origin and cast a ray from new origin through pos
+
+		for j := 0; j < 128; j++ { // -1, 0.5, -3
+			tempPos[0] = rc.firstRay.Origin[0] + (-rc.camera.Aperture + rand.Float64()*rc.camera.Aperture*2)
+			tempPos[1] = rc.firstRay.Origin[1] + (-rc.camera.Aperture + rand.Float64()*rc.camera.Aperture*2)
+			tempPos[2] = rc.firstRay.Origin[2]
+			tempPos[3] = 1
+			mat.SubPtr(pos, tempPos, &newVec)
+			tempRay := mat.NewRay(tempPos, newVec)
+			rc.samples = append(rc.samples, rc.colorAt(tempRay, 5, 5))
+		}
 	}
 
 	// calc avg color
 	rc.canvas.WritePixelMutex(job.col, job.row, rc.sumColors())
-
 }
 
 func (rc *Context) rayForPixel(x, y int, out *mat.Ray) {
@@ -216,6 +241,28 @@ func (rc *Context) rayForPixel(x, y int, out *mat.Ray) {
 	out.Origin = rc.origin
 }
 func (rc *Context) rayForPixelRand(x, y int, out *mat.Ray) {
+
+	xOffset := rc.camera.PixelSize * (float64(x) + rand.Float64()) // 0.5
+	yOffset := rc.camera.PixelSize * (float64(y) + rand.Float64()) // 0.5
+
+	// this feels a little hacky but actually works.
+	worldX := rc.camera.HalfWidth - xOffset
+	worldY := rc.camera.HalfHeight - yOffset
+
+	// mat.NewPoint(worldX, worldY, -1.0)
+	rc.pointInView[0] = worldX
+	rc.pointInView[1] = worldY
+
+	mat.MultiplyByTuplePtr(rc.camera.Inverse, rc.pointInView, &rc.pixel)
+	mat.MultiplyByTuplePtr(rc.camera.Inverse, originPoint, &rc.origin)
+	mat.SubPtr(rc.pixel, rc.origin, &rc.subVec)
+	mat.NormalizePtr(rc.subVec, &rc.direction)
+
+	out.Direction = rc.direction
+	out.Origin = rc.origin
+}
+
+func (rc *Context) rayForPixelDoF(x, y int, out *mat.Ray) {
 
 	xOffset := rc.camera.PixelSize * (float64(x) + rand.Float64()) // 0.5
 	yOffset := rc.camera.PixelSize * (float64(y) + rand.Float64()) // 0.5

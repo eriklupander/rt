@@ -1,5 +1,5 @@
 package constant
 
-const RenderThreads = 12
-const Samples = 16
+const RenderThreads = 8
+const Samples = 1
 const ShadowRays = 4

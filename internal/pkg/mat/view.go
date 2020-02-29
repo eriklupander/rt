@@ -6,14 +6,16 @@ import (
 )
 
 type Camera struct {
-	Width      int
-	Height     int
-	Fov        float64
-	Transform  Mat4x4
-	Inverse    Mat4x4
-	PixelSize  float64
-	HalfWidth  float64
-	HalfHeight float64
+	Width       int
+	Height      int
+	Fov         float64
+	Transform   Mat4x4
+	Inverse     Mat4x4
+	PixelSize   float64
+	HalfWidth   float64
+	HalfHeight  float64
+	Aperture    float64
+	FocalLength float64
 }
 
 func NewCamera(width int, height int, fov float64) Camera {
@@ -30,11 +32,6 @@ func NewCamera(width int, height int, fov float64) Camera {
 	}
 	pixelSize := (halfWidth * 2) / float64(width)
 
-	//transform := IdentityMatrix //make([]float64, 16)
-	//copy(transform, IdentityMatrix.Elems)
-
-	//inverse := IdentityMatrix //make([]float64, 16)
-	//copy(inverse, IdentityMatrix.Elems)
 	return Camera{
 		Width:      width,
 		Height:     height,
@@ -44,7 +41,15 @@ func NewCamera(width int, height int, fov float64) Camera {
 		PixelSize:  pixelSize,
 		HalfWidth:  halfWidth,
 		HalfHeight: halfHeight,
+		Aperture:   0.0, // default, pinhole
 	}
+}
+
+func NewCameraWithAperture(width int, height int, fov, aperture, focalLength float64) Camera {
+	c := NewCamera(width, height, fov)
+	c.FocalLength = focalLength
+	c.Aperture = aperture
+	return c
 }
 
 func ViewTransform(from, to, up Tuple4) Mat4x4 {

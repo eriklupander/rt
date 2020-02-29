@@ -90,6 +90,14 @@ func PointOnLight(light AreaLight, u, v float64) Tuple4 {
 	//MultiplyByScalar(light.UVec, u+0.5),
 	//MultiplyByScalar(light.VVec, v+0.5)))
 }
+func PointOnLightNoRandom(light AreaLight, u, v float64) Tuple4 {
+	return Add(light.Corner,
+		Add(
+			MultiplyByScalar(light.UVec, u+0.5),
+			MultiplyByScalar(light.VVec, v+0.5)))
+	//MultiplyByScalar(light.UVec, u+0.5),
+	//MultiplyByScalar(light.VVec, v+0.5)))
+}
 
 func Lighting(material Material, object Shape, light LightSource, position, eyeVec, normalVec Tuple4, intensity float64, lightData LightData) Tuple4 {
 	var color Tuple4
@@ -115,8 +123,12 @@ func Lighting(material Material, object Shape, light LightSource, position, eyeV
 	sum := NewColor(0, 0, 0)
 	for u := 0; u < l.USteps; u++ {
 		for v := 0; v < l.VSteps; v++ {
-			p := light.(AreaLight).Corner //PointOnLight(l, float64(u), float64(v))
+
 			// get vector from point on sphere to light source by subtracting, normalized into unit space.
+			//p := light.(AreaLight).Corner // renders OK?
+			p := PointOnLight(l, float64(u), float64(v)) // ???
+			//p := PointOnLightNoRandom(l, float64(u), float64(v)) // Works with unit test
+
 			SubPtr(p, position, &lightData.LightVec)
 			NormalizePtr(lightData.LightVec, &lightData.LightVec)
 

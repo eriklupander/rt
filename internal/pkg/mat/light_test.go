@@ -112,7 +112,7 @@ func TestFindPointOnAreaLight(t *testing.T) {
 	}
 
 	for _, tc := range testcases {
-		pt := PointOnLight(light, tc.u, tc.v)
+		pt := PointOnLightNoRandom(light, tc.u, tc.v)
 		assert.True(t, TupleXYZEq(pt, tc.result))
 	}
 }
