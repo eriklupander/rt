@@ -3,6 +3,10 @@ Go implementation of [The Ray Tracer challenge](https://pragprog.com/book/jbtrac
 
 ![image](renders/reference-highres-multisample-4x4-2depth-floor-refl.png)
 _(image from a feature-branch with WiP multisampling and soft shadows)_
+![image](renders/dragon.png)
+_(the good ol' dragon)_
+![image](renders/dof-smaller-aperture-128.png)
+_(depth of field)_
 
 ### Description
 This is my WiP implementation of the Ray tracer as described in the book "The Ray Tracer Challenge" by https://pragprog.com/book/jbtracer/the-ray-tracer-challenge
@@ -10,6 +14,9 @@ This is my WiP implementation of the Ray tracer as described in the book "The Ra
 ### Changelog (performance fixes)
 Just to keep track of which fixes were done when, kind of...
 
+- 2020-02-29: Depth of field
+- 2020-02-25: Soft shadows and multisamling
+- 2020-02-23: BVH
 - 2020-02-21: Bounding boxes for groups and CSGs (based on bonus chapter from book)
 - 2020-02-20: Refactor to use arrays instead of slices for Matrices and Tuples.
 - 2020-02-19: Use sort.Sort instead of sort.Slice
@@ -22,6 +29,9 @@ Just to keep track of which fixes were done when, kind of...
 ### Features, State etc
 I think I've got all the features from the book covered, including:
 
+- Depth of Field
+- Soft shadows
+- Bounding boxes / BVH
 - Spheres, Cubes, Cones, Cylinders, Planes, Triangles, CSGs
 - Phong shading etc
 - Multiple light sources
