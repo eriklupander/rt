@@ -105,7 +105,19 @@ func Lighting(material Material, object Shape, light LightSource, position, eyeV
 	if material.HasPattern() {
 		color = PatternAtShape(material.Pattern, object, position)
 	} else {
-		color = material.Color
+		if material.Texture == nil {
+			color = material.Color
+		} else {
+			// find pixel on texture given position / 632
+			_, xp := math.Modf(position[0])
+			_, zp := math.Modf(position[2])
+			tx := material.Texture.At(int(math.Abs(xp) * 1024), int(math.Abs(zp) * 1024))
+			r,g,b, _ := tx.RGBA()
+			r1 := float64(r) /65536.0
+			g1 := float64(g) /65536.0
+			b1 := float64(b) /65536.0
+			color = NewColor(r1, g1, b1)
+		}
 	}
 	if intensity == 0.0 {
 		MultiplyByScalarPtr(color, material.Ambient, &lightData.EffectiveColor)

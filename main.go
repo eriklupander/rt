@@ -9,6 +9,7 @@ import (
 	"github.com/eriklupander/rt/internal/pkg/render"
 	"github.com/eriklupander/rt/scene"
 	"image"
+	"image/jpeg"
 	"image/png"
 	"io/ioutil"
 	"math"
@@ -18,6 +19,7 @@ import (
 
 // main contains a load of old junk I've added while I completed chapters in the Ray Tracer Challenge book.
 func main() {
+	image.RegisterFormat("jpeg", "jpeg", jpeg.Decode, jpeg.DecodeConfig)
 	//runtime.SetBlockProfileRate(1)
 	//runtime.SetMutexProfileFraction(1)
 	// we need a webserver to get the pprof going
@@ -29,7 +31,8 @@ func main() {
 	//withModel()
 	//groups()
 	//softshadows()
-	depthOfField()
+	//depthOfField()
+	textureMapping()
 
 	//refraction()
 	//worldWithPlane() // REFERENCE IMAGE!!
@@ -60,6 +63,22 @@ var black = mat.NewColor(0, 0, 0)
 //	}
 //}
 //
+func textureMapping() {
+
+	worlds := make([]mat.World, constant.RenderThreads, constant.RenderThreads)
+	sc := scene.TextureMapping()
+	for i := 0; i < constant.RenderThreads; i++ {
+		w := mat.NewWorld()
+		sc := scene.TextureMapping()
+		w.Light = sc.Lights
+		w.AreaLight = sc.AreaLights
+		w.Objects = sc.Objects
+		worlds[i] = w
+	}
+	canvas := render.Threaded(sc.Camera, worlds)
+	writeImagePNG(canvas, "texturemapping.png")
+}
+
 func depthOfField() {
 
 	worlds := make([]mat.World, constant.RenderThreads, constant.RenderThreads)

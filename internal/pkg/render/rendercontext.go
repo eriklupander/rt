@@ -173,7 +173,7 @@ func (rc *Context) renderPixelPinhole(job *job) {
 	for i := 0; i < constant.Samples; i++ {
 		rc.total = 0
 		rc.depth = 0
-		rc.rayForPixel(job.col, job.row, &rc.firstRay)
+		rc.rayForPixelRand(job.col, job.row, &rc.firstRay)
 		rc.samples = append(rc.samples, rc.colorAt(rc.firstRay, 5, 5))
 	}
 
@@ -335,17 +335,10 @@ func (rc *Context) colorAt(r mat.Ray, remainingReflections int, remainingRefract
 		hit, found := mat.Hit(rc.cStack[rc.total].WorldXS)
 		if found {
 			mat.PrepareComputationForIntersectionPtr(hit, r, &rc.cStack[rc.total].Comps, rc.cStack[rc.total].WorldXS...)
-			clr := rc.shadeHit(rc.cStack[rc.total].Comps, remainingReflections, remainingRefractions)
-
-			if clr[0] < 0 || clr[1] < 0 || clr[2] < 0 {
-				panic("negative color!!")
-			}
-			return clr
+			return rc.shadeHit(rc.cStack[rc.total].Comps, remainingReflections, remainingRefractions)
 		}
-		return black
-	} else {
-		return black
 	}
+	return black
 }
 
 func (rc *Context) reflectedColor(comps mat.Computation, remainingReflections, remainingRefractions int) mat.Tuple4 {
