@@ -3,11 +3,15 @@ My Golang implementation of [The Ray Tracer challenge](https://pragprog.com/book
 
 ![image](renders/gopher.png)
 _The Golang gopher, 3D model by [Takuya Ueda](https://twitter.com/tenntenn), Go Gopher by [Renee French](http://reneefrench.blogspot.com/)._
+
 ![image](renders/reference-highres-multisample-4x4-2depth-floor-refl.png)
 _(multisampling and soft shadows)_
+
 ![image](renders/dragon1080.png)
 _(the good ol' dragon, soft shadows)_
+
 ![image](renders/dof-smaller-aperture-128.png)
+
 _(depth of field)_
 
 ### Description
