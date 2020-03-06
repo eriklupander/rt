@@ -8,7 +8,7 @@ _The Golang gopher, 3D model by [Takuya Ueda](https://twitter.com/tenntenn), Go 
 _(multisampling and soft shadows)_
 
 ![image](renders/dragon1080.png)
-_(the good ol' dragon, soft shadows)_
+_(the good ol' dragon, soft shadows. Note that the dragon model uses surface normals)_
 
 ![image](renders/dof-smaller-aperture-128.png)
 
