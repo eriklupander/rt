@@ -9,7 +9,6 @@ import (
 	"github.com/eriklupander/rt/internal/pkg/render"
 	"github.com/eriklupander/rt/scene"
 	"image"
-	"image/jpeg"
 	"image/png"
 	"io/ioutil"
 	"math"
@@ -19,7 +18,7 @@ import (
 
 // main contains a load of old junk I've added while I completed chapters in the Ray Tracer Challenge book.
 func main() {
-	image.RegisterFormat("jpeg", "jpeg", jpeg.Decode, jpeg.DecodeConfig)
+
 	//runtime.SetBlockProfileRate(1)
 	//runtime.SetMutexProfileFraction(1)
 	// we need a webserver to get the pprof going
@@ -28,11 +27,11 @@ func main() {
 	//}()
 	//parse()
 	//csg()
+	withDragonModel()
 	//withModel()
 	//groups()
 	//softshadows()
 	//depthOfField()
-	textureMapping()
 
 	//refraction()
 	//worldWithPlane() // REFERENCE IMAGE!!
@@ -63,22 +62,6 @@ var black = mat.NewColor(0, 0, 0)
 //	}
 //}
 //
-func textureMapping() {
-
-	worlds := make([]mat.World, constant.RenderThreads, constant.RenderThreads)
-	sc := scene.TextureMapping()
-	for i := 0; i < constant.RenderThreads; i++ {
-		w := mat.NewWorld()
-		sc := scene.TextureMapping()
-		w.Light = sc.Lights
-		w.AreaLight = sc.AreaLights
-		w.Objects = sc.Objects
-		worlds[i] = w
-	}
-	canvas := render.Threaded(sc.Camera, worlds)
-	writeImagePNG(canvas, "texturemapping.png")
-}
-
 func depthOfField() {
 
 	worlds := make([]mat.World, constant.RenderThreads, constant.RenderThreads)
@@ -148,36 +131,65 @@ func csg() {
 	writeImagePNG(render.Threaded(camera, worlds), "csg.png")
 }
 
-func withModel() {
+func withDragonModel() {
+	worlds := make([]mat.World, constant.RenderThreads, constant.RenderThreads)
+	sc := scene.Dragon()
+	for i := 0; i < constant.RenderThreads; i++ {
+		w := mat.NewWorld()
+		sc := scene.Dragon()
+		w.Light = sc.Lights
+		w.AreaLight = sc.AreaLights
+		w.Objects = sc.Objects
+		worlds[i] = w
+	}
+	canvas := render.Threaded(sc.Camera, worlds)
+	writeImagePNG(canvas, "dragon.png")
+}
 
-	camera := mat.NewCamera(320, 240, math.Pi/3)
-	camera.Transform = mat.ViewTransform(mat.NewPoint(-2, 4.1, -6.5), mat.NewPoint(0, 2.5, 0), mat.NewVector(0, 1, 0))
+func withGopherModel() {
+
+	camera := mat.NewCamera(1920, 1080, math.Pi/3)
+	//camera.Transform = mat.ViewTransform(mat.NewPoint(-180.1, 100.3, 320.1), mat.NewPoint(0.05, 100.1, 0.05), mat.NewVector(0, 1, 0))
+	camera.Transform = mat.ViewTransform(mat.NewPoint(-.1, 1.2, 7), mat.NewPoint(0.05, 1.1, 0.05), mat.NewVector(0, 1, 0))
 	camera.Inverse = mat.Inverse(camera.Transform)
 
 	worlds := setupModelScene(constant.RenderThreads)
 	canvas := render.Threaded(camera, worlds)
-
+	//helper.RenderReferenceAxises(canvas, camera)
 	// write
-	writeImagePNG(canvas, "dragon-other-perspective-1-light.png")
+	writeImagePNG(canvas, "gopher.png")
 }
 
 func setupModelScene(instances int) []mat.World {
 	worlds := make([]mat.World, instances, instances)
-	bytes, _ := ioutil.ReadFile("assets/models/dragon.obj")
+	bytes, err := ioutil.ReadFile("assets/models/gopher.obj")
+	if err != nil {
+		panic(err.Error())
+	}
 	for i := 0; i < instances; i++ {
 
 		// Model
 		obj := obj.ParseObj(string(bytes))
 		model := obj.ToGroup()
-		model.SetTransform(mat.Translate(1, 0, 0))
-		m := mat.NewMaterial(mat.NewColor(1, 0, 0), 0.1, 0.6, 0, 200)
-		m.Reflectivity = 0.2
-		model.SetMaterial(m)
+		model.SetTransform(mat.Translate(0, 1.2, 0))
+		model.SetTransform(mat.RotateX(math.Pi / 2))
+		model.SetTransform(mat.RotateY(-math.Pi / 2))
+		model.SetTransform(mat.RotateX(-math.Pi / 8))
+		//model.SetTransform(mat.RotateZ(math.Pi / 4))
+		//m.Reflectivity = 0.2
 		mat.Divide(model, 100)
 		model.Bounds()
 
 		w := mat.NewWorld()
-		w.Light = append(w.Light, mat.NewLight(mat.NewPoint(-2.5, 8, -6), mat.NewColor(1.5, 1.5, 1.5)))
+		//al := mat.NewAreaLight(
+		//	mat.NewPoint(-1, 2, 4),
+		//	mat.NewVector(2, 0, 0), constant.ShadowRays,
+		//	mat.NewVector(0, 2, 0), constant.ShadowRays,
+		//	mat.NewColor(1.5, 1.5, 1.5))
+
+		//w.AreaLight = append(w.AreaLight, al)
+		w.Light = append(w.Light, mat.NewLight(mat.NewPoint(3.3, 4, 10.5), mat.NewColor(1, 1, 1)))
+		//w.Light = append(w.Light, mat.NewLight(mat.NewPoint(0.3, 50, 250.5), mat.NewColor(1, 1, 1)))
 		//w.Light = append(w.Light, mat.NewLight(mat.NewPoint(-10, 10, 0), mat.NewColor(0.3, 0.3, 0.3)))
 		//w.Light = append(w.Light, mat.NewLight(mat.NewPoint(10, 10, 0), mat.NewColor(0.3, 0.3, 0.3)))
 
@@ -185,20 +197,21 @@ func setupModelScene(instances int) []mat.World {
 
 		floor := mat.NewPlane()
 		pm := mat.NewMaterial(mat.NewColor(1, 1, 1), 0.025, 0.67, 0, 200)
+		pm.Reflectivity = 0.2
 		floor.SetMaterial(pm)
 		w.Objects = append(w.Objects, floor)
-
-		northWall := mat.NewPlane()
-		northWall.SetTransform(mat.Translate(0, 0, 10))
-		northWall.SetTransform(mat.RotateX(1.5708))
-		northWall.SetMaterial(pm)
-		w.Objects = append(w.Objects, northWall)
-
-		eastWall := mat.NewPlane()
-		eastWall.SetTransform(mat.Translate(7, 0, 0))
-		eastWall.SetTransform(mat.RotateZ(1.5708))
-		eastWall.SetMaterial(pm)
-		w.Objects = append(w.Objects, eastWall)
+		//
+		//northWall := mat.NewPlane()
+		//northWall.SetTransform(mat.Translate(0, 0, 10))
+		//northWall.SetTransform(mat.RotateX(1.5708))
+		//northWall.SetMaterial(pm)
+		//w.Objects = append(w.Objects, northWall)
+		//
+		//eastWall := mat.NewPlane()
+		//eastWall.SetTransform(mat.Translate(7, 0, 0))
+		//eastWall.SetTransform(mat.RotateZ(1.5708))
+		//eastWall.SetMaterial(pm)
+		//w.Objects = append(w.Objects, eastWall)
 		worlds[i] = w
 	}
 	return worlds

@@ -34,7 +34,7 @@ func TextureMapping() *Scene {
 
 	plane := mat.NewPlane()
 	pm := mat.NewMaterial(mat.NewColor(1, 1, 1), 0.025, 0.67, 0, 200)
-	pm.Texture = img
+	//pm.Texture = img
 	plane.SetMaterial(pm)
 
 	sphere1 := mat.NewSphere()

@@ -173,7 +173,10 @@ func (rc *Context) renderPixelPinhole(job *job) {
 	for i := 0; i < constant.Samples; i++ {
 		rc.total = 0
 		rc.depth = 0
-		rc.rayForPixelRand(job.col, job.row, &rc.firstRay)
+
+		// TODO optimize so we take four samples in each corner and then see how much they differ. If below threshold,
+		// just take a center one as well and return the interpolated result. Otherwise, pick N random samples.
+		rc.rayForPixel(job.col, job.row, &rc.firstRay)
 		rc.samples = append(rc.samples, rc.colorAt(rc.firstRay, 5, 5))
 	}
 
@@ -335,8 +338,10 @@ func (rc *Context) colorAt(r mat.Ray, remainingReflections int, remainingRefract
 		hit, found := mat.Hit(rc.cStack[rc.total].WorldXS)
 		if found {
 			mat.PrepareComputationForIntersectionPtr(hit, r, &rc.cStack[rc.total].Comps, rc.cStack[rc.total].WorldXS...)
-			return rc.shadeHit(rc.cStack[rc.total].Comps, remainingReflections, remainingRefractions)
+			clr := rc.shadeHit(rc.cStack[rc.total].Comps, remainingReflections, remainingRefractions)
+			return clr
 		}
+		return black
 	}
 	return black
 }

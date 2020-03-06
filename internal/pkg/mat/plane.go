@@ -84,3 +84,6 @@ func (p *Plane) GetParent() Shape {
 func (p *Plane) SetParent(shape Shape) {
 	p.parent = shape
 }
+func (p *Plane) Name() string {
+	return p.Label
+}

@@ -11,6 +11,7 @@ type Group struct {
 	Transform Mat4x4
 	Inverse   Mat4x4
 	Material  Material
+	Mtl       Mtl
 	Label     string
 	parent    Shape
 	Children  []Shape
@@ -79,6 +80,7 @@ func (g *Group) IntersectLocal(ray Ray) []Intersection {
 		return nil
 	}
 
+	//fmt.Println("testing XS in Group: " + g.Label)
 	g.XsCache = g.XsCache[:0]
 	for idx := range g.Children {
 		TransformRayPtr(ray, g.Children[idx].GetInverse(), &g.InnerRays[idx])
@@ -152,4 +154,7 @@ func (g *Group) BoundsToCube() *Cube {
 	m.Color = NewColor(0.8, 0.7, 0.9)
 	c.SetMaterial(m)
 	return c
+}
+func (g *Group) Name() string {
+	return g.Label
 }

@@ -13,6 +13,7 @@ type Shape interface {
 	GetParent() Shape
 	SetParent(shape Shape)
 	CastsShadow() bool
+	Name() string
 
 	// Init()
 }

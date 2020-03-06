@@ -11,6 +11,7 @@ type Triangle struct {
 	N          Tuple4
 	Material   Material
 	CastShadow bool
+	Label      string
 }
 
 func (t *Triangle) CastsShadow() bool {
@@ -90,4 +91,7 @@ func NewTriangle(p1 Tuple4, p2 Tuple4, p3 Tuple4) *Triangle {
 		Material:   NewDefaultMaterial(),
 		CastShadow: true,
 	}
+}
+func (t *Triangle) Name() string {
+	return t.Label
 }

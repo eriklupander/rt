@@ -34,6 +34,7 @@ type CSG struct {
 	Operation string
 	parent    Shape
 	Material  Material
+	Label     string
 
 	savedLeftRay  Ray
 	savedRightRay Ray
@@ -102,4 +103,7 @@ func (c *CSG) SetParent(shape Shape) {
 
 func (c *CSG) Bounds() {
 	c.BoundingBox = BoundsOf(c)
+}
+func (c *CSG) Name() string {
+	return c.Label
 }

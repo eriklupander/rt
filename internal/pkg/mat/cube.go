@@ -37,6 +37,10 @@ type Cube struct {
 	CastShadow bool
 }
 
+func (c *Cube) Name() string {
+	return c.Label
+}
+
 func (c *Cube) CastsShadow() bool {
 	return c.CastShadow
 }

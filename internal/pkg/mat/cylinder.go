@@ -178,3 +178,6 @@ func (c *Cylinder) intercectCaps(ray Ray, xs []Intersection) []Intersection {
 	}
 	return xs
 }
+func (c *Cylinder) Name() string {
+	return c.Label
+}

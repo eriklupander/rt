@@ -1,7 +1,5 @@
 package mat
 
-import "image"
-
 type Material struct {
 	Color           Tuple4
 	Ambient         float64
@@ -12,8 +10,7 @@ type Material struct {
 	Reflectivity    float64
 	Transparency    float64
 	RefractiveIndex float64
-
-	Texture image.Image
+	Name            string
 }
 
 func NewMaterial(color Tuple4, ambient float64, diffuse float64, specular float64, shininess float64) Material {

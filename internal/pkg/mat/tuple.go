@@ -18,6 +18,9 @@ func (t Tuple4) ResetPoint() Tuple4 {
 	t[3] = 0.0
 	return t
 }
+func T4F32(x, y, z float32, w float64) Tuple4 {
+	return Tuple4{float64(x), float64(y), float64(z), w}
+}
 
 func NewVector(x, y, z float64) Tuple4 {
 	return Tuple4{x, y, z, 0.0}

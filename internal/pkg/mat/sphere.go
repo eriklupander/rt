@@ -24,6 +24,7 @@ func NewSphere() *Sphere {
 		xsEmpty:     make([]Intersection, 0),
 		originPoint: NewPoint(0, 0, 0),
 		CastShadow:  true,
+		Label:       "Sphere",
 	}
 }
 
@@ -138,6 +139,6 @@ func (s *Sphere) SetParent(shape Shape) {
 	s.parent = shape
 }
 
-func (s *Sphere) Init() {
-
+func (s *Sphere) Name() string {
+	return s.Label
 }

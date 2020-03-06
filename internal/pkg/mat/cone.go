@@ -187,3 +187,6 @@ func (c *Cone) GetParent() Shape {
 func (c *Cone) SetParent(shape Shape) {
 	c.parent = shape
 }
+func (c *Cone) Name() string {
+	return c.Label
+}
