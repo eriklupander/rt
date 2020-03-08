@@ -28,17 +28,18 @@ func NewConeMMC(min, max float64, closed bool) *Cone {
 }
 
 type Cone struct {
-	Id         int64
-	Transform  Mat4x4
-	Inverse    Mat4x4
-	Material   Material
-	Label      string
-	parent     Shape
-	savedRay   Ray
-	MinY       float64
-	MaxY       float64
-	Closed     bool
-	CastShadow bool
+	Id               int64
+	Transform        Mat4x4
+	Inverse          Mat4x4
+	InverseTranspose Mat4x4
+	Material         Material
+	Label            string
+	parent           Shape
+	savedRay         Ray
+	MinY             float64
+	MaxY             float64
+	Closed           bool
+	CastShadow       bool
 }
 
 func (c *Cone) CastsShadow() bool {
@@ -55,10 +56,14 @@ func (c *Cone) GetTransform() Mat4x4 {
 func (c *Cone) GetInverse() Mat4x4 {
 	return c.Inverse
 }
+func (c *Cone) GetInverseTranspose() Mat4x4 {
+	return c.InverseTranspose
+}
 
 func (c *Cone) SetTransform(transform Mat4x4) {
 	c.Transform = Multiply(c.Transform, transform)
 	c.Inverse = Inverse(c.Transform)
+	c.InverseTranspose = Transpose(c.Inverse)
 }
 
 func (c *Cone) GetMaterial() Material {

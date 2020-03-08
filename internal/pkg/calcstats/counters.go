@@ -10,3 +10,12 @@ func Incr() {
 	Cnt++
 	lock.Unlock()
 }
+
+var Tpose int64
+var tlock = sync.Mutex{}
+
+func TposeIncr() {
+	tlock.Lock()
+	Tpose++
+	tlock.Unlock()
+}

@@ -130,6 +130,17 @@ func Threaded(c mat.Camera, worlds []mat.World) *mat.Canvas {
 	fmt.Printf("Total alloc: %v\n", bytesize.New(float64(stats.TotalAlloc)).String())
 	fmt.Printf("%v\n", time.Now().Sub(st))
 	fmt.Printf("XS skipped in group: %v\n", calcstats.Cnt)
+	fmt.Printf("Transpose calls: %v\n", calcstats.Tpose)
+
+	fmt.Println()
+	fmt.Printf("|%v|%v|%v|%v|%v|%v|\n",
+		bytesize.New(float64(stats.Alloc)).String(),
+		stats.Mallocs,
+		bytesize.New(float64(stats.TotalAlloc)).String(),
+		time.Now().Sub(st),
+		calcstats.Cnt,
+		calcstats.Tpose)
+
 	return canvas
 }
 
@@ -176,7 +187,7 @@ func (rc *Context) renderPixelPinhole(job *job) {
 
 		// TODO optimize so we take four samples in each corner and then see how much they differ. If below threshold,
 		// just take a center one as well and return the interpolated result. Otherwise, pick N random samples.
-		rc.rayForPixelRand(job.col, job.row, &rc.firstRay)
+		rc.rayForPixel(job.col, job.row, &rc.firstRay)
 		rc.samples = append(rc.samples, rc.colorAt(rc.firstRay, 5, 5))
 	}
 
@@ -306,16 +317,17 @@ func (rc *Context) isShadowed(lightPosition mat.Tuple4, p mat.Tuple4) bool {
 
 	ray := mat.NewRay(p, mat.Normalize(vecToLight))
 
+	return mat.ShadowIntersect(rc.world, ray, distance, &rc.cStack[rc.total].InRay)//mat.IntersectWithWorldPtrForShadow(rc.world, ray, rc.cStack[rc.total].ShadowXS, &rc.cStack[rc.total].InRay)
 	// use stack...
-	rc.cStack[rc.total].ShadowXS = mat.IntersectWithWorldPtrForShadow(rc.world, ray, rc.cStack[rc.total].ShadowXS, &rc.cStack[rc.total].InRay)
-	if len(rc.cStack[rc.total].ShadowXS) > 0 {
-		for _, x := range rc.cStack[rc.total].ShadowXS {
-			if x.T > 0.0 && x.T < distance {
-				return true
-			}
-		}
-	}
-	return false
+	//rc.cStack[rc.total].ShadowXS = mat.IntersectWithWorldPtrForShadow(rc.world, ray, rc.cStack[rc.total].ShadowXS, distance, &rc.cStack[rc.total].InRay)
+	//if len(rc.cStack[rc.total].ShadowXS) > 0 {
+	//	for _, x := range rc.cStack[rc.total].ShadowXS {
+	//		if x.T > 0.0 && x.T < distance {
+	//			return true
+	//		}
+	//	}
+	//}
+	//return false
 }
 func (rc *Context) sumColors() mat.Tuple4 {
 	var r, g, b float64

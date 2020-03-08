@@ -29,6 +29,7 @@ type CSG struct {
 	Id        int64
 	Transform Mat4x4
 	Inverse   Mat4x4
+	InverseTranspose Mat4x4
 	Left      Shape
 	Right     Shape
 	Operation string
@@ -59,10 +60,14 @@ func (c *CSG) GetTransform() Mat4x4 {
 func (c *CSG) GetInverse() Mat4x4 {
 	return c.Inverse
 }
+func (c *CSG) GetInverseTranspose() Mat4x4 {
+	return c.InverseTranspose
+}
 
 func (c *CSG) SetTransform(transform Mat4x4) {
 	c.Transform = Multiply(c.Transform, transform)
 	c.Inverse = Inverse(c.Transform)
+	c.InverseTranspose = Transpose(c.Inverse)
 }
 
 func (c *CSG) GetMaterial() Material {

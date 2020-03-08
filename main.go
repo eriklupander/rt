@@ -9,9 +9,13 @@ import (
 	"github.com/eriklupander/rt/scene"
 	"image"
 	"image/png"
+	"log"
 	"math"
-	//_ "net/http/pprof"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
+	"os/signal"
+	"syscall"
 )
 
 // main contains a load of old junk I've added while I completed chapters in the Ray Tracer Challenge book.
@@ -20,9 +24,9 @@ func main() {
 	//runtime.SetBlockProfileRate(1)
 	//runtime.SetMutexProfileFraction(1)
 	// we need a webserver to get the pprof going
-	//go func() {
-	//	log.Println(http.ListenAndServe("localhost:6060", nil))
-	//}()
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 	//parse()
 	//csg()
 	//withDragonModel()
@@ -34,9 +38,9 @@ func main() {
 	//refraction()
 	//worldWithPlane() // REFERENCE IMAGE!!
 
-	//termChan := make(chan os.Signal)
-	//signal.Notify(termChan, syscall.SIGINT, syscall.SIGTERM)
-	//<-termChan // Blocks here!!
+	termChan := make(chan os.Signal)
+	signal.Notify(termChan, syscall.SIGINT, syscall.SIGTERM)
+	<-termChan // Blocks here!!
 	fmt.Println("shutting down!")
 }
 
@@ -185,7 +189,7 @@ func refraction() {
 
 // This is my "reference image", used to benchmark the impl. in either 640x480 or 1920x1080
 func worldWithPlane() {
-	camera := mat.NewCamera(640, 480, math.Pi/3) // -4 är referens!
+	camera := mat.NewCamera(1920, 1080, math.Pi/3) // -4 är referens!
 	viewTransform := mat.ViewTransform(mat.NewPoint(-2, 2.0, -4), mat.NewPoint(0, 0.5, 0), mat.NewVector(0, 1, 0))
 	camera.Transform = viewTransform
 	camera.Inverse = mat.Inverse(viewTransform)
@@ -275,7 +279,6 @@ func worldWithPlane() {
 		s1.SetTransform(mat.Multiply(mat.Translate(-2, 0.25, -1), mat.Scale(0.25, 0.25, 0.25)))
 		mat1 := mat.NewMaterialWithReflectivity(mat.NewColor(1, 0.1, 0.1), 0.1, 0.5, 0.8, 220.0, 0.4)
 		s1.SetMaterial(mat1)
-
 		gr.AddChild(s1)
 
 		s2 := mat.NewSphere()
@@ -309,7 +312,6 @@ func worldWithPlane() {
 	// This is a hack, useful for debugging the renderering of a single pixel
 	//color := render.RenderSinglePixel(camera, worlds, 300, 139)
 	//fmt.Printf("%v\n", color)
-	//canvas := mat.RenderThreaded(camera, w)
 
 	// One can use this to render a unit-length XYZ axises superimposed on the image
 	helper.RenderReferenceAxises(canvas, camera)

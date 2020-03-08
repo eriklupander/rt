@@ -16,6 +16,7 @@ func NewSphere() *Sphere {
 		Id:          rand.Int63(),
 		Transform:   New4x4(),
 		Inverse:     New4x4(),
+		InverseTranspose: New4x4(),
 		Material:    NewDefaultMaterial(),
 		savedVec:    NewVector(0, 0, 0),
 		savedNormal: NewVector(0, 0, 0),
@@ -39,6 +40,7 @@ type Sphere struct {
 	Id        int64
 	Transform Mat4x4
 	Inverse   Mat4x4
+	InverseTranspose Mat4x4
 	Material  Material
 	Label     string
 	parent    Shape
@@ -119,15 +121,19 @@ func (s *Sphere) GetTransform() Mat4x4 {
 func (s *Sphere) GetInverse() Mat4x4 {
 	return s.Inverse
 }
-
+func (s *Sphere) GetInverseTranspose() Mat4x4 {
+	return s.InverseTranspose
+}
 func (s *Sphere) GetMaterial() Material {
 	return s.Material
 }
+
 
 // SetTransform passes a pointer to the Sphere on which to apply the translation matrix
 func (s *Sphere) SetTransform(translation Mat4x4) {
 	s.Transform = Multiply(s.Transform, translation)
 	s.Inverse = Inverse(s.Transform)
+	s.InverseTranspose = Transpose(s.Inverse)
 }
 
 // SetMaterial passes a pointer to the Sphere on which to set the material
