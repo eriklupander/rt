@@ -5,12 +5,10 @@ import (
 	"github.com/eriklupander/rt/internal/pkg/constant"
 	"github.com/eriklupander/rt/internal/pkg/helper"
 	"github.com/eriklupander/rt/internal/pkg/mat"
-	"github.com/eriklupander/rt/internal/pkg/obj"
 	"github.com/eriklupander/rt/internal/pkg/render"
 	"github.com/eriklupander/rt/scene"
 	"image"
 	"image/png"
-	"io/ioutil"
 	"math"
 	//_ "net/http/pprof"
 	"os"
@@ -27,8 +25,8 @@ func main() {
 	//}()
 	//parse()
 	//csg()
-	withDragonModel()
-	//withModel()
+	//withDragonModel()
+	withSimpleGopherModel()
 	//groups()
 	//softshadows()
 	//depthOfField()
@@ -146,75 +144,20 @@ func withDragonModel() {
 	writeImagePNG(canvas, "dragon.png")
 }
 
-func withGopherModel() {
+func withSimpleGopherModel() {
 
-	camera := mat.NewCamera(1920, 1080, math.Pi/3)
-	//camera.Transform = mat.ViewTransform(mat.NewPoint(-180.1, 100.3, 320.1), mat.NewPoint(0.05, 100.1, 0.05), mat.NewVector(0, 1, 0))
-	camera.Transform = mat.ViewTransform(mat.NewPoint(-.1, 1.2, 7), mat.NewPoint(0.05, 1.1, 0.05), mat.NewVector(0, 1, 0))
-	camera.Inverse = mat.Inverse(camera.Transform)
-
-	worlds := setupModelScene(constant.RenderThreads)
-	canvas := render.Threaded(camera, worlds)
-	//helper.RenderReferenceAxises(canvas, camera)
-	// write
-	writeImagePNG(canvas, "gopher.png")
-}
-
-func setupModelScene(instances int) []mat.World {
-	worlds := make([]mat.World, instances, instances)
-	bytes, err := ioutil.ReadFile("assets/models/gopher.obj")
-	if err != nil {
-		panic(err.Error())
-	}
-	for i := 0; i < instances; i++ {
-
-		// Model
-		obj := obj.ParseObj(string(bytes))
-		model := obj.ToGroup()
-		model.SetTransform(mat.Translate(0, 1.2, 0))
-		model.SetTransform(mat.RotateX(math.Pi / 2))
-		model.SetTransform(mat.RotateY(-math.Pi / 2))
-		model.SetTransform(mat.RotateX(-math.Pi / 8))
-		//model.SetTransform(mat.RotateZ(math.Pi / 4))
-		//m.Reflectivity = 0.2
-		mat.Divide(model, 100)
-		model.Bounds()
-
+	worlds := make([]mat.World, constant.RenderThreads, constant.RenderThreads)
+	sc := scene.SimpleGopher()
+	for i := 0; i < constant.RenderThreads; i++ {
 		w := mat.NewWorld()
-		//al := mat.NewAreaLight(
-		//	mat.NewPoint(-1, 2, 4),
-		//	mat.NewVector(2, 0, 0), constant.ShadowRays,
-		//	mat.NewVector(0, 2, 0), constant.ShadowRays,
-		//	mat.NewColor(1.5, 1.5, 1.5))
-
-		//w.AreaLight = append(w.AreaLight, al)
-		w.Light = append(w.Light, mat.NewLight(mat.NewPoint(3.3, 4, 10.5), mat.NewColor(1, 1, 1)))
-		//w.Light = append(w.Light, mat.NewLight(mat.NewPoint(0.3, 50, 250.5), mat.NewColor(1, 1, 1)))
-		//w.Light = append(w.Light, mat.NewLight(mat.NewPoint(-10, 10, 0), mat.NewColor(0.3, 0.3, 0.3)))
-		//w.Light = append(w.Light, mat.NewLight(mat.NewPoint(10, 10, 0), mat.NewColor(0.3, 0.3, 0.3)))
-
-		w.Objects = append(w.Objects, model)
-
-		floor := mat.NewPlane()
-		pm := mat.NewMaterial(mat.NewColor(1, 1, 1), 0.025, 0.67, 0, 200)
-		pm.Reflectivity = 0.2
-		floor.SetMaterial(pm)
-		w.Objects = append(w.Objects, floor)
-		//
-		//northWall := mat.NewPlane()
-		//northWall.SetTransform(mat.Translate(0, 0, 10))
-		//northWall.SetTransform(mat.RotateX(1.5708))
-		//northWall.SetMaterial(pm)
-		//w.Objects = append(w.Objects, northWall)
-		//
-		//eastWall := mat.NewPlane()
-		//eastWall.SetTransform(mat.Translate(7, 0, 0))
-		//eastWall.SetTransform(mat.RotateZ(1.5708))
-		//eastWall.SetMaterial(pm)
-		//w.Objects = append(w.Objects, eastWall)
+		sc := scene.SimpleGopher()
+		w.Light = sc.Lights
+		w.AreaLight = sc.AreaLights
+		w.Objects = sc.Objects
 		worlds[i] = w
 	}
-	return worlds
+	canvas := render.Threaded(sc.Camera, worlds)
+	writeImagePNG(canvas, "simplegopher.png")
 }
 
 func writeDataToPNG(canvas *mat.Canvas, myImage *image.RGBA) {

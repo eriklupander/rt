@@ -176,7 +176,7 @@ func (rc *Context) renderPixelPinhole(job *job) {
 
 		// TODO optimize so we take four samples in each corner and then see how much they differ. If below threshold,
 		// just take a center one as well and return the interpolated result. Otherwise, pick N random samples.
-		rc.rayForPixel(job.col, job.row, &rc.firstRay)
+		rc.rayForPixelRand(job.col, job.row, &rc.firstRay)
 		rc.samples = append(rc.samples, rc.colorAt(rc.firstRay, 5, 5))
 	}
 
