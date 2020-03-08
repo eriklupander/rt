@@ -9,7 +9,7 @@ import (
 
 func SimpleGopher() *Scene {
 
-	camera := mat.NewCamera(1920, 1080, math.Pi/3.5)
+	camera := mat.NewCamera(640, 480, math.Pi/3.5)
 	camera.Transform = mat.ViewTransform(mat.NewPoint(-.1, 1.2, 6), mat.NewPoint(0.05, 1.1, 0.05), mat.NewVector(0, 1, 0))
 	camera.Inverse = mat.Inverse(camera.Transform)
 
