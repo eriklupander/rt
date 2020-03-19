@@ -74,8 +74,8 @@ func TransformRay(r Ray, m1 Mat4x4) Ray {
 }
 
 func TransformRayPtr(r Ray, m1 Mat4x4, out *Ray) {
-	MultiplyByTuplePtr(m1, r.Origin, &out.Origin)
-	MultiplyByTuplePtr(m1, r.Direction, &out.Direction)
+	MultiplyByTuplePtr(&m1, &r.Origin, &out.Origin)
+	MultiplyByTuplePtr(&m1, &r.Direction, &out.Direction)
 }
 
 func Schlick(comps Computation) float64 {

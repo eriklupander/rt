@@ -10,27 +10,27 @@ func NewPlane() *Plane {
 	inv := New4x4() //NewMat4x4(make([]float64, 16))
 	invTranspose := New4x4()
 	return &Plane{
-		Id:         rand.Int63(),
-		Transform:  m1,
-		Inverse:    inv,
+		Id:               rand.Int63(),
+		Transform:        m1,
+		Inverse:          inv,
 		InverseTranspose: invTranspose,
-		Material:   NewDefaultMaterial(),
-		Label:      "Plane",
-		savedXs:    make([]Intersection, 1),
-		CastShadow: true,
+		Material:         NewDefaultMaterial(),
+		Label:            "Plane",
+		savedXs:          make([]Intersection, 1),
+		CastShadow:       true,
 	}
 }
 
 type Plane struct {
-	Id         int64
-	Transform  Mat4x4
-	Inverse    Mat4x4
+	Id               int64
+	Transform        Mat4x4
+	Inverse          Mat4x4
 	InverseTranspose Mat4x4
-	Material   Material
-	Label      string
-	parent     Shape
-	savedRay   Ray
-	CastShadow bool
+	Material         Material
+	Label            string
+	parent           Shape
+	savedRay         Ray
+	CastShadow       bool
 
 	savedXs []Intersection
 }
@@ -55,7 +55,6 @@ func (p *Plane) GetInverseTranspose() Mat4x4 {
 func (p *Plane) GetMaterial() Material {
 	return p.Material
 }
-
 
 // SetTransform passes a pointer to the Plane on which to apply the translation matrix
 func (p *Plane) SetTransform(translation Mat4x4) {

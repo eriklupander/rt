@@ -13,19 +13,19 @@ func init() {
 func NewSphere() *Sphere {
 
 	return &Sphere{
-		Id:          rand.Int63(),
-		Transform:   New4x4(),
-		Inverse:     New4x4(),
+		Id:               rand.Int63(),
+		Transform:        New4x4(),
+		Inverse:          New4x4(),
 		InverseTranspose: New4x4(),
-		Material:    NewDefaultMaterial(),
-		savedVec:    NewVector(0, 0, 0),
-		savedNormal: NewVector(0, 0, 0),
-		savedRay:    NewRay(NewPoint(0, 0, 0), NewVector(0, 0, 0)),
-		xsCache:     make([]Intersection, 2),
-		xsEmpty:     make([]Intersection, 0),
-		originPoint: NewPoint(0, 0, 0),
-		CastShadow:  true,
-		Label:       "Sphere",
+		Material:         NewDefaultMaterial(),
+		savedVec:         NewVector(0, 0, 0),
+		savedNormal:      NewVector(0, 0, 0),
+		savedRay:         NewRay(NewPoint(0, 0, 0), NewVector(0, 0, 0)),
+		xsCache:          make([]Intersection, 2),
+		xsEmpty:          make([]Intersection, 0),
+		originPoint:      NewPoint(0, 0, 0),
+		CastShadow:       true,
+		Label:            "Sphere",
 	}
 }
 
@@ -37,14 +37,14 @@ func NewGlassSphere() *Sphere {
 }
 
 type Sphere struct {
-	Id        int64
-	Transform Mat4x4
-	Inverse   Mat4x4
+	Id               int64
+	Transform        Mat4x4
+	Inverse          Mat4x4
 	InverseTranspose Mat4x4
-	Material  Material
-	Label     string
-	parent    Shape
-	savedRay  Ray
+	Material         Material
+	Label            string
+	parent           Shape
+	savedRay         Ray
 
 	// cached stuff
 	originPoint Tuple4
@@ -127,7 +127,6 @@ func (s *Sphere) GetInverseTranspose() Mat4x4 {
 func (s *Sphere) GetMaterial() Material {
 	return s.Material
 }
-
 
 // SetTransform passes a pointer to the Sphere on which to apply the translation matrix
 func (s *Sphere) SetTransform(translation Mat4x4) {

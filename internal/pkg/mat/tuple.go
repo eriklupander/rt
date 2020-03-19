@@ -1,6 +1,8 @@
 package mat
 
-import "math"
+import (
+	"math"
+)
 
 type Tuple4 [4]float64
 
@@ -181,16 +183,16 @@ func NormalizePtr(t1 Tuple4, out *Tuple4) {
 
 // Dot product is the sum of the products of the corresponding entries of the two sequences of numbers
 // a product is simply put the result of a multiplication. The dot product of two tuples is simply
-// t1.x * t2.x + t1.y * t2.y + t1.z * t2.z + t1.w * t2.w
+// t1.x * t2.x + t1.y * t2.y + t1.z * t2.z + t1[3] * t2[3]
 func Dot(t1 Tuple4, t2 Tuple4) float64 {
-	sum := 0.0
-	for i := 0; i < 4; i++ {
-		sum += t1[i] * t2[i]
-	}
-	return sum
+	return t1[0]*t2[0] + t1[1]*t2[1] + t1[2]*t2[2] + t1[3]*t2[3]
+}
+func DotPtr(t1 *Tuple4, t2 *Tuple4) float64 {
+	return t1[0]*t2[0] + t1[1]*t2[1] + t1[2]*t2[2] + t1[3]*t2[3]
 }
 
 func Cross(t1 Tuple4, t2 Tuple4) Tuple4 {
+	//calcstats.Cross()
 	t3 := [4]float64{}
 
 	t3[0] = t1[1]*t2[2] - t1[2]*t2[1]
@@ -198,6 +200,12 @@ func Cross(t1 Tuple4, t2 Tuple4) Tuple4 {
 	t3[2] = t1[0]*t2[1] - t1[1]*t2[0]
 	t3[3] = 0
 	return t3
+}
+
+func Cross2(a *Tuple4, b *Tuple4, c *Tuple4) {
+	c[0] = a[1]*b[2] - a[2]*b[1]
+	c[1] = a[2]*b[0] - a[0]*b[2]
+	c[2] = a[0]*b[1] - a[1]*b[0]
 }
 
 func Hadamard(t1 Tuple4, t2 Tuple4) Tuple4 {

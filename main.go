@@ -189,7 +189,7 @@ func refraction() {
 
 // This is my "reference image", used to benchmark the impl. in either 640x480 or 1920x1080
 func worldWithPlane() {
-	camera := mat.NewCamera(1920, 1080, math.Pi/3) // -4 är referens!
+	camera := mat.NewCamera(640, 480, math.Pi/3) // -4 är referens!
 	viewTransform := mat.ViewTransform(mat.NewPoint(-2, 2.0, -4), mat.NewPoint(0, 0.5, 0), mat.NewVector(0, 1, 0))
 	camera.Transform = viewTransform
 	camera.Inverse = mat.Inverse(viewTransform)
@@ -299,7 +299,7 @@ func worldWithPlane() {
 		mat.Divide(gr, 1)
 
 		w.Objects = append(w.Objects, gr)
-		w.Objects = append(w.Objects, gr.BoundsToCube())
+		//w.Objects = append(w.Objects, gr.BoundsToCube())
 
 		//cb := mat.NewCube()
 		//w.Objects = append(w.Objects, cb)

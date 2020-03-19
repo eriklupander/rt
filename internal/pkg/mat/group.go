@@ -85,7 +85,6 @@ func (g *Group) IntersectLocal(ray Ray) []Intersection {
 		return nil
 	}
 
-	//fmt.Println("testing XS in Group: " + g.Label)
 	g.XsCache = g.XsCache[:0]
 	for idx := range g.Children {
 		TransformRayPtr(ray, g.Children[idx].GetInverse(), &g.InnerRays[idx])

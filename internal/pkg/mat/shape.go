@@ -30,7 +30,8 @@ func WorldToObjectPtr(shape Shape, point Tuple4, out *Tuple4) {
 	if shape.GetParent() != nil {
 		WorldToObjectPtr(shape.GetParent(), point, &point)
 	}
-	MultiplyByTuplePtr(shape.GetInverse(), point, out)
+	i := shape.GetInverse()
+	MultiplyByTuplePtr(&i, &point, out)
 }
 
 func NormalToWorld(shape Shape, normal Tuple4) Tuple4 {
@@ -45,7 +46,8 @@ func NormalToWorld(shape Shape, normal Tuple4) Tuple4 {
 }
 
 func NormalToWorldPtr(shape Shape, normal *Tuple4) {
-	MultiplyByTuplePtr(shape.GetInverseTranspose(), *normal, normal)
+	it := shape.GetInverseTranspose()
+	MultiplyByTuplePtr(&it, normal, normal)
 	normal[3] = 0.0 // set w to 0
 	NormalizePtr(*normal, normal)
 

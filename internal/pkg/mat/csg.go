@@ -26,16 +26,16 @@ func NewCSG(operation string, left, right Shape) *CSG {
 }
 
 type CSG struct {
-	Id        int64
-	Transform Mat4x4
-	Inverse   Mat4x4
+	Id               int64
+	Transform        Mat4x4
+	Inverse          Mat4x4
 	InverseTranspose Mat4x4
-	Left      Shape
-	Right     Shape
-	Operation string
-	parent    Shape
-	Material  Material
-	Label     string
+	Left             Shape
+	Right            Shape
+	Operation        string
+	parent           Shape
+	Material         Material
+	Label            string
 
 	savedLeftRay  Ray
 	savedRightRay Ray

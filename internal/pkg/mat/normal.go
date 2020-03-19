@@ -13,6 +13,7 @@ func NormalAt(s Shape, worldPoint Tuple4, intersection *Intersection) Tuple4 {
 	// parent transforms.
 	return NormalToWorld(s, objectNormal)
 }
+
 //
 //func NormalAtPtr(s Shape, worldPoint Tuple4, intersection *Intersection, localPoint *Tuple4) Tuple4 {
 //

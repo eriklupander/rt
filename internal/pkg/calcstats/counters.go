@@ -19,3 +19,21 @@ func TposeIncr() {
 	Tpose++
 	tlock.Unlock()
 }
+
+var Dots int64
+var dlock = sync.Mutex{}
+
+func Dot() {
+	dlock.Lock()
+	Dots++
+	dlock.Unlock()
+}
+
+var Crosses int64
+var clock = sync.Mutex{}
+
+func Cross() {
+	clock.Lock()
+	Crosses++
+	clock.Unlock()
+}

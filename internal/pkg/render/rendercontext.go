@@ -131,6 +131,8 @@ func Threaded(c mat.Camera, worlds []mat.World) *mat.Canvas {
 	fmt.Printf("%v\n", time.Now().Sub(st))
 	fmt.Printf("XS skipped in group: %v\n", calcstats.Cnt)
 	fmt.Printf("Transpose calls: %v\n", calcstats.Tpose)
+	fmt.Printf("Dot calls: %v\n", calcstats.Dots)
+	fmt.Printf("Cross calls: %v\n", calcstats.Crosses)
 
 	fmt.Println()
 	fmt.Printf("|%v|%v|%v|%v|%v|%v|\n",
@@ -246,8 +248,8 @@ func (rc *Context) rayForPixel(x, y int, out *mat.Ray) {
 	rc.pointInView[0] = worldX
 	rc.pointInView[1] = worldY
 
-	mat.MultiplyByTuplePtr(rc.camera.Inverse, rc.pointInView, &rc.pixel)
-	mat.MultiplyByTuplePtr(rc.camera.Inverse, originPoint, &rc.origin)
+	mat.MultiplyByTuplePtr(&rc.camera.Inverse, &rc.pointInView, &rc.pixel)
+	mat.MultiplyByTuplePtr(&rc.camera.Inverse, &originPoint, &rc.origin)
 	mat.SubPtr(rc.pixel, rc.origin, &rc.subVec)
 	mat.NormalizePtr(rc.subVec, &rc.direction)
 
@@ -267,8 +269,8 @@ func (rc *Context) rayForPixelRand(x, y int, out *mat.Ray) {
 	rc.pointInView[0] = worldX
 	rc.pointInView[1] = worldY
 
-	mat.MultiplyByTuplePtr(rc.camera.Inverse, rc.pointInView, &rc.pixel)
-	mat.MultiplyByTuplePtr(rc.camera.Inverse, originPoint, &rc.origin)
+	mat.MultiplyByTuplePtr(&rc.camera.Inverse, &rc.pointInView, &rc.pixel)
+	mat.MultiplyByTuplePtr(&rc.camera.Inverse, &originPoint, &rc.origin)
 	mat.SubPtr(rc.pixel, rc.origin, &rc.subVec)
 	mat.NormalizePtr(rc.subVec, &rc.direction)
 
@@ -289,8 +291,8 @@ func (rc *Context) rayForPixelDoF(x, y int, out *mat.Ray) {
 	rc.pointInView[0] = worldX
 	rc.pointInView[1] = worldY
 
-	mat.MultiplyByTuplePtr(rc.camera.Inverse, rc.pointInView, &rc.pixel)
-	mat.MultiplyByTuplePtr(rc.camera.Inverse, originPoint, &rc.origin)
+	mat.MultiplyByTuplePtr(&rc.camera.Inverse, &rc.pointInView, &rc.pixel)
+	mat.MultiplyByTuplePtr(&rc.camera.Inverse, &originPoint, &rc.origin)
 	mat.SubPtr(rc.pixel, rc.origin, &rc.subVec)
 	mat.NormalizePtr(rc.subVec, &rc.direction)
 
@@ -317,7 +319,7 @@ func (rc *Context) isShadowed(lightPosition mat.Tuple4, p mat.Tuple4) bool {
 
 	ray := mat.NewRay(p, mat.Normalize(vecToLight))
 
-	return mat.ShadowIntersect(rc.world, ray, distance, &rc.cStack[rc.total].InRay)//mat.IntersectWithWorldPtrForShadow(rc.world, ray, rc.cStack[rc.total].ShadowXS, &rc.cStack[rc.total].InRay)
+	return mat.ShadowIntersect(rc.world, ray, distance, &rc.cStack[rc.total].InRay) //mat.IntersectWithWorldPtrForShadow(rc.world, ray, rc.cStack[rc.total].ShadowXS, &rc.cStack[rc.total].InRay)
 	// use stack...
 	//rc.cStack[rc.total].ShadowXS = mat.IntersectWithWorldPtrForShadow(rc.world, ray, rc.cStack[rc.total].ShadowXS, distance, &rc.cStack[rc.total].InRay)
 	//if len(rc.cStack[rc.total].ShadowXS) > 0 {
