@@ -8,31 +8,33 @@ import (
 func NewCube() *Cube {
 	m1 := New4x4()  //NewMat4x4(make([]float64, 16))
 	inv := New4x4() //NewMat4x4(make([]float64, 16))
-
+	invTranspose := New4x4()
 	savedXs := make([]Intersection, 2)
 	for i := 0; i < 2; i++ {
 		savedXs[i] = NewIntersection(0.0, nil)
 	}
 
 	return &Cube{
-		Id:         rand.Int63(),
-		Transform:  m1,
-		Inverse:    inv,
-		Material:   NewDefaultMaterial(),
-		savedXs:    savedXs,
-		CastShadow: true,
+		Id:               rand.Int63(),
+		Transform:        m1,
+		Inverse:          inv,
+		InverseTranspose: invTranspose,
+		Material:         NewDefaultMaterial(),
+		savedXs:          savedXs,
+		CastShadow:       true,
 	}
 }
 
 type Cube struct {
-	Id        int64
-	Transform Mat4x4
-	Inverse   Mat4x4
-	Material  Material
-	Label     string
-	parent    Shape
-	savedRay  Ray
-	savedXs   []Intersection
+	Id               int64
+	Transform        Mat4x4
+	Inverse          Mat4x4
+	InverseTranspose Mat4x4
+	Material         Material
+	Label            string
+	parent           Shape
+	savedRay         Ray
+	savedXs          []Intersection
 
 	CastShadow bool
 }
@@ -55,10 +57,14 @@ func (c *Cube) GetTransform() Mat4x4 {
 func (c *Cube) GetInverse() Mat4x4 {
 	return c.Inverse
 }
+func (c *Cube) GetInverseTranspose() Mat4x4 {
+	return c.InverseTranspose
+}
 
 func (c *Cube) SetTransform(transform Mat4x4) {
 	c.Transform = Multiply(c.Transform, transform)
 	c.Inverse = Inverse(c.Transform)
+	c.InverseTranspose = Transpose(c.Inverse)
 }
 
 func (c *Cube) GetMaterial() Material {

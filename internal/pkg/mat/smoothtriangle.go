@@ -32,6 +32,8 @@ func NewSmoothTriangle(p1 Tuple4, p2 Tuple4, p3 Tuple4, n1 Tuple4, n2 Tuple4, n3
 		Material:   NewDefaultMaterial(),
 		CastShadow: true,
 		Label:      "SmoothTriangle",
+		xs:         make([]Intersection, 1, 1),
+		//p1ToOrigin:NewVector(0,0,0),
 		//D00:d00,
 		//D01:d01,
 		//D11:d11,
@@ -59,6 +61,13 @@ type SmoothTriangle struct {
 	Denom float64
 
 	parent Shape
+
+	//x Intersection
+	p1ToOrigin    Tuple4
+	originCrossE1 Tuple4
+	dirCrossE2    Tuple4
+
+	xs Intersections
 }
 
 // Barycentric computes barycentric coordinates (u, v, w) for point p with respect to triangle defined by pre-computed
@@ -68,8 +77,8 @@ func (s *SmoothTriangle) Barycentric(p Tuple4, u *float64, v *float64, w *float6
 	v2 := NewTuple()
 	SubPtr(p, s.P1, &v2)
 
-	d20 := Dot(v2, s.E1)
-	d21 := Dot(v2, s.E2)
+	d20 := DotPtr(&v2, &s.E1)
+	d21 := DotPtr(&v2, &s.E2)
 
 	*v = (s.D11*d20 - s.D01*d21) / s.Denom
 	*w = (s.D00*d21 - s.D01*d20) / s.Denom
@@ -91,6 +100,9 @@ func (s *SmoothTriangle) GetTransform() Mat4x4 {
 func (s *SmoothTriangle) GetInverse() Mat4x4 {
 	return IdentityMatrix
 }
+func (s *SmoothTriangle) GetInverseTranspose() Mat4x4 {
+	return IdentityMatrix
+}
 
 func (s *SmoothTriangle) SetTransform(transform Mat4x4) {
 	panic("implement me")
@@ -106,28 +118,33 @@ func (s *SmoothTriangle) SetMaterial(material Material) {
 
 func (s *SmoothTriangle) IntersectLocal(ray Ray) []Intersection {
 	//fmt.Printf("intersecting triangle with material: " + s.Material.Name + " having color: %v\n", s.Material.Color)
-
-	dirCrossE2 := Cross(ray.Direction, s.E2)
-	determinant := Dot(s.E1, dirCrossE2)
+	Cross2(&ray.Direction, &s.E2, &s.dirCrossE2)
+	determinant := DotPtr(&s.E1, &s.dirCrossE2)
 	if math.Abs(determinant) < TriThreshold {
 		return nil
 	}
 
 	// Triangle misses over P1-P3 edge
 	f := 1.0 / determinant
-	p1ToOrigin := Sub(ray.Origin, s.P1)
-	u := f * Dot(p1ToOrigin, dirCrossE2)
+	for i := 0; i < 4; i++ {
+		s.p1ToOrigin[i] = ray.Origin[i] - s.P1[i]
+	}
+	//p1ToOrigin := Sub(ray.Origin, s.P1)
+	u := f * DotPtr(&s.p1ToOrigin, &s.dirCrossE2)
 	if u < 0 || u > 1 {
 		return nil
 	}
 
-	originCrossE1 := Cross(p1ToOrigin, s.E1)
-	v := f * Dot(ray.Direction, originCrossE1)
+	Cross2(&s.p1ToOrigin, &s.E1, &s.originCrossE1)
+	v := f * DotPtr(&ray.Direction, &s.originCrossE1)
 	if v < 0 || (u+v) > 1 {
 		return nil
 	}
-	tdist := f * Dot(s.E2, originCrossE1)
-	return []Intersection{NewIntersectionUV(tdist, s, u, v)}
+	tdist := f * DotPtr(&s.E2, &s.originCrossE1)
+
+	s.xs[0] = NewIntersectionUV(tdist, s, u, v)
+	return s.xs
+	//return []Intersection{NewIntersectionUV(tdist, s, u, v)}
 }
 
 func (s *SmoothTriangle) NormalAtLocal(point Tuple4, intersection *Intersection) Tuple4 {

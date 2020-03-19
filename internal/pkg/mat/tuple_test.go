@@ -1,6 +1,7 @@
 package mat
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"math"
 	"testing"
@@ -200,4 +201,13 @@ func TestHadamard(t *testing.T) {
 	assert.InEpsilon(t, 0.9, c3.Get(0), Epsilon)
 	assert.InEpsilon(t, 0.2, c3.Get(1), Epsilon)
 	assert.InEpsilon(t, 0.04, c3.Get(2), Epsilon)
+}
+func BenchmarkDot(b *testing.B) {
+	var res = 0.0
+	t1 := NewVector(1, 2, 3)
+	t2 := NewVector(2, 3, 4)
+	for i := 0; i < b.N; i++ {
+		res = Dot(t1, t2)
+	}
+	fmt.Printf("%v\n", res)
 }

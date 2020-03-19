@@ -1,6 +1,9 @@
 package mat
 
-import "github.com/eriklupander/rt/internal/pkg/identity"
+import (
+	"github.com/eriklupander/rt/internal/pkg/calcstats"
+	"github.com/eriklupander/rt/internal/pkg/identity"
+)
 
 var IdentityMatrix = identity.Matrix
 
@@ -11,8 +14,6 @@ func NewIdentityMatrix() Mat4x4 {
 	for i := 0; i < 16; i++ {
 		m1[i] = IdentityMatrix[i]
 	}
-
-	//copy(m1, IdentityMatrix.Elems)
 	return m1
 }
 
@@ -60,35 +61,38 @@ func Multiply(m1 Mat4x4, m2 Mat4x4) Mat4x4 {
 func MultiplyByTuple(m1 Mat4x4, t Tuple4) Tuple4 {
 	t1 := NewTuple()
 	for row := 0; row < 4; row++ {
-		t1[row] = (m1[(row*4)+0] * t[0]) +
-			(m1[(row*4)+1] * t[1]) +
-			(m1[(row*4)+2] * t[2]) +
-			(m1[(row*4)+3] * t[3])
-		//t1[row] = (m1.Get(row, 0) * t.Get(0)) +
-		//	(m1.Get(row, 1) * t.Get(1)) +
-		//	(m1.Get(row, 2) * t.Get(2)) +
-		//	(m1.Get(row, 3) * t.Get(3))
+		a := (m1[(row*4)+0] * t[0])
+		b := (m1[(row*4)+1] * t[1])
+		c := (m1[(row*4)+2] * t[2])
+		d := (m1[(row*4)+3] * t[3])
+		t1[row] = a + b + c + d
+		//(m1[(row*4)+0] * t[0]) +
+		//(m1[(row*4)+1] * t[1]) +
+		//(m1[(row*4)+2] * t[2]) +
+		//(m1[(row*4)+3] * t[3])
 	}
 	return t1
 }
 
-func MultiplyByTuplePtr(m1 Mat4x4, t Tuple4, out *Tuple4) {
-	for row := 0; row < 4; row++ {
-		out[row] = (m1[(row*4)+0] * t[0]) +
-			(m1[(row*4)+1] * t[1]) +
-			(m1[(row*4)+2] * t[2]) +
-			(m1[(row*4)+3] * t[3])
-	}
-}
+//func MultiplyByTuplePtr(m1 Mat4x4, t Tuple4, out *Tuple4) {
+//for row := 0; row < 4; row++ {
+//	out[row] = (m1[(row*4)+0] * t[0]) +
+//		(m1[(row*4)+1] * t[1]) +
+//		(m1[(row*4)+2] * t[2]) +
+//		(m1[(row*4)+3] * t[3])
+//}
+//MultiplyMatrixByVec64((*[16]float64)(&m1), (*[4]float64)(&t), (*[4]float64)(out))
+//}
 
 // Transpose flips rows and cols in the matrix.
 func Transpose(m1 Mat4x4) Mat4x4 {
 	m3 := NewMat4x4(make([]float64, 16))
 	for col := 0; col < 4; col++ {
 		for row := 0; row < 4; row++ {
-			m3[(row*4)+col] = m1[(col*4)+row] //m1.Get(col, row)
+			m3[(row*4)+col] = m1[(col*4)+row]
 		}
 	}
+	calcstats.TposeIncr()
 	return m3
 }
 

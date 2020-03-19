@@ -1,21 +1,21 @@
 package mat
 
 import (
-	"github.com/eriklupander/rt/internal/pkg/calcstats"
 	"math/rand"
 	"sort"
 )
 
 type Group struct {
-	Id        int64
-	Transform Mat4x4
-	Inverse   Mat4x4
-	Material  Material
-	Mtl       Mtl
-	Label     string
-	parent    Shape
-	Children  []Shape
-	savedRay  Ray
+	Id               int64
+	Transform        Mat4x4
+	Inverse          Mat4x4
+	InverseTranspose Mat4x4
+	Material         Material
+	Mtl              Mtl
+	Label            string
+	parent           Shape
+	Children         []Shape
+	savedRay         Ray
 
 	InnerRays   []Ray
 	XsCache     Intersections
@@ -32,11 +32,12 @@ func NewGroup() *Group {
 	innerRays := make([]Ray, 0)
 
 	return &Group{
-		Id:        rand.Int63(),
-		Transform: m1,
-		Inverse:   inv,
-		Children:  make([]Shape, 0),
-		savedRay:  NewRay(NewPoint(0, 0, 0), NewVector(0, 0, 0)),
+		Id:               rand.Int63(),
+		Transform:        m1,
+		Inverse:          inv,
+		InverseTranspose: New4x4(),
+		Children:         make([]Shape, 0),
+		savedRay:         NewRay(NewPoint(0, 0, 0), NewVector(0, 0, 0)),
 
 		XsCache:   cachedXs,
 		InnerRays: innerRays,
@@ -57,10 +58,14 @@ func (g *Group) GetTransform() Mat4x4 {
 func (g *Group) GetInverse() Mat4x4 {
 	return g.Inverse
 }
+func (g *Group) GetInverseTranspose() Mat4x4 {
+	return g.InverseTranspose //Transpose(g.Inverse) //InverseTranspose
+}
 
 func (g *Group) SetTransform(transform Mat4x4) {
 	g.Transform = Multiply(g.Transform, transform)
 	g.Inverse = Inverse(g.Transform)
+	g.InverseTranspose = Transpose(g.Inverse)
 }
 
 func (g *Group) GetMaterial() Material {
@@ -76,11 +81,10 @@ func (g *Group) SetMaterial(material Material) {
 func (g *Group) IntersectLocal(ray Ray) []Intersection {
 
 	if g.BoundingBox != nil && !IntersectRayWithBox(ray, g.BoundingBox) {
-		calcstats.Incr()
+		//calcstats.Incr()
 		return nil
 	}
 
-	//fmt.Println("testing XS in Group: " + g.Label)
 	g.XsCache = g.XsCache[:0]
 	for idx := range g.Children {
 		TransformRayPtr(ray, g.Children[idx].GetInverse(), &g.InnerRays[idx])

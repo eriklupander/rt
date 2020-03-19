@@ -8,7 +8,7 @@ var white = mat.NewColor(1, 1, 1)
 func RenderPointAt(canvas *mat.Canvas, camera mat.Camera, worldPoint mat.Tuple4, color mat.Tuple4) {
 
 	// TransformRay point into camera space
-	mat.MultiplyByTuplePtr(camera.Transform, worldPoint, &worldPoint)
+	mat.MultiplyByTuplePtr(&camera.Transform, &worldPoint, &worldPoint)
 
 	// View is always 1 unit away, divide by translated pixel z to get 3D -> 2D translation factor.
 	dDividedByZ := 1 / worldPoint.Get(2)

@@ -37,8 +37,26 @@ func IntersectWithWorldPtr(w World, r Ray, xs Intersections, inRay *Ray) []Inter
 			xs = append(xs, intersections[innerIdx])
 		}
 	}
-	sort.Sort(xs)
+	if len(xs) > 1 {
+		sort.Sort(xs)
+	}
 	return xs
+}
+
+func ShadowIntersect(w World, r Ray, distance float64, inRay *Ray) bool {
+	for idx := range w.Objects {
+		if !w.Objects[idx].CastsShadow() {
+			continue
+		}
+		intersections := IntersectRayWithShapePtr(w.Objects[idx], r, inRay)
+
+		for innerIdx := range intersections {
+			if intersections[innerIdx].T > 0.0 && intersections[innerIdx].T < distance {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func IntersectWithWorldPtrForShadow(w World, r Ray, xs Intersections, inRay *Ray) []Intersection {

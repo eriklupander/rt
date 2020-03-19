@@ -8,18 +8,20 @@ import (
 func NewCylinder() *Cylinder {
 	m1 := New4x4()  //NewMat4x4(make([]float64, 16))
 	inv := New4x4() //NewMat4x4(make([]float64, 16))
+	invTranspose := New4x4()
 
 	savedXs := make([]Intersection, 4)
 
 	return &Cylinder{
-		Id:         rand.Int63(),
-		Transform:  m1,
-		Inverse:    inv,
-		Material:   NewDefaultMaterial(),
-		MinY:       math.Inf(-1),
-		MaxY:       math.Inf(1),
-		savedXs:    savedXs,
-		CastShadow: true,
+		Id:               rand.Int63(),
+		Transform:        m1,
+		Inverse:          inv,
+		InverseTranspose: invTranspose,
+		Material:         NewDefaultMaterial(),
+		MinY:             math.Inf(-1),
+		MaxY:             math.Inf(1),
+		savedXs:          savedXs,
+		CastShadow:       true,
 	}
 }
 
@@ -39,17 +41,18 @@ func NewCylinderMMC(min, max float64, closed bool) *Cylinder {
 }
 
 type Cylinder struct {
-	Id         int64
-	Transform  Mat4x4
-	Inverse    Mat4x4
-	Material   Material
-	Label      string
-	parent     Shape
-	savedRay   Ray
-	MinY       float64
-	MaxY       float64
-	closed     bool
-	CastShadow bool
+	Id               int64
+	Transform        Mat4x4
+	Inverse          Mat4x4
+	InverseTranspose Mat4x4
+	Material         Material
+	Label            string
+	parent           Shape
+	savedRay         Ray
+	MinY             float64
+	MaxY             float64
+	closed           bool
+	CastShadow       bool
 
 	savedXs []Intersection
 }
@@ -69,10 +72,14 @@ func (c *Cylinder) GetTransform() Mat4x4 {
 func (c *Cylinder) GetInverse() Mat4x4 {
 	return c.Inverse
 }
+func (c *Cylinder) GetInverseTranspose() Mat4x4 {
+	return c.InverseTranspose
+}
 
 func (c *Cylinder) SetTransform(transform Mat4x4) {
 	c.Transform = Multiply(c.Transform, transform)
 	c.Inverse = Inverse(c.Transform)
+	c.InverseTranspose = Transpose(c.Inverse)
 }
 
 func (c *Cylinder) GetMaterial() Material {
