@@ -8,10 +8,9 @@ _The Golang gopher, 3D model by [Takuya Ueda](https://twitter.com/tenntenn), Go 
 _(multisampling and soft shadows)_
 
 ![image](renders/dragon1080.png)
-_(the good ol' dragon, soft shadows. Note that the dragon model uses surface normals)_
+_(the good ol' dragon, soft shadows. Note that the dragon model uses surface rather than vertex normals)_
 
 ![image](renders/dof-smaller-aperture-128.png)
-
 _(depth of field)_
 
 ### Description
@@ -20,6 +19,8 @@ This is my WiP implementation of the Ray tracer as described in the book "The Ra
 ### Changelog (and performance fixes)
 Just to keep track of which fixes were done when, kind of...
 
+- 2020-03-19: Pass pointers to arrays for certain method calls 
+- 2020-03-16: Assembler impl of vector * matrix multiplication through [c2goasm](https://github.com/minio/c2goasm)
 - 2020-03-06: .MTL materials hack
 - 2020-02-29: Depth of field
 - 2020-02-25: Soft shadows and multisamling
