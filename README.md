@@ -11,6 +11,7 @@ _(multisampling and soft shadows)_
 _(the good ol' dragon, soft shadows. Note that the dragon model uses surface rather than vertex normals)_
 
 ![image](renders/dof-smaller-aperture-128.png)
+
 _(depth of field)_
 
 ### Description
