@@ -24,7 +24,7 @@ Just to keep track of which fixes were done when, kind of...
 - 2020-03-16: Assembler impl of vector * matrix multiplication through [c2goasm](https://github.com/minio/c2goasm)
 - 2020-03-06: .MTL materials hack
 - 2020-02-29: Depth of field
-- 2020-02-25: Soft shadows and multisamling
+- 2020-02-25: Soft shadows and multisampling
 - 2020-02-23: BVH
 - 2020-02-21: Bounding boxes for groups and CSGs (based on bonus chapter from book)
 - 2020-02-20: Refactor to use arrays instead of slices for Matrices and Tuples.
@@ -33,7 +33,7 @@ Just to keep track of which fixes were done when, kind of...
 - 2020-02-05: Pass job per line instead of pixel
 - 2020-01-10: Reduce allocations, cache stuff in render contexts
 - 2019-12-28: Cache inverse
-- 2019-12-25: Multi-threading
+- 2019-12-25: Multi-threading using workers
 
 ### Features, State etc
 I think I've got all the features from the book covered, including:
