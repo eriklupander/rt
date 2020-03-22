@@ -8,7 +8,7 @@ import (
 )
 
 func Dragon() *Scene {
-	camera := mat.NewCamera(1920, 1080, math.Pi/3.5)
+	camera := mat.NewCamera(1280, 720, math.Pi/3.5)
 	viewTransform := mat.ViewTransform(mat.NewPoint(-3, 3.5, -10), mat.NewPoint(-0.5, 2, 0), mat.NewVector(0, 1, 0))
 	camera.Transform = viewTransform
 	camera.Inverse = mat.Inverse(viewTransform)
