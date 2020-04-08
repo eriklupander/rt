@@ -3,33 +3,78 @@ package main
 import (
 	"fmt"
 	"github.com/eriklupander/rt/internal/pkg/constant"
+	"github.com/eriklupander/rt/internal/pkg/gui"
 	"github.com/eriklupander/rt/internal/pkg/helper"
 	"github.com/eriklupander/rt/internal/pkg/mat"
 	"github.com/eriklupander/rt/internal/pkg/render"
 	"github.com/eriklupander/rt/scene"
+	"github.com/faiface/pixel"
+	"github.com/faiface/pixel/pixelgl"
 	"image"
+	"image/color"
 	"image/png"
-	"log"
 	"math"
-	"net/http"
 	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"syscall"
 )
 
+func run() {
+	cfg := pixelgl.WindowConfig{
+		Title:  "RT",
+		Bounds: pixel.R(0, 0, 640, 480),
+		VSync:  true,
+	}
+	win, err := pixelgl.NewWindow(cfg)
+	if err != nil {
+		panic(err)
+	}
+	canvas := pixelgl.NewCanvas(win.Bounds())
+
+	buffer := image.NewRGBA(image.Rect(0, 0, 640, 480))
+	go func() {
+		for {
+			px := <-gui.PixelChan
+			if px.R > 255 {
+				px.R = 255
+			}
+			if px.G > 255 {
+				px.G = 255
+			}
+			if px.B > 255 {
+				px.B = 255
+			}
+
+			buffer.Set(px.X, 480-px.Y, color.RGBA{
+				R: uint8(px.R),
+				G: uint8(px.G),
+				B: uint8(px.B),
+				A: 255,
+			})
+		}
+	}()
+	for !win.Closed() {
+		canvas.SetPixels(buffer.Pix)
+		canvas.Draw(win, pixel.IM.Moved(win.Bounds().Center()))
+		win.Update()
+	}
+
+}
+
 // main contains a load of old junk I've added while I completed chapters in the Ray Tracer Challenge book.
 func main() {
-
+	go withSimpleGopherModel()
+	pixelgl.Run(run)
 	//runtime.SetBlockProfileRate(1)
 	//runtime.SetMutexProfileFraction(1)
 	// we need a webserver to get the pprof going
-	go func() {
-		log.Println(http.ListenAndServe("localhost:6060", nil))
-	}()
+	//go func() {
+	//	log.Println(http.ListenAndServe("localhost:6060", nil))
+	//}()
 	//parse()
 	//csg()
-	withDragonModel()
+
 	//withSimpleGopherModel()
 	//groups()
 	//softshadows()

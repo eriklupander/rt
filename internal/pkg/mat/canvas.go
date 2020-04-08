@@ -2,6 +2,7 @@ package mat
 
 import (
 	"fmt"
+	"github.com/eriklupander/rt/internal/pkg/gui"
 	"math"
 	"strconv"
 	"strings"
@@ -48,6 +49,13 @@ func (c *Canvas) WritePixelMutex(col, row int, color Tuple4) {
 	}
 	mutex.Lock()
 	c.Pixels[c.toIdx(col, row)] = color
+	gui.PixelChan <- gui.Pixel{
+		X: col,
+		Y: row,
+		R: int(color.Get(0) * 255),
+		G: int(color.Get(1) * 255),
+		B: int(color.Get(2) * 255),
+	}
 	mutex.Unlock()
 }
 
