@@ -85,7 +85,7 @@ func (c *CSG) IntersectLocal(ray Ray) []Intersection {
 	leftXs := IntersectRayWithShapePtr(c.Left, ray, &c.savedLeftRay)
 	rightXs := IntersectRayWithShapePtr(c.Right, ray, &c.savedRightRay)
 	xs := append(leftXs, rightXs...)
-	xs = quicksort(xs) // sort.Sort(Intersections(xs))
+	xs = quicksort(xs)
 	return FilterIntersections(c, xs)
 }
 

@@ -32,7 +32,6 @@ func IntersectWithWorldPtr(w World, r Ray, xs []Intersection, inRay *Ray) []Inte
 		}
 	}
 	if len(xs) > 1 {
-		//sort.Sort(xs) //TODO FIX
 		xs = quicksort(xs)
 	}
 	return xs
@@ -65,7 +64,6 @@ func IntersectWithWorldPtrForShadow(w World, r Ray, xs []Intersection, inRay *Ra
 			xs = append(xs, intersections[innerIdx])
 		}
 	}
-	//sort.Sort(xs) // TODO
 	xs = quicksort(xs)
 	return xs
 }
