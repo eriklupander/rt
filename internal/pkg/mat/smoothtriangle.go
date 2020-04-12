@@ -117,7 +117,6 @@ func (s *SmoothTriangle) SetMaterial(material Material) {
 }
 
 func (s *SmoothTriangle) IntersectLocal(ray Ray) []Intersection {
-	//fmt.Printf("intersecting triangle with material: " + s.Material.Name + " having color: %v\n", s.Material.Color)
 	Cross2(&ray.Direction, &s.E2, &s.dirCrossE2)
 	determinant := DotPtr(&s.E1, &s.dirCrossE2)
 	if math.Abs(determinant) < TriThreshold {
@@ -144,7 +143,6 @@ func (s *SmoothTriangle) IntersectLocal(ray Ray) []Intersection {
 
 	s.xs[0] = NewIntersectionUV(tdist, s, u, v)
 	return s.xs
-	//return []Intersection{NewIntersectionUV(tdist, s, u, v)}
 }
 
 func (s *SmoothTriangle) NormalAtLocal(point Tuple4, intersection *Intersection) Tuple4 {

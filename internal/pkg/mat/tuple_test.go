@@ -170,6 +170,14 @@ func TestCross(t *testing.T) {
 	assert.True(t, TupleEquals(crossT1, NewVector(-1, 2, -1)))
 	assert.True(t, TupleEquals(crossT2, NewVector(1, -2, 1)))
 }
+func TestCrossProduct(t *testing.T) {
+
+	t1 := NewVector(1, 2, 3)
+	t2 := NewVector(2, 3, 4)
+	out := Tuple4{}
+	CrossProduct(&t1, &t2, &out)
+	assert.True(t, TupleEquals(out, NewVector(-1, 2, -1)))
+}
 
 func TestColorAdd(t *testing.T) {
 	c1 := NewColor(0.9, 0.6, 0.75)
@@ -242,6 +250,15 @@ func BenchmarkCross2(b *testing.B) {
 	out := Tuple4{}
 	for i := 0; i < b.N; i++ {
 		Cross2(&t1, &t2, &out)
+	}
+	fmt.Printf("%v\n", out)
+}
+func BenchmarkCrossProduct(b *testing.B) {
+	t1 := NewVector(1, 2, 3)
+	t2 := NewVector(2, 3, 4)
+	out := Tuple4{}
+	for i := 0; i < b.N; i++ {
+		CrossProduct(&t1, &t2, &out)
 	}
 	fmt.Printf("%v\n", out)
 }
