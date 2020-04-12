@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/eriklupander/rt/internal/pkg/constant"
+	"github.com/eriklupander/rt/internal/pkg/config"
 	"github.com/eriklupander/rt/internal/pkg/helper"
 	"github.com/eriklupander/rt/internal/pkg/mat"
 	"github.com/eriklupander/rt/internal/pkg/render"
 	"github.com/eriklupander/rt/scene"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 	"image"
 	"image/png"
 	"log"
@@ -15,11 +17,32 @@ import (
 	_ "net/http/pprof"
 	"os"
 	"os/signal"
+	"runtime"
 	"syscall"
 )
 
 // main contains a load of old junk I've added while I completed chapters in the Ray Tracer Challenge book.
 func main() {
+
+	var configFlags = pflag.NewFlagSet("config", pflag.ExitOnError)
+	configFlags.Int("threads", runtime.NumCPU(), "Image width")
+	configFlags.Int("width", 640, "Image width")
+	configFlags.Int("height", 480, "Image height")
+	configFlags.Int("samples", 1, "Number of samples per pixel")
+	configFlags.Int("softshadowsamples", 0, "Number of shadow rays for soft shadows")
+	configFlags.String("scene", "reference", "scene from /scenes")
+	//configFlags.String("output",  time.Now().Format(time.RFC3339)+ ".png", "output filename")
+
+	if err := configFlags.Parse(os.Args[1:]); err != nil {
+		panic(err.Error())
+	}
+	if err := viper.BindPFlags(configFlags); err != nil {
+		panic(err.Error())
+	}
+	viper.AutomaticEnv()
+
+	config.FromConfig()
+	fmt.Printf("Running with %d CPUs\n", viper.GetInt("threads"))
 
 	//runtime.SetBlockProfileRate(1)
 	//runtime.SetMutexProfileFraction(1)
@@ -27,17 +50,26 @@ func main() {
 	go func() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))
 	}()
-	//parse()
-	//csg()
-	withDragonModel()
-	//withSimpleGopherModel()
-	//groups()
-	//softshadows()
-	//depthOfField()
+	switch viper.GetString("scene") {
+	case "reference":
+		worldWithPlane()
+	case "dragon":
+		withDragonModel()
+	case "gopher":
+		withSimpleGopherModel()
+	case "csg":
+		csg()
+	case "softshadows":
+		softshadows()
+	case "refraction":
+		refraction()
+	case "dof":
+		depthOfField()
+	default:
+		fmt.Println("no scene specified, rendering reference scene")
+	}
 
-	//refraction()
-	//worldWithPlane() // REFERENCE IMAGE!!
-
+	fmt.Printf("Rendered scene '%v'\n", viper.GetString("scene"))
 	termChan := make(chan os.Signal)
 	signal.Notify(termChan, syscall.SIGINT, syscall.SIGTERM)
 	<-termChan // Blocks here!!
@@ -66,9 +98,9 @@ var black = mat.NewColor(0, 0, 0)
 //
 func depthOfField() {
 
-	worlds := make([]mat.World, constant.RenderThreads, constant.RenderThreads)
+	worlds := make([]mat.World, config.Cfg.Threads, config.Cfg.Threads)
 	sc := scene.DoF()
-	for i := 0; i < constant.RenderThreads; i++ {
+	for i := 0; i < config.Cfg.Threads; i++ {
 		w := mat.NewWorld()
 		sc := scene.DoF()
 		w.Light = sc.Lights
@@ -77,14 +109,14 @@ func depthOfField() {
 		worlds[i] = w
 	}
 	canvas := render.Threaded(sc.Camera, worlds)
-	writeImagePNG(canvas, "dof-smaller-aperture-128.png")
+	writeImagePNG(canvas, viper.GetString("scene")+".png")
 }
 
 func softshadows() {
 
-	worlds := make([]mat.World, constant.RenderThreads, constant.RenderThreads)
+	worlds := make([]mat.World, config.Cfg.Threads, config.Cfg.Threads)
 	sc := scene.Softshadows()
-	for i := 0; i < constant.RenderThreads; i++ {
+	for i := 0; i < config.Cfg.Threads; i++ {
 		w := mat.NewWorld()
 		sc := scene.Softshadows()
 		w.Light = sc.Lights
@@ -93,7 +125,7 @@ func softshadows() {
 		worlds[i] = w
 	}
 	canvas := render.Threaded(sc.Camera, worlds)
-	writeImagePNG(canvas, "softshadows-small.png")
+	writeImagePNG(canvas, viper.GetString("scene")+".png")
 }
 
 func csg() {
@@ -102,8 +134,8 @@ func csg() {
 	viewTransform := mat.ViewTransform(mat.NewPoint(-4, 2, -5), mat.NewPoint(0, 0, 0), mat.NewVector(0, 1, 0))
 	camera.Transform = viewTransform
 	camera.Inverse = mat.Inverse(camera.Transform)
-	worlds := make([]mat.World, constant.RenderThreads)
-	for i := 0; i < constant.RenderThreads; i++ {
+	worlds := make([]mat.World, config.Cfg.Threads)
+	for i := 0; i < config.Cfg.Threads; i++ {
 		w := mat.NewWorld()
 		w.Light = append(w.Light, mat.NewLight(mat.NewPoint(0, 2, -2), mat.NewColor(1, 1, 1)))
 		w.Light = append(w.Light, mat.NewLight(mat.NewPoint(0, 3, 0), mat.NewColor(1, 1, 1)))
@@ -130,13 +162,13 @@ func csg() {
 		worlds[i] = w
 	}
 
-	writeImagePNG(render.Threaded(camera, worlds), "csg.png")
+	writeImagePNG(render.Threaded(camera, worlds), viper.GetString("scene")+".png")
 }
 
 func withDragonModel() {
-	worlds := make([]mat.World, constant.RenderThreads, constant.RenderThreads)
+	worlds := make([]mat.World, config.Cfg.Threads, config.Cfg.Threads)
 	sc := scene.Dragon()
-	for i := 0; i < constant.RenderThreads; i++ {
+	for i := 0; i < config.Cfg.Threads; i++ {
 		w := mat.NewWorld()
 		sc := scene.Dragon()
 		w.Light = sc.Lights
@@ -145,14 +177,14 @@ func withDragonModel() {
 		worlds[i] = w
 	}
 	canvas := render.Threaded(sc.Camera, worlds)
-	writeImagePNG(canvas, "dragon.png")
+	writeImagePNG(canvas, viper.GetString("scene")+".png")
 }
 
 func withSimpleGopherModel() {
 
-	worlds := make([]mat.World, constant.RenderThreads, constant.RenderThreads)
+	worlds := make([]mat.World, config.Cfg.Threads, config.Cfg.Threads)
 	sc := scene.SimpleGopher()
-	for i := 0; i < constant.RenderThreads; i++ {
+	for i := 0; i < config.Cfg.Threads; i++ {
 		w := mat.NewWorld()
 		sc := scene.SimpleGopher()
 		w.Light = sc.Lights
@@ -161,7 +193,7 @@ func withSimpleGopherModel() {
 		worlds[i] = w
 	}
 	canvas := render.Threaded(sc.Camera, worlds)
-	writeImagePNG(canvas, "simplegopher.png")
+	writeImagePNG(canvas, viper.GetString("scene")+".png")
 }
 
 func writeDataToPNG(canvas *mat.Canvas, myImage *image.RGBA) {
@@ -184,20 +216,20 @@ func refraction() {
 		worlds[i] = w
 	}
 	canvas := render.Threaded(sc.Camera, worlds)
-	writeImagePNG(canvas, "refraction.png")
+	writeImagePNG(canvas, viper.GetString("scene")+".png")
 }
 
 // This is my "reference image", used to benchmark the impl. in either 640x480 or 1920x1080
 func worldWithPlane() {
-	camera := mat.NewCamera(640, 480, math.Pi/3) // -4 är referens!
+	camera := mat.NewCamera(config.Cfg.Width, config.Cfg.Height, math.Pi/3) // -4 är referens!
 	viewTransform := mat.ViewTransform(mat.NewPoint(-2, 2.0, -4), mat.NewPoint(0, 0.5, 0), mat.NewVector(0, 1, 0))
 	camera.Transform = viewTransform
 	camera.Inverse = mat.Inverse(viewTransform)
 
 	light := mat.NewLight(mat.NewPoint(-5, 2.5, -3), mat.NewColor(1, 1, 1))
 
-	worlds := make([]mat.World, constant.RenderThreads)
-	for i := 0; i < constant.RenderThreads; i++ {
+	worlds := make([]mat.World, config.Cfg.Threads)
+	for i := 0; i < config.Cfg.Threads; i++ {
 		w := mat.NewWorld()
 		w.Light = append(w.Light, light)
 
@@ -309,30 +341,11 @@ func worldWithPlane() {
 
 	canvas := render.Threaded(camera, worlds)
 
-	// This is a hack, useful for debugging the renderering of a single pixel
-	//color := render.RenderSinglePixel(camera, worlds, 300, 139)
-	//fmt.Printf("%v\n", color)
-
 	// One can use this to render a unit-length XYZ axises superimposed on the image
 	helper.RenderReferenceAxises(canvas, camera)
 
 	// write
-	myImage := image.NewRGBA(image.Rect(0, 0, canvas.W, canvas.H))
-
-	writeDataToPNG(canvas, myImage)
-
-	// outputFile is a File type which satisfies Writer interface
-	outputFile, err := os.Create("test-sort-slice.png")
-	if err != nil {
-		panic(err.Error())
-	}
-
-	// Encode takes a writer interface and an image interface
-	// We pass it the File and the RGBA
-	png.Encode(outputFile, myImage)
-
-	// Don't forget to close files
-	outputFile.Close()
+	writeImagePNG(canvas, viper.GetString("scene")+".png")
 }
 
 func clamp(clr float64) uint8 {
@@ -347,8 +360,10 @@ func clamp(clr float64) uint8 {
 }
 
 func writeImagePNG(canvas *mat.Canvas, filename string) {
+	fmt.Printf("writing output to file %v\n", filename)
 	myImage := image.NewRGBA(image.Rect(0, 0, canvas.W, canvas.H))
 	writeDataToPNG(canvas, myImage)
 	outputFile, _ := os.Create(filename)
+	defer outputFile.Close()
 	_ = png.Encode(outputFile, myImage)
 }

@@ -1,7 +1,7 @@
 package render
 
 import (
-	"github.com/eriklupander/rt/internal/pkg/constant"
+	"github.com/eriklupander/rt/internal/pkg/config"
 	"github.com/eriklupander/rt/internal/pkg/mat"
 	"github.com/stretchr/testify/assert"
 	"math"
@@ -141,7 +141,7 @@ func TestRayForPixelWhenCamIsTransformed(t *testing.T) {
 // Page 104
 func TestRender(t *testing.T) {
 	worlds := make([]mat.World, 0)
-	for i := 0; i < constant.RenderThreads; i++ {
+	for i := 0; i < config.Cfg.Threads; i++ {
 		w := mat.NewDefaultWorld()
 		worlds = append(worlds, w)
 	}

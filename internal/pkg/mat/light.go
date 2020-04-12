@@ -108,7 +108,7 @@ func Lighting(material Material, object Shape, light LightSource, position, eyeV
 		return lightData.EffectiveColor
 	}
 
-	HadamardPtr(color, light.Intens(), &lightData.EffectiveColor)
+	HadamardPtr(&color, light.Intens(), &lightData.EffectiveColor)
 
 	// sample each point on area light
 	l := light.(AreaLight)
@@ -123,7 +123,7 @@ func Lighting(material Material, object Shape, light LightSource, position, eyeV
 			//p := PointOnLightNoRandom(l, float64(u), float64(v)) // Works with unit test
 
 			SubPtr(p, position, &lightData.LightVec)
-			NormalizePtr(lightData.LightVec, &lightData.LightVec)
+			NormalizePtr(&lightData.LightVec, &lightData.LightVec)
 
 			// Add the ambient portion
 			MultiplyByScalarPtr(lightData.EffectiveColor, material.Ambient, &lightData.Ambient)
@@ -182,11 +182,11 @@ func LightingPointLight(material Material, object Shape, light Light, position, 
 		return lightData.EffectiveColor
 	}
 
-	HadamardPtr(color, light.Intensity, &lightData.EffectiveColor)
+	HadamardPtr(&color, light.Intensity, &lightData.EffectiveColor)
 
 	// get vector from point on sphere to light source by subtracting, normalized into unit space.
 	SubPtr(light.Position, position, &lightData.LightVec)
-	NormalizePtr(lightData.LightVec, &lightData.LightVec)
+	NormalizePtr(&lightData.LightVec, &lightData.LightVec)
 
 	// Add the ambient portion
 	MultiplyByScalarPtr(lightData.EffectiveColor, material.Ambient, &lightData.Ambient)

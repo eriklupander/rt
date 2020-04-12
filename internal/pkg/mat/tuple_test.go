@@ -211,3 +211,37 @@ func BenchmarkDot(b *testing.B) {
 	}
 	fmt.Printf("%v\n", res)
 }
+func BenchmarkNormalizePtr(b *testing.B) {
+	t1 := NewVector(1, 2, 3)
+	out := Tuple4{}
+	for i := 0; i < b.N; i++ {
+		NormalizePtr(&t1, &out)
+	}
+	fmt.Printf("%v\n", out)
+}
+func BenchmarkNormalize(b *testing.B) {
+	t1 := NewVector(1, 2, 3)
+	out := Tuple4{}
+	for i := 0; i < b.N; i++ {
+		out = Normalize(t1)
+	}
+	fmt.Printf("%v\n", out)
+}
+func BenchmarkCross(b *testing.B) {
+	t1 := NewVector(1, 2, 3)
+	t2 := NewVector(2, 3, 4)
+	out := Tuple4{}
+	for i := 0; i < b.N; i++ {
+		out = Cross(t1, t2)
+	}
+	fmt.Printf("%v\n", out)
+}
+func BenchmarkCross2(b *testing.B) {
+	t1 := NewVector(1, 2, 3)
+	t2 := NewVector(2, 3, 4)
+	out := Tuple4{}
+	for i := 0; i < b.N; i++ {
+		Cross2(&t1, &t2, &out)
+	}
+	fmt.Printf("%v\n", out)
+}

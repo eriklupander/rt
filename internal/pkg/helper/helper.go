@@ -51,6 +51,39 @@ func RenderLine(canvas *mat.Canvas, camera mat.Camera, from, to mat.Tuple4) {
 	}
 }
 
+func RenderWireframeBox(canvas *mat.Canvas, camera mat.Camera, o *mat.Group) {
+
+	bb := mat.TransformBoundingBox(o.BoundingBox, o.Transform)
+	min := bb.Min
+	max := bb.Max
+
+	a := mat.NewTupleOf(min[0], min[1], min[2], 1)
+	b := mat.NewTupleOf(min[0], max[1], min[2], 1)
+	c := mat.NewTupleOf(min[0], min[1], max[2], 1)
+	d := mat.NewTupleOf(min[0], max[1], max[2], 1)
+
+	e := mat.NewTupleOf(max[0], min[1], min[2], 1)
+	f := mat.NewTupleOf(max[0], max[1], min[2], 1)
+	g := mat.NewTupleOf(max[0], min[1], max[2], 1)
+	h := mat.NewTupleOf(max[0], max[1], max[2], 1)
+
+	RenderLine(canvas, camera, a, e)
+	RenderLine(canvas, camera, b, f)
+	RenderLine(canvas, camera, c, g)
+	RenderLine(canvas, camera, d, h)
+
+	RenderLine(canvas, camera, e, f)
+	RenderLine(canvas, camera, f, h)
+	RenderLine(canvas, camera, h, g)
+	RenderLine(canvas, camera, g, e)
+
+	RenderLine(canvas, camera, a, b)
+	RenderLine(canvas, camera, b, d)
+	RenderLine(canvas, camera, d, c)
+	RenderLine(canvas, camera, c, a)
+
+}
+
 func RenderLineBetweenShapes(canvas *mat.Canvas, s1, s2 mat.Shape, camera mat.Camera) {
 	origin := mat.NewPoint(s1.GetTransform().Get(0, 3), s1.GetTransform().Get(1, 3), s1.GetTransform().Get(2, 3))
 	target := mat.NewPoint(s2.GetTransform().Get(0, 3), s2.GetTransform().Get(1, 3), s2.GetTransform().Get(2, 3))

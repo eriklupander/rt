@@ -25,8 +25,8 @@ type Group struct {
 }
 
 func NewGroup() *Group {
-	m1 := New4x4()  //NewMat4x4(make([]float64, 16))
-	inv := New4x4() //NewMat4x4(make([]float64, 16))
+	m1 := New4x4()
+	inv := New4x4()
 
 	cachedXs := make([]Intersection, 16)
 	innerRays := make([]Ray, 0)
@@ -59,7 +59,7 @@ func (g *Group) GetInverse() Mat4x4 {
 	return g.Inverse
 }
 func (g *Group) GetInverseTranspose() Mat4x4 {
-	return g.InverseTranspose //Transpose(g.Inverse) //InverseTranspose
+	return g.InverseTranspose
 }
 
 func (g *Group) SetTransform(transform Mat4x4) {
@@ -149,12 +149,13 @@ func (g *Group) BoundsToCube() *Cube {
 	z := g.BoundingBox.Min[2] + zscale
 
 	c := NewCube()
+	c.CastShadow = false
 	c.SetTransform(g.Transform)
 	c.SetTransform(Translate(x, y, z))
 	c.SetTransform(Scale(xscale, yscale, zscale))
 
 	m := NewDefaultMaterial()
-	m.Transparency = 0.8
+	m.Transparency = 0.95
 	m.Color = NewColor(0.8, 0.7, 0.9)
 	c.SetMaterial(m)
 	return c

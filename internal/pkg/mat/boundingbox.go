@@ -26,9 +26,6 @@ func (b *BoundingBox) ContainsPoint(p Tuple4) bool {
 }
 
 func (b *BoundingBox) ContainsBox(b2 *BoundingBox) bool {
-	//minOk := b.ContainsPoint(b2.Min)
-	//maxOk := b.ContainsPoint(b2.Max)
-	//return minOk && maxOk
 	return b.ContainsPoint(b2.Min) && b.ContainsPoint(b2.Max)
 }
 

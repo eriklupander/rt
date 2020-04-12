@@ -1,9 +1,12 @@
 package scene
 
-import "github.com/eriklupander/rt/internal/pkg/mat"
+import (
+	"github.com/eriklupander/rt/internal/pkg/config"
+	"github.com/eriklupander/rt/internal/pkg/mat"
+)
 
 func Refraction() *Scene {
-	camera := mat.NewCamera(600, 600, 0.5)
+	camera := mat.NewCamera(config.Cfg.Width, config.Cfg.Height, 0.5)
 	camera.Transform = mat.ViewTransform(mat.NewPoint(-4.5, 0.85, -4), mat.NewPoint(0, 0.85, 0), mat.NewVector(0, 1, 0))
 	camera.Inverse = mat.Inverse(camera.Transform)
 

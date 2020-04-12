@@ -49,7 +49,7 @@ func NormalToWorldPtr(shape Shape, normal *Tuple4) {
 	it := shape.GetInverseTranspose()
 	MultiplyByTuplePtr(&it, normal, normal)
 	normal[3] = 0.0 // set w to 0
-	NormalizePtr(*normal, normal)
+	NormalizePtr(normal, normal)
 
 	if shape.GetParent() != nil {
 		NormalToWorldPtr(shape.GetParent(), normal)

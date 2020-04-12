@@ -1,6 +1,7 @@
 package mat
 
 import (
+	"github.com/eriklupander/rt/internal/pkg/calcstats"
 	"math"
 )
 
@@ -82,7 +83,16 @@ func (t Tuple4) Add(t2 Tuple4) Tuple4 {
 	}
 	return t
 }
-
+func (t *Tuple4) AddNoRet(t2 Tuple4) {
+	for i := 0; i < 4; i++ {
+		t[i] = t[i] + t2[i]
+	}
+}
+func (t *Tuple4) AddNoRetPtr(t2 *Tuple4) {
+	for i := 0; i < 4; i++ {
+		t[i] = t[i] + t2[i]
+	}
+}
 func Sub(t1, t2 Tuple4) Tuple4 {
 	t3 := [4]float64{}
 	for i := 0; i < 4; i++ {
@@ -158,6 +168,7 @@ func MagnitudePtr(t1 *Tuple4) float64 {
 // Normalize measures the length (magnitude) of the passed Vector. Each component in t1 is then divided my the magnitude
 // in order to Normalize it to unit (1) size.
 func Normalize(t1 Tuple4) Tuple4 {
+	calcstats.Normalize()
 	t3 := [4]float64{}
 	magnitude := Magnitude(t1)
 	for i := 0; i < 4; i++ {
@@ -166,8 +177,9 @@ func Normalize(t1 Tuple4) Tuple4 {
 	return t3
 }
 
-func NormalizePtr(t1 Tuple4, out *Tuple4) {
-	magnitude := Magnitude(t1)
+func NormalizePtr(t1 *Tuple4, out *Tuple4) {
+	calcstats.Normalize()
+	magnitude := MagnitudePtr(t1)
 	var x, y, z, w float64
 
 	x = t1[0] / magnitude
@@ -192,7 +204,6 @@ func DotPtr(t1 *Tuple4, t2 *Tuple4) float64 {
 }
 
 func Cross(t1 Tuple4, t2 Tuple4) Tuple4 {
-	//calcstats.Cross()
 	t3 := [4]float64{}
 
 	t3[0] = t1[1]*t2[2] - t1[2]*t2[1]
@@ -217,7 +228,7 @@ func Hadamard(t1 Tuple4, t2 Tuple4) Tuple4 {
 	return t3
 }
 
-func HadamardPtr(t1 Tuple4, t2 Tuple4, out *Tuple4) {
+func HadamardPtr(t1 *Tuple4, t2 Tuple4, out *Tuple4) {
 	out[0] = t1[0] * t2[0]
 	out[1] = t1[1] * t2[1]
 	out[2] = t1[2] * t2[2]

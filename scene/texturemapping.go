@@ -2,14 +2,14 @@ package scene
 
 import (
 	"fmt"
-	"github.com/eriklupander/rt/internal/pkg/constant"
+	"github.com/eriklupander/rt/internal/pkg/config"
 	"github.com/eriklupander/rt/internal/pkg/mat"
 	"image"
 	"os"
 )
 
 func TextureMapping() *Scene {
-	camera := mat.NewCamera(800, 320, 0.7854)
+	camera := mat.NewCamera(config.Cfg.Width, config.Cfg.Height, 0.7854)
 	viewTransform := mat.ViewTransform(mat.NewPoint(-3, 1.0, 2.5), mat.NewPoint(0, 0.5, 0), mat.NewVector(0, 1, 0))
 	camera.Transform = viewTransform
 	camera.Inverse = mat.Inverse(viewTransform)
@@ -56,8 +56,8 @@ func TextureMapping() *Scene {
 		//Lights: []mat.Light{mat.NewLight(mat.NewPoint(-4.9, 4.9, 1), mat.NewColor(1, 1, 1))},
 		AreaLights: []mat.AreaLight{mat.NewAreaLight(
 			mat.NewPoint(-1, 2, 4),
-			mat.NewVector(2, 0, 0), constant.ShadowRays,
-			mat.NewVector(0, 2, 0), constant.ShadowRays,
+			mat.NewVector(2, 0, 0), config.Cfg.SoftShadowSamples,
+			mat.NewVector(0, 2, 0), config.Cfg.SoftShadowSamples,
 			mat.NewColor(1.5, 1.5, 1.5))},
 		Objects: []mat.Shape{
 			cube, plane, sphere1, sphere2,

@@ -37,3 +37,12 @@ func Cross() {
 	Crosses++
 	clock.Unlock()
 }
+
+var Ns int64
+var nlock = sync.Mutex{}
+
+func Normalize() {
+	nlock.Lock()
+	Ns++
+	nlock.Unlock()
+}
