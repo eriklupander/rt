@@ -3,7 +3,6 @@ package mat
 import (
 	"github.com/eriklupander/rt/internal/pkg/calcstats"
 	"math/rand"
-	"sort"
 )
 
 func NewCSG(operation string, left, right Shape) *CSG {
@@ -86,7 +85,7 @@ func (c *CSG) IntersectLocal(ray Ray) []Intersection {
 	leftXs := IntersectRayWithShapePtr(c.Left, ray, &c.savedLeftRay)
 	rightXs := IntersectRayWithShapePtr(c.Right, ray, &c.savedRightRay)
 	xs := append(leftXs, rightXs...)
-	sort.Sort(Intersections(xs))
+	xs = quicksort(xs) // sort.Sort(Intersections(xs))
 	return FilterIntersections(c, xs)
 }
 

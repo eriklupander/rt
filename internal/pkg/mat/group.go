@@ -2,7 +2,6 @@ package mat
 
 import (
 	"math/rand"
-	"sort"
 )
 
 type Group struct {
@@ -18,7 +17,7 @@ type Group struct {
 	savedRay         Ray
 
 	InnerRays   []Ray
-	XsCache     Intersections
+	XsCache     []Intersection
 	BoundingBox *BoundingBox
 
 	CastShadow bool
@@ -95,7 +94,8 @@ func (g *Group) IntersectLocal(ray Ray) []Intersection {
 	}
 
 	if len(g.XsCache) > 1 {
-		sort.Sort(g.XsCache)
+		//sort.Sort(g.XsCache)
+		g.XsCache = quicksort(g.XsCache)
 	}
 	return g.XsCache
 }

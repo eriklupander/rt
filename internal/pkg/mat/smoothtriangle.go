@@ -67,7 +67,7 @@ type SmoothTriangle struct {
 	originCrossE1 Tuple4
 	dirCrossE2    Tuple4
 
-	xs Intersections
+	xs []Intersection
 }
 
 // Barycentric computes barycentric coordinates (u, v, w) for point p with respect to triangle defined by pre-computed

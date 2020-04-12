@@ -2,7 +2,7 @@ package mat
 
 import (
 	"math"
-	"sort"
+	"math/rand"
 )
 
 type Intersection struct {
@@ -11,12 +11,6 @@ type Intersection struct {
 	U float64
 	V float64
 }
-
-type Intersections []Intersection
-
-func (xs Intersections) Len() int           { return len(xs) }
-func (xs Intersections) Less(i, j int) bool { return xs[i].T < xs[j].T }
-func (xs Intersections) Swap(i, j int)      { xs[i], xs[j] = xs[j], xs[i] }
 
 func NewIntersection(t float64, s Shape) Intersection {
 	return Intersection{T: t, S: s}
@@ -29,7 +23,7 @@ func IntersectionEqual(i1, i2 Intersection) bool {
 	return i1.T == i2.T && i1.S.ID() == i2.S.ID()
 }
 
-func IntersectWithWorldPtr(w World, r Ray, xs Intersections, inRay *Ray) []Intersection {
+func IntersectWithWorldPtr(w World, r Ray, xs []Intersection, inRay *Ray) []Intersection {
 	for idx := range w.Objects {
 		intersections := IntersectRayWithShapePtr(w.Objects[idx], r, inRay)
 
@@ -38,7 +32,8 @@ func IntersectWithWorldPtr(w World, r Ray, xs Intersections, inRay *Ray) []Inter
 		}
 	}
 	if len(xs) > 1 {
-		sort.Sort(xs)
+		//sort.Sort(xs) //TODO FIX
+		xs = quicksort(xs)
 	}
 	return xs
 }
@@ -59,7 +54,7 @@ func ShadowIntersect(w World, r Ray, distance float64, inRay *Ray) bool {
 	return false
 }
 
-func IntersectWithWorldPtrForShadow(w World, r Ray, xs Intersections, inRay *Ray) []Intersection {
+func IntersectWithWorldPtrForShadow(w World, r Ray, xs []Intersection, inRay *Ray) []Intersection {
 	for idx := range w.Objects {
 		if !w.Objects[idx].CastsShadow() {
 			continue
@@ -70,7 +65,8 @@ func IntersectWithWorldPtrForShadow(w World, r Ray, xs Intersections, inRay *Ray
 			xs = append(xs, intersections[innerIdx])
 		}
 	}
-	sort.Sort(xs)
+	//sort.Sort(xs) // TODO
+	xs = quicksort(xs)
 	return xs
 }
 
@@ -159,4 +155,30 @@ func includes(left Shape, object Shape) bool {
 	default:
 		return left.ID() == object.ID()
 	}
+}
+
+func quicksort(a []Intersection) []Intersection {
+	if len(a) < 2 {
+		return a
+	}
+
+	left, right := 0, len(a)-1
+
+	pivot := rand.Int() % len(a)
+
+	a[pivot], a[right] = a[right], a[pivot]
+
+	for i, _ := range a {
+		if a[i].T < a[right].T {
+			a[left], a[i] = a[i], a[left]
+			left++
+		}
+	}
+
+	a[left], a[right] = a[right], a[left]
+
+	quicksort(a[:left])
+	quicksort(a[left+1:])
+
+	return a
 }
