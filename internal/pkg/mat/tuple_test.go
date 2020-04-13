@@ -2,9 +2,10 @@ package mat
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"math"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestTuple4_IsVector(t *testing.T) {
@@ -236,8 +237,8 @@ func BenchmarkNormalize(b *testing.B) {
 	fmt.Printf("%v\n", out)
 }
 func BenchmarkCross(b *testing.B) {
-	t1 := NewVector(1, 2, 3)
-	t2 := NewVector(2, 3, 4)
+	t1 := NewVector(1.3243, 2.35456, 3.65464)
+	t2 := NewVector(2.6563, 3.75672, 4.54654)
 	out := Tuple4{}
 	for i := 0; i < b.N; i++ {
 		out = Cross(t1, t2)
@@ -245,20 +246,45 @@ func BenchmarkCross(b *testing.B) {
 	fmt.Printf("%v\n", out)
 }
 func BenchmarkCross2(b *testing.B) {
-	t1 := NewVector(1, 2, 3)
-	t2 := NewVector(2, 3, 4)
+	t1 := NewVector(1.3243, 2.35456, 3.65464)
+	t2 := NewVector(2.6563, 3.75672, 4.54654)
 	out := Tuple4{}
 	for i := 0; i < b.N; i++ {
 		Cross2(&t1, &t2, &out)
 	}
 	fmt.Printf("%v\n", out)
 }
+func BenchmarkCross2Parallell(b *testing.B) {
+	t1 := NewVector(1.3243, 2.35456, 3.65464)
+	t2 := NewVector(2.6563, 3.75672, 4.54654)
+
+	b.RunParallel(func(pb *testing.PB) {
+		out := Tuple4{}
+		for pb.Next() {
+			Cross2(&t1, &t2, &out)
+		}
+		fmt.Printf("%v\n", out)
+	})
+}
 func BenchmarkCrossProduct(b *testing.B) {
-	t1 := NewVector(1, 2, 3)
-	t2 := NewVector(2, 3, 4)
+	t1 := NewVector(1.3243, 2.35456, 3.65464)
+	t2 := NewVector(2.6563, 3.75672, 4.54654)
 	out := Tuple4{}
 	for i := 0; i < b.N; i++ {
 		CrossProduct(&t1, &t2, &out)
 	}
 	fmt.Printf("%v\n", out)
+}
+
+func BenchmarkCrossProductParallell(b *testing.B) {
+	t1 := NewVector(1.3243, 2.35456, 3.65464)
+	t2 := NewVector(2.6563, 3.75672, 4.54654)
+
+	b.RunParallel(func(pb *testing.PB) {
+		out := Tuple4{}
+		for pb.Next() {
+			CrossProduct(&t1, &t2, &out)
+		}
+		fmt.Printf("%v\n", out)
+	})
 }

@@ -117,7 +117,7 @@ func (s *SmoothTriangle) SetMaterial(material Material) {
 }
 
 func (s *SmoothTriangle) IntersectLocal(ray Ray) []Intersection {
-	Cross2(&ray.Direction, &s.E2, &s.dirCrossE2)
+	CrossProduct(&ray.Direction, &s.E2, &s.dirCrossE2)
 	determinant := DotPtr(&s.E1, &s.dirCrossE2)
 	if math.Abs(determinant) < TriThreshold {
 		return nil
@@ -134,7 +134,7 @@ func (s *SmoothTriangle) IntersectLocal(ray Ray) []Intersection {
 		return nil
 	}
 
-	Cross2(&s.p1ToOrigin, &s.E1, &s.originCrossE1)
+	CrossProduct(&s.p1ToOrigin, &s.E1, &s.originCrossE1)
 	v := f * DotPtr(&ray.Direction, &s.originCrossE1)
 	if v < 0 || (u+v) > 1 {
 		return nil
