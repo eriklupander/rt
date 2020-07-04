@@ -140,6 +140,14 @@ func TestRayForPixelWhenCamIsTransformed(t *testing.T) {
 
 // Page 104
 func TestRender(t *testing.T) {
+	config.Cfg = &config.Config{
+		Width:             160,
+		Height:            120,
+		Threads:           1,
+		DoFCamera:         false,
+		Samples:           0,
+		SoftShadowSamples: 0,
+	}
 	worlds := make([]mat.World, 0)
 	for i := 0; i < config.Cfg.Threads; i++ {
 		w := mat.NewDefaultWorld()

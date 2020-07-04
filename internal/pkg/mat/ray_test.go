@@ -1,6 +1,7 @@
 package mat
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -107,6 +108,24 @@ func TestTranslateRay(t *testing.T) {
 	r2 := TransformRay(r, m1)
 	assert.True(t, TupleEquals(r2.Origin, NewPoint(4, 6, 8)))
 	assert.True(t, TupleEquals(r2.Direction, NewVector(0, 1, 0)))
+}
+func BenchmarkTransformRay(b *testing.B) {
+	r := NewRay(NewPoint(1, 2, 3), NewVector(0, 1, 0))
+	m1 := Translate(3, 4, 5)
+	var r2 Ray
+	for i := 0; i < b.N; i++ {
+		r2 = TransformRay(r, m1)
+	}
+	fmt.Printf("%v\n", r2)
+}
+func BenchmarkTransformRayPtr(b *testing.B) {
+	r := NewRay(NewPoint(1, 2, 3), NewVector(0, 1, 0))
+	m1 := Translate(3, 4, 5)
+	var r2 Ray
+	for i := 0; i < b.N; i++ {
+		TransformRayPtr(r, m1, &r2)
+	}
+	fmt.Printf("%v\n", r2)
 }
 
 func TestScaleRay(t *testing.T) {

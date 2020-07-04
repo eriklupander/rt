@@ -252,3 +252,31 @@ func TestMultiplyByInverse(t *testing.T) {
 
 	Equals(Multiply(m3, Inverse(m2)), m1)
 }
+
+func BenchmarkMultiplyByTupleUsingValues(b *testing.B) {
+	m := NewMat4x4([]float64{1, 2, 3, 4, 5.5, 6.5, 7.5, 8.5, 9, 10, 11, 12, 13.5, 14.5, 15.5, 16.5})
+	t := NewTupleOf(3, 5, 9, 6)
+	var out Tuple4
+	for i := 0; i < b.N; i++ {
+		MultiplyByTupleUsingValues(m, t, &out)
+	}
+	fmt.Printf("%v\n", out)
+}
+func BenchmarkMultiplyByTupleUsingPointers(b *testing.B) {
+	m := NewMat4x4([]float64{1, 2, 3, 4, 5.5, 6.5, 7.5, 8.5, 9, 10, 11, 12, 13.5, 14.5, 15.5, 16.5})
+	t := NewTupleOf(3, 5, 9, 6)
+	var out Tuple4
+	for i := 0; i < b.N; i++ {
+		MultiplyByTupleUsingPointers(&m, &t, &out)
+	}
+	fmt.Printf("%v\n", out)
+}
+func BenchmarkMultiplyByTuplePtr(b *testing.B) {
+	m := NewMat4x4([]float64{1, 2, 3, 4, 5.5, 6.5, 7.5, 8.5, 9, 10, 11, 12, 13.5, 14.5, 15.5, 16.5})
+	t := NewTupleOf(3, 5, 9, 6)
+	var out Tuple4
+	for i := 0; i < b.N; i++ {
+		MultiplyByTuplePtr(&m, &t, &out)
+	}
+	fmt.Printf("%v\n", out)
+}

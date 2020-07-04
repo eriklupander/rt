@@ -61,10 +61,10 @@ func Multiply(m1 Mat4x4, m2 Mat4x4) Mat4x4 {
 func MultiplyByTuple(m1 Mat4x4, t Tuple4) Tuple4 {
 	t1 := NewTuple()
 	for row := 0; row < 4; row++ {
-		a := (m1[(row*4)+0] * t[0])
-		b := (m1[(row*4)+1] * t[1])
-		c := (m1[(row*4)+2] * t[2])
-		d := (m1[(row*4)+3] * t[3])
+		a := m1[(row*4)+0] * t[0]
+		b := m1[(row*4)+1] * t[1]
+		c := m1[(row*4)+2] * t[2]
+		d := m1[(row*4)+3] * t[3]
 		t1[row] = a + b + c + d
 		//(m1[(row*4)+0] * t[0]) +
 		//(m1[(row*4)+1] * t[1]) +
@@ -72,6 +72,32 @@ func MultiplyByTuple(m1 Mat4x4, t Tuple4) Tuple4 {
 		//(m1[(row*4)+3] * t[3])
 	}
 	return t1
+}
+func MultiplyByTupleUsingValues(m1 Mat4x4, t Tuple4, out *Tuple4) {
+	for row := 0; row < 4; row++ {
+		a := m1[(row*4)+0] * t[0]
+		b := m1[(row*4)+1] * t[1]
+		c := m1[(row*4)+2] * t[2]
+		d := m1[(row*4)+3] * t[3]
+		out[row] = a + b + c + d
+		//(m1[(row*4)+0] * t[0]) +
+		//(m1[(row*4)+1] * t[1]) +
+		//(m1[(row*4)+2] * t[2]) +
+		//(m1[(row*4)+3] * t[3])
+	}
+}
+func MultiplyByTupleUsingPointers(m1 *Mat4x4, t, out *Tuple4) {
+	for row := 0; row < 4; row++ {
+		a := m1[(row*4)+0] * t[0]
+		b := m1[(row*4)+1] * t[1]
+		c := m1[(row*4)+2] * t[2]
+		d := m1[(row*4)+3] * t[3]
+		out[row] = a + b + c + d
+		//(m1[(row*4)+0] * t[0]) +
+		//(m1[(row*4)+1] * t[1]) +
+		//(m1[(row*4)+2] * t[2]) +
+		//(m1[(row*4)+3] * t[3])
+	}
 }
 
 //func MultiplyByTuplePtr(m1 Mat4x4, t Tuple4, out *Tuple4) {
@@ -217,8 +243,8 @@ func multiply4x4(m1 Mat4x4, m2 Mat4x4, row int, col int) float64 {
 	//a2 := m1.Get(row, 2) * m2.Get(2, col)
 	//a3 := m1.Get(row, 3) * m2.Get(3, col)
 	a0 := m1[(row*4)+0] * m2[0+col]
-	a1 := m1[(row*4)+1] * m2[4+col]  //m2.Get(1, col)
-	a2 := m1[(row*4)+2] * m2[8+col]  // m2.Get(2, col)
-	a3 := m1[(row*4)+3] * m2[12+col] //m2.Get(3, col)
+	a1 := m1[(row*4)+1] * m2[4+col]
+	a2 := m1[(row*4)+2] * m2[8+col]
+	a3 := m1[(row*4)+3] * m2[12+col]
 	return a0 + a1 + a2 + a3
 }

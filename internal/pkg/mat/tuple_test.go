@@ -228,6 +228,14 @@ func BenchmarkNormalizePtr(b *testing.B) {
 	}
 	fmt.Printf("%v\n", out)
 }
+func BenchmarkNormalizePtr2(b *testing.B) {
+	t1 := NewVector(1, 2, 3)
+	out := Tuple4{}
+	for i := 0; i < b.N; i++ {
+		NormalizePtr2(t1, &out)
+	}
+	fmt.Printf("%v\n", out)
+}
 func BenchmarkNormalize(b *testing.B) {
 	t1 := NewVector(1, 2, 3)
 	out := Tuple4{}
@@ -287,4 +295,32 @@ func BenchmarkCrossProductParallell(b *testing.B) {
 		}
 		fmt.Printf("%v\n", out)
 	})
+}
+
+func BenchmarkAdd(b *testing.B) {
+	t1 := NewPoint(3, -2, 5)
+	t2 := NewVector(-2, 3, 1)
+	var t3 Tuple4
+	for i := 0; i < b.N; i++ {
+		t3 = Add(t1, t2)
+	}
+	fmt.Printf("%v\n", t3)
+}
+func BenchmarkAddPtr(b *testing.B) {
+	t1 := NewPoint(3, -2, 5)
+	t2 := NewVector(-2, 3, 1)
+	var t3 Tuple4
+	for i := 0; i < b.N; i++ {
+		AddPtr(t1, t2, &t3)
+	}
+	fmt.Printf("%v\n", t3)
+}
+func BenchmarkAddPtr2(b *testing.B) {
+	t1 := NewPoint(3, -2, 5)
+	t2 := NewVector(-2, 3, 1)
+	var t3 Tuple4
+	for i := 0; i < b.N; i++ {
+		AddPtr2(&t1, &t2, &t3)
+	}
+	fmt.Printf("%v\n", t3)
 }

@@ -49,7 +49,6 @@ func IntersectRayWithShapePtr(s Shape, r2 Ray, in *Ray) []Intersection {
 func Hit(intersections []Intersection) (Intersection, bool) {
 
 	// Filter out all negatives
-	//xs := make([]Intersection, 0)
 	for i := 0; i < len(intersections); i++ {
 		if intersections[i].T > 0.0 {
 			return intersections[i], true
@@ -57,14 +56,7 @@ func Hit(intersections []Intersection) (Intersection, bool) {
 		}
 	}
 
-	//if len(xs) == 0 {
 	return Intersection{}, false
-	//}
-	//if len(xs) == 1 {
-	//	return xs[0], true
-	//}
-
-	//return xs[0], true
 }
 
 func TransformRay(r Ray, m1 Mat4x4) Ray {

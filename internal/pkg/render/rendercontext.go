@@ -89,7 +89,7 @@ type Context struct {
 	// each renderContext needs to pre-allocate shade-data for sufficient number of recursions
 	cStack []ShadeData
 
-	// experiment, alloc memory for each sample of a given pixel
+	// alloc memory for each sample of a given pixel
 	samples []mat.Tuple4
 }
 

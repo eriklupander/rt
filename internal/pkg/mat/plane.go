@@ -5,9 +5,11 @@ import (
 	"math/rand"
 )
 
+var up = NewVector(0, 1, 0)
+
 func NewPlane() *Plane {
-	m1 := New4x4()  //NewMat4x4(make([]float64, 16))
-	inv := New4x4() //NewMat4x4(make([]float64, 16))
+	m1 := New4x4()
+	inv := New4x4()
 	invTranspose := New4x4()
 	return &Plane{
 		Id:               rand.Int63(),
@@ -79,7 +81,7 @@ func (p *Plane) IntersectLocal(ray Ray) []Intersection {
 }
 
 func (p *Plane) NormalAtLocal(point Tuple4, intersection *Intersection) Tuple4 {
-	return NewVector(0, 1, 0)
+	return up
 }
 
 func (p *Plane) GetLocalRay() Ray {

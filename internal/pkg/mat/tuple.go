@@ -1,7 +1,6 @@
 package mat
 
 import (
-	"github.com/eriklupander/rt/internal/pkg/calcstats"
 	"math"
 )
 
@@ -70,7 +69,11 @@ func AddPtr(t1, t2 Tuple4, t3 *Tuple4) {
 		t3[i] = t1[i] + t2[i]
 	}
 }
-
+func AddPtr2(t1, t2 *Tuple4, t3 *Tuple4) {
+	for i := 0; i < 4; i++ {
+		t3[i] = t1[i] + t2[i]
+	}
+}
 func Add3(t1, t2, t3 Tuple4, out *Tuple4) {
 	for i := 0; i < 4; i++ {
 		out[i] = t1.Get(i) + t2.Get(i) + t3.Get(i)
@@ -168,7 +171,6 @@ func MagnitudePtr(t1 *Tuple4) float64 {
 // Normalize measures the length (magnitude) of the passed Vector. Each component in t1 is then divided my the magnitude
 // in order to Normalize it to unit (1) size.
 func Normalize(t1 Tuple4) Tuple4 {
-	calcstats.Normalize()
 	t3 := [4]float64{}
 	magnitude := Magnitude(t1)
 	for i := 0; i < 4; i++ {
@@ -178,8 +180,21 @@ func Normalize(t1 Tuple4) Tuple4 {
 }
 
 func NormalizePtr(t1 *Tuple4, out *Tuple4) {
-	calcstats.Normalize()
 	magnitude := MagnitudePtr(t1)
+	var x, y, z, w float64
+
+	x = t1[0] / magnitude
+	y = t1[1] / magnitude
+	z = t1[2] / magnitude
+	w = t1[3] / magnitude
+
+	out[0] = x
+	out[1] = y
+	out[2] = z
+	out[3] = w
+}
+func NormalizePtr2(t1 Tuple4, out *Tuple4) {
+	magnitude := MagnitudePtr(&t1)
 	var x, y, z, w float64
 
 	x = t1[0] / magnitude
