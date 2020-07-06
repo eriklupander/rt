@@ -52,7 +52,6 @@ func Hit(intersections []Intersection) (Intersection, bool) {
 	for i := 0; i < len(intersections); i++ {
 		if intersections[i].T > 0.0 {
 			return intersections[i], true
-			//xs = append(xs, i)
 		}
 	}
 

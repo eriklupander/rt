@@ -16,6 +16,7 @@ import (
 // constants
 var originPoint = mat.NewPoint(0, 0, 0)
 var black = mat.NewColor(0, 0, 0)
+var white = mat.NewColor(1, 1, 1)
 
 // New creates a new render context to be used exclusively by a single Render worker
 func New(world mat.World) Context {
@@ -51,6 +52,8 @@ func New(world mat.World) Context {
 		cStack: cStack,
 
 		samples: samples,
+
+		rnd: rand.New(rand.NewSource(time.Now().UnixNano())),
 	}
 }
 
@@ -91,6 +94,8 @@ type Context struct {
 
 	// alloc memory for each sample of a given pixel
 	samples []mat.Tuple4
+
+	rnd *rand.Rand
 }
 
 // Threaded sets up workers and producer for rendering the passed camera + slice of worlds.
@@ -158,15 +163,12 @@ func (rc *Context) workerFuncPerLine() {
 	for job := range rc.jobs {
 		for i := 0; i < rc.camera.Width; i++ {
 			job.col = i
-			if rc.camera.Aperture == 0.0 {
-				rc.renderPixelPinhole(job)
-			} else {
-				rc.renderPixelWithAperture(job)
-			}
+			rc.renderPixelPathTracer(job)
 		}
 		rc.wg.Done()
 	}
 }
+
 
 func (rc *Context) renderSinglePixel(col, row int) mat.Tuple4 {
 	for i := 0; i < 1024; i++ {
@@ -192,7 +194,7 @@ func (rc *Context) renderPixelPinhole(job *job) {
 
 		// TODO optimize so we take four samples in each corner and then see how much they differ. If below threshold,
 		// just take a center one as well and return the interpolated result. Otherwise, pick N random samples.
-		rc.rayForPixel(job.col, job.row, &rc.firstRay)
+		rc.rayForPixelRand(job.col, job.row, &rc.firstRay)
 		rc.samples = append(rc.samples, rc.colorAt(rc.firstRay, 5, 5))
 	}
 
@@ -469,6 +471,7 @@ func (rc *Context) pointInShadow(light mat.Light, p mat.Tuple4) bool {
 	}
 	return false
 }
+
 
 //
 //// lighting computes the color of a given pixel given phong shading

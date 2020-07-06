@@ -16,9 +16,7 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 	"os"
-	"os/signal"
 	"runtime"
-	"syscall"
 	"time"
 )
 
@@ -68,16 +66,16 @@ func main() {
 		refraction()
 	case "dof":
 		depthOfField()
-	case "cornel":
-		cornel()
+	case "cornell":
+		cornell()
 	default:
 		fmt.Println("no scene specified, rendering reference scene")
 	}
 
 	fmt.Printf("Rendered scene '%v'\n", viper.GetString("scene"))
-	termChan := make(chan os.Signal)
-	signal.Notify(termChan, syscall.SIGINT, syscall.SIGTERM)
-	<-termChan // Blocks here!!
+	//termChan := make(chan os.Signal)
+	//signal.Notify(termChan, syscall.SIGINT, syscall.SIGTERM)
+	//<-termChan // Blocks here!!
 	fmt.Println("shutting down!")
 }
 
@@ -101,7 +99,7 @@ var black = mat.NewColor(0, 0, 0)
 //	}
 //}
 //
-func cornel() {
+func cornell() {
 
 	worlds := make([]mat.World, config.Cfg.Threads, config.Cfg.Threads)
 	sc := scene.Cornell()
@@ -109,7 +107,7 @@ func cornel() {
 		w := mat.NewWorld()
 		sc := scene.Cornell()
 		w.Light = sc.Lights
-		w.AreaLight = sc.AreaLights
+		//w.AreaLight = sc.AreaLights
 		w.Objects = sc.Objects
 		worlds[i] = w
 	}
@@ -330,20 +328,20 @@ func worldWithPlane() {
 
 		s1 := mat.NewSphere()
 		s1.SetTransform(mat.Multiply(mat.Translate(-2, 0.25, -1), mat.Scale(0.25, 0.25, 0.25)))
-		mat1 := mat.NewMaterialWithReflectivity(mat.NewColor(1, 0.1, 0.1), 0.1, 0.5, 0.8, 220.0, 0.4)
+		mat1 := mat.NewMaterialWithReflectivity(mat.NewColor(1, 0.1, 0.1), 0.1, 0.75, 0.8, 220.0, 0.4)
 		s1.SetMaterial(mat1)
 		gr.AddChild(s1)
 
 		s2 := mat.NewSphere()
-		s2.CastShadow = false
+		//s2.CastShadow = false
 		s2.SetTransform(mat.Multiply(mat.Translate(-1, 0.25, -1), mat.Scale(0.25, 0.25, 0.25)))
-		mat2 := mat.NewMaterialWithReflectivity(mat.NewColor(0.1, 1.0, 0.1), 0.1, 0.5, 0.8, 220.0, 0.4)
+		mat2 := mat.NewMaterialWithReflectivity(mat.NewColor(0.1, 1.0, 0.1), 0.1, 0.75, 0.8, 220.0, 0.4)
 		s2.SetMaterial(mat2)
 		gr.AddChild(s2)
 
 		s3 := mat.NewSphere()
 		s3.SetTransform(mat.Multiply(mat.Translate(0, 0.25, -1), mat.Scale(0.25, 0.25, 0.25)))
-		mat3 := mat.NewMaterialWithReflectivity(mat.NewColor(0.1, 0.1, 1), 0.1, 0.5, 0.8, 220.0, 0.4)
+		mat3 := mat.NewMaterialWithReflectivity(mat.NewColor(0.1, 0.1, 1), 0.1, 0.75, 0.8, 220.0, 0.4)
 		s3.SetMaterial(mat3)
 		gr.AddChild(s3)
 
@@ -363,7 +361,7 @@ func worldWithPlane() {
 	canvas := render.Threaded(camera, worlds)
 
 	// One can use this to render a unit-length XYZ axises superimposed on the image
-	helper.RenderReferenceAxises(canvas, camera)
+	//helper.RenderReferenceAxises(canvas, camera)
 
 	// write
 	writeImagePNG(canvas, viper.GetString("scene")+".png")
