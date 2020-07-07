@@ -1,6 +1,7 @@
 package render
 
 import (
+	"github.com/eriklupander/rt/internal/pkg/calcstats"
 	"github.com/eriklupander/rt/internal/pkg/mat"
 	"math"
 	"sort"
@@ -8,7 +9,10 @@ import (
 
 // trying to do a full path tracer in a single method...
 func (rc *Context) renderPixelPathTracer(job *job) {
-
+	for i := 0; i < 256; i++ {
+		rc.cStack[i].WorldXS = rc.cStack[i].WorldXS[:0]
+		//rc.cStack[i].ShadowXS = rc.cStack[i].ShadowXS[:0]
+	}
 	// slice to store the final color of each sample in
 	var samples = make([]mat.Tuple4, 0)
 
@@ -31,12 +35,14 @@ func (rc *Context) castRay(ray mat.Ray, depth, x, y int) (mat.Tuple4, bool) {
 	if depth > 3 {
 		return black, false
 	}
+	calcstats.Incr()
+
+	var xs = rc.cStack[depth].WorldXS
 	depth++
 	// slice to store intersections for a single ray
-	var xs []mat.Intersection
 
 	// storage for a single ray transformed for doing an intersection test
-	var transformedRay = mat.NewRay(mat.NewTuple(), mat.NewTuple())
+	var transformedRay = rc.cStack[depth].InRay //mat.NewRay(mat.NewTuple(), mat.NewTuple())
 	var normalizedVectorToLight = mat.NewTuple()
 
 	// find all intersections
@@ -47,7 +53,8 @@ func (rc *Context) castRay(ray mat.Ray, depth, x, y int) (mat.Tuple4, bool) {
 
 		// Call the intersect function provided by the shape implementation (e.g. Sphere, Plane osv)
 		// and append any results to the global intersection list
-		xs = append(xs, rc.world.Objects[i].IntersectLocal(transformedRay)...)
+		lxs := rc.world.Objects[i].IntersectLocal(transformedRay)
+		xs = append(xs, lxs...)
 	}
 
 	// If there were no intersection
@@ -69,7 +76,8 @@ func (rc *Context) castRay(ray mat.Ray, depth, x, y int) (mat.Tuple4, bool) {
 			material := intersections[i].S.GetMaterial()
 
 			// time to calculate normals and stuff for his particular intersection
-			computations := mat.PrepareComputationForIntersection(intersections[i], ray, intersections...)
+			computations := rc.cStack[depth].Comps
+			mat.PrepareComputationForIntersectionPtr(intersections[i], ray, &computations, intersections...)
 
 			// START SHADOW and LIGHT code
 			// check if in shadow or not by getting a normalized vector from point to light
@@ -97,53 +105,7 @@ func (rc *Context) castRay(ray mat.Ray, depth, x, y int) (mat.Tuple4, bool) {
 			var color mat.Tuple4
 			if !isShadowed {
 
-				// storage for light stuff
-				lightData := mat.NewLightData()
-				lightData.LightVec = normalizedVectorToLight
-				light := rc.world.Light[0]
-
-				// hadamard is a fancy name for multiplying each col of two vectors
-				mat.HadamardPtr(&material.Color, light.Intensity, &lightData.EffectiveColor)
-
-				// Add the ambient portion
-				mat.MultiplyByScalarPtr(lightData.EffectiveColor, material.Ambient, &lightData.Ambient)
-
-				// get dot product (angle) between the light and normal  vectors. If negative, it means the light source is
-				// on the backside
-				lightDotNormal := mat.Dot(lightData.LightVec, computations.NormalVec)
-				specular := lightData.Specular
-				diffuse := lightData.Diffuse
-
-				if lightDotNormal < 0 {
-					diffuse = black
-					specular = black
-				} else {
-					// Diffuse contribution Precedense here??
-
-					mat.MultiplyByScalarPtr(lightData.EffectiveColor, material.Diffuse*lightDotNormal, &diffuse)
-
-					// reflect_dot_eye represents the cosine of the angle between the
-					// reflection vector and the eye vector. A negative number means the
-					// light reflects away from the eye.
-					// Note that we negate the light vector since we want to angle of the bounce
-					// of the light rather than the incoming light vector.
-
-					mat.ReflectPtr(mat.Negate(lightData.LightVec), computations.NormalVec, &lightData.ReflectVec)
-					reflectDotEye := mat.Dot(lightData.ReflectVec, computations.EyeVec)
-
-					if reflectDotEye <= 0.0 {
-						specular = black
-					} else {
-						// compute the specular contribution
-						factor := math.Pow(reflectDotEye, material.Shininess)
-
-						// again, check precedense here
-						mat.MultiplyByScalarPtr(light.Intensity, material.Specular*factor, &specular)
-					}
-				}
-				// Add the three contributions together to get the final shading
-				// Uses standard Tuple addition
-				color = lightData.Ambient.Add(diffuse.Add(specular))
+				rc.phong(normalizedVectorToLight, material, computations, depth, &color)
 			} else {
 				// in shadow
 				color = mat.MultiplyByScalar(material.Color, material.Ambient)
@@ -156,17 +118,55 @@ func (rc *Context) castRay(ray mat.Ray, depth, x, y int) (mat.Tuple4, bool) {
 
 			var indirectSamples []mat.Tuple4
 			for indirect := 0; indirect < 1; indirect++ {
-				// get a random unit vector in the normal's hemisphere
-				rndVec := rc.RandomConeInHemisphere(normalVec, 1)
-				rndRay := mat.NewRay(computations.OverPoint, rndVec)
-				// 158x288
+				var newRay mat.Ray
+				// Try handling a refraction...
+				if material.Transparency > rc.rnd.Float64() {
+					// REFRACTION
+					// Find the ratio of first index of refraction to the second.
+					nRatio := computations.N1 / computations.N2
 
-				color2, hit := rc.castRay(rndRay, depth, x, y)
+					// cos(theta_i) is the same as the dot product of the two vectors
+					cosI := mat.Dot(computations.EyeVec, computations.NormalVec)
+
+					// Find sin(theta_t)^2 via trigonometric identity
+					sin2Theta := (nRatio * nRatio) * (1.0 - (cosI * cosI))
+					if sin2Theta > 1.0 {
+						return black, true
+					}
+
+					// Find cos(theta_t) via trigonometric identity
+					cosTheta := math.Sqrt(1.0 - sin2Theta)
+
+					// Compute the direction of the refracted ray
+					direction := mat.Sub(
+						mat.MultiplyByScalar(computations.NormalVec, (nRatio*cosI)-cosTheta),
+						mat.MultiplyByScalar(computations.EyeVec, nRatio))
+
+					// Create the refracted ray
+					newRay = mat.NewRay(computations.UnderPoint, direction)
+
+				} else if material.Reflectivity > rc.rnd.Float64() {
+					// REFLECTION
+					newRay = mat.NewRay(computations.OverPoint, computations.ReflectVec)
+					// 158x288
+
+				} else {
+					// DIFFUSE
+					rndVec := rc.RandomConeInHemisphere(normalVec, 1)
+					newRay = mat.NewRay(computations.OverPoint, rndVec)
+					// 158x288
+				}
+
+				//cosTheta := mat.Dot(newRay.Direction, normalVec)
+
+				indirectColor, hit := rc.castRay(newRay, depth, x, y)
 				if hit {
-					indirectSamples = append(indirectSamples, color2)
+					indirectSamples = append(indirectSamples, indirectColor) //mat.MultiplyByScalar(, cosTheta))
 				}
 			}
+
 			indirectSamples = append(indirectSamples, color)
+
 			return sumColors(indirectSamples, depth), true
 		}
 	}
@@ -199,7 +199,7 @@ func sumColors(samples []mat.Tuple4, depth int) mat.Tuple4 {
 		g += samples[i][1] * samples[i][1]
 		b += samples[i][2] * samples[i][2]
 	}
-	n := float64(len(samples) * (depth+1)) // little test to decrease the contribution the deeper we've gone
+	n := float64(len(samples) * (depth + 1)) // little test to decrease the contribution the deeper we've gone
 	return mat.NewColor(math.Sqrt(r/n), math.Sqrt(g/n), math.Sqrt(b/n))
 }
 
@@ -224,6 +224,56 @@ func (rc *Context) rayForPixelPathTracer(x, y int, out *mat.Ray) {
 	out.Origin = rc.origin
 }
 
+func (rc *Context) phong(normalizedVectorToLight mat.Tuple4, material mat.Material, computations mat.Computation, depth int, out *mat.Tuple4) {
+	// storage for light stuff
+	lightData := rc.cStack[depth].LightData
+	lightData.LightVec = normalizedVectorToLight
+	light := rc.world.Light[0]
+
+	// hadamard is a fancy name for multiplying each col of two vectors
+	mat.HadamardPtr(&material.Color, light.Intensity, &lightData.EffectiveColor)
+
+	// Add the ambient portion
+	mat.MultiplyByScalarPtr(lightData.EffectiveColor, material.Ambient, &lightData.Ambient)
+
+	// get dot product (angle) between the light and normal  vectors. If negative, it means the light source is
+	// on the backside
+	lightDotNormal := mat.Dot(lightData.LightVec, computations.NormalVec)
+	specular := lightData.Specular
+	diffuse := lightData.Diffuse
+
+	if lightDotNormal < 0 {
+		diffuse = black
+		specular = black
+	} else {
+		// Diffuse contribution Precedense here??
+
+		mat.MultiplyByScalarPtr(lightData.EffectiveColor, material.Diffuse*lightDotNormal, &diffuse)
+
+		// reflect_dot_eye represents the cosine of the angle between the
+		// reflection vector and the eye vector. A negative number means the
+		// light reflects away from the eye.
+		// Note that we negate the light vector since we want to angle of the bounce
+		// of the light rather than the incoming light vector.
+
+		mat.ReflectPtr(mat.Negate(lightData.LightVec), computations.NormalVec, &lightData.ReflectVec)
+		reflectDotEye := mat.Dot(lightData.ReflectVec, computations.EyeVec)
+
+		if reflectDotEye <= 0.0 {
+			specular = black
+		} else {
+			// compute the specular contribution
+			factor := math.Pow(reflectDotEye, material.Shininess)
+
+			// again, check precedense here
+			mat.MultiplyByScalarPtr(light.Intensity, material.Specular*factor, &specular)
+		}
+	}
+	// Add the three contributions together to get the final shading
+	// Uses standard Tuple addition
+	mat.AddPtr3(&lightData.Ambient, &diffuse, &specular, out)
+	//return lightData.Ambient.Add(diffuse.Add(specular))
+}
 
 // From Hunter Loftis path tracer:
 // https://github.com/hunterloftis/pbr/blob/1ce8b1c067eea7cf7298745d6976ba72ff12dd50/pkg/geom/dir.go
@@ -251,8 +301,8 @@ func (rc *Context) RandomConeInHemisphere(startVec mat.Tuple4, size float64) mat
 	mat.Cross2(&startVec, &s, &t)
 
 	d := mat.Tuple4{}
-	mat.MultiplyByScalarPtr(s, m1 * math.Cos(a2), &d)
-	d = mat.Add(d, mat.MultiplyByScalar(t, m1 * math.Sin(a2)))
+	mat.MultiplyByScalarPtr(s, m1*math.Cos(a2), &d)
+	d = mat.Add(d, mat.MultiplyByScalar(t, m1*math.Sin(a2)))
 	d = mat.Add(d, mat.MultiplyByScalar(startVec, m2))
 	return mat.Normalize(d)
 }

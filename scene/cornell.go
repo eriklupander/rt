@@ -29,7 +29,6 @@ func Cornell() *Scene {
 	back.SetTransform(mat.RotateX(math.Pi / 2))
 	back.SetMaterial(mat.NewMaterial(mat.NewColor(.75, .75, .75), 0.9, 0.6, 0.7, 200))
 
-
 	tp := mat.NewPlane()
 	tp.SetTransform(mat.Translate(0, 4, 0))
 	tp.SetMaterial(mat.NewMaterial(mat.NewColor(.75, .75, .75), 0.9, 0.6, 0.7, 200))
@@ -37,17 +36,17 @@ func Cornell() *Scene {
 	left := mat.NewPlane()
 	left.SetTransform(mat.Translate(-3, 0, 0))
 	left.SetTransform(mat.RotateZ(math.Pi / 2))
-	left.SetMaterial(mat.NewMaterial(mat.NewColor(.9, 0,0), 0.9, 0.6, 0.7, 200))
+	left.SetMaterial(mat.NewMaterial(mat.NewColor(.9, 0, 0), 0.9, 0.6, 0.7, 200))
 
 	right := mat.NewPlane()
 	right.SetTransform(mat.Translate(3, 0, 0))
 	right.SetTransform(mat.RotateZ(math.Pi / -2))
-	right.SetMaterial(mat.NewMaterial(mat.NewColor(0, 0.9,0), 0.9, 0.6, 0.7, 200))
+	right.SetMaterial(mat.NewMaterial(mat.NewColor(0, 0.9, 0), 0.9, 0.6, 0.7, 200))
 
 	light := mat.NewCube()
 	light.SetTransform(mat.Translate(0, 3.9, 0))
 	light.SetTransform(mat.Scale(0.4, 0.1, 0.4))
-	light.SetMaterial(mat.NewMaterial(mat.NewColor(1,1,1), 1,1,1,1))
+	light.SetMaterial(mat.NewMaterial(mat.NewColor(1, 1, 1), 1, 1, 1, 1))
 
 	return &Scene{
 		Camera: camera,

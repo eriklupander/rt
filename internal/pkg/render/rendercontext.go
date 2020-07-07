@@ -129,13 +129,14 @@ func Threaded(c mat.Camera, worlds []mat.World) *mat.Canvas {
 	}
 
 	wg.Wait()
+	done := time.Now().Sub(st)
 	fmt.Println("All done")
 	stats := runtime.MemStats{}
 	runtime.ReadMemStats(&stats)
 	fmt.Printf("Memory: %v ", bytesize.New(float64(stats.Alloc)).String())
 	fmt.Printf("Mallocs: %v ", stats.Mallocs)
 	fmt.Printf("Total alloc: %v\n", bytesize.New(float64(stats.TotalAlloc)).String())
-	fmt.Printf("%v\n", time.Now().Sub(st))
+	fmt.Printf("%v\n", done)
 	fmt.Printf("XS skipped in group: %v\n", calcstats.Cnt)
 	fmt.Printf("Transpose calls: %v\n", calcstats.Tpose)
 	fmt.Printf("Dot calls: %v\n", calcstats.Dots)
@@ -150,6 +151,9 @@ func Threaded(c mat.Camera, worlds []mat.World) *mat.Canvas {
 		time.Now().Sub(st),
 		calcstats.Cnt,
 		calcstats.Tpose)
+
+	fmt.Printf("Rays cast: %v\n", calcstats.Cnt)
+	fmt.Printf("Rays/s: %v\n", float64(calcstats.Cnt)/done.Seconds())
 
 	return canvas
 }
@@ -168,7 +172,6 @@ func (rc *Context) workerFuncPerLine() {
 		rc.wg.Done()
 	}
 }
-
 
 func (rc *Context) renderSinglePixel(col, row int) mat.Tuple4 {
 	for i := 0; i < 1024; i++ {
@@ -471,7 +474,6 @@ func (rc *Context) pointInShadow(light mat.Light, p mat.Tuple4) bool {
 	}
 	return false
 }
-
 
 //
 //// lighting computes the color of a given pixel given phong shading

@@ -10,6 +10,7 @@ type Material struct {
 	Reflectivity    float64
 	Transparency    float64
 	RefractiveIndex float64
+	Roughness       float64 // experiment. 0 == no roughness, 1 == ridiculous rough
 	Name            string
 }
 

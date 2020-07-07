@@ -68,6 +68,8 @@ func main() {
 		depthOfField()
 	case "cornell":
 		cornell()
+	case "hello":
+		hello()
 	default:
 		fmt.Println("no scene specified, rendering reference scene")
 	}
@@ -108,6 +110,19 @@ func cornell() {
 		sc := scene.Cornell()
 		w.Light = sc.Lights
 		//w.AreaLight = sc.AreaLights
+		w.Objects = sc.Objects
+		worlds[i] = w
+	}
+	canvas := render.Threaded(sc.Camera, worlds)
+	writeImagePNG(canvas, viper.GetString("scene")+".png")
+}
+func hello() {
+	sc := scene.Hello()
+	worlds := make([]mat.World, config.Cfg.Threads, config.Cfg.Threads)
+	for i := 0; i < config.Cfg.Threads; i++ {
+		w := mat.NewWorld()
+		sc := scene.Hello()
+		w.Light = sc.Lights
 		w.Objects = sc.Objects
 		worlds[i] = w
 	}
@@ -282,9 +297,10 @@ func worldWithPlane() {
 		middle.SetTransform(mat.Translate(-0.5, 0.75, 0.5))
 		middle.SetTransform(mat.Scale(0.75, 0.75, 0.75))
 		glassMtrl := mat.NewMaterial(mat.NewColor(0.8, 0.8, 0.9), 0, 0.2, 0.9, 300)
-		glassMtrl.Transparency = 1.0
+		glassMtrl.Transparency = 0.0
 		glassMtrl.RefractiveIndex = 1.57
-		glassMtrl.Reflectivity = 0.3
+		glassMtrl.Reflectivity = 0.8
+		glassMtrl.Roughness = 0.2
 		middle.SetMaterial(glassMtrl)
 		w.Objects = append(w.Objects, middle)
 

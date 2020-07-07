@@ -74,6 +74,11 @@ func AddPtr2(t1, t2 *Tuple4, t3 *Tuple4) {
 		t3[i] = t1[i] + t2[i]
 	}
 }
+func AddPtr3(t1, t2, t3, out *Tuple4) {
+	for i := 0; i < 4; i++ {
+		out[i] = t1[i] + t2[i] + t3[i]
+	}
+}
 func Add3(t1, t2, t3 Tuple4, out *Tuple4) {
 	for i := 0; i < 4; i++ {
 		out[i] = t1.Get(i) + t2.Get(i) + t3.Get(i)
